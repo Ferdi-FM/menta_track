@@ -38,6 +38,7 @@ dependencies:
   path: ^1.9.0
   sqflite: ^2.4.1
   intl: ^0.20.1
+  time_planner: ^0.1.2+1
 
 dev_dependencies:
   flutter_test:

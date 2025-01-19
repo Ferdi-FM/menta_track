@@ -56,7 +56,6 @@ class DatabaseHelper {
 
     //Einfügen der Termine in die Tabelle, die als Key den ersten Tag der Woche hat
     for (var termin in terminItems) {
-      print(termin.toString());
       await db.insert(
         'Termine',
         {

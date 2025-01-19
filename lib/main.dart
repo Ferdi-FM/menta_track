@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:menta_track/CreateDummyJsonForTesting.dart';
-import 'package:menta_track/DatabaseHelper.dart';
+import 'package:menta_track/create_dummy_json_for_testing.dart';
+import 'package:menta_track/database_helper.dart';
 import 'package:menta_track/termin.dart';
+import 'package:menta_track/week_plan_view.dart';
 import 'package:menta_track/week_tile.dart';
 import 'package:menta_track/week_tile_data.dart';
 
@@ -29,13 +30,15 @@ class MyApp extends StatelessWidget {
 }
 
 class MainPage extends StatefulWidget {
+  const MainPage({super.key});
+
   @override
-  _MainPageState createState() => _MainPageState();
+  MainPageState createState() => MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class MainPageState extends State<MainPage> {
   final dummy = CreateDummyJsonForTesting();
-  final Map<String, dynamic> WeeklyPlans = {};
+  final Map<String, dynamic> weeklyPlans = {};
   List<WeekTileData> items = [];
   DatabaseHelper databaseHelper = DatabaseHelper();
 
@@ -64,7 +67,7 @@ class _MainPageState extends State<MainPage> {
       DateTime endOfWeek = DateTime.parse(weekKey).add(Duration(days: 6));
       String startOfWeekString = DateFormat("dd-MM-yyyy").format(DateTime.parse(weekKey));
       String endOfWeekString = DateFormat("dd-MM-yyyy").format(endOfWeek);
-      String title1 = startOfWeekString + " - " + endOfWeekString;
+      String title1 = "$startOfWeekString - $endOfWeekString";
 
       WeekTileData data = WeekTileData(icon: Icons.abc, title: title1);
       addEntry(data);
@@ -91,11 +94,11 @@ class _MainPageState extends State<MainPage> {
 
         terminItems.add(t);
       }
-      WeeklyPlans[firstWeekDay] = terminItems; //fügt die Liste der Termine der Map der Wochenpläne bei Bsp: {"20-01-2025" : {Liste der Termine für Woche 20-01-2025}}
+      weeklyPlans[firstWeekDay] = terminItems; //fügt die Liste der Termine der Map der Wochenpläne bei Bsp: {"20-01-2025" : {Liste der Termine für Woche 20-01-2025}}
         List<Termin> existingPlan = await databaseHelper.getWeeklyPlan(firstWeekDay);
         if(existingPlan.isEmpty){
           await databaseHelper.insertWeeklyPlan(firstWeekDay, terminItems);
-          WeekTileData data = WeekTileData(icon: Icons.abc, title: ("Wochenplan " + firstWeekDay)); //alternativer Name, der evtl. einfacher zu handeln ist, als z.B "20-01-2025 - 26-01-2025"
+          WeekTileData data = WeekTileData(icon: Icons.abc, title: ("Wochenplan $firstWeekDay")); //alternativer Name, der evtl. einfacher zu handeln ist, als z.B "20-01-2025 - 26-01-2025"
           addEntry(data);
         }
     }
@@ -108,10 +111,49 @@ class _MainPageState extends State<MainPage> {
   }
 
   void openItem(String weekKey) async{
-    List<Termin> weekAppointments = await databaseHelper.getWeeklyPlan(weekKey);
+    String correctedKey = convertDisplayDateStringToWeekkey(weekKey);
+    print(correctedKey);
+
+    List<Termin> weekAppointments = await databaseHelper.getWeeklyPlan(correctedKey);
     for(Termin t in weekAppointments){
       print(t.toString());
     }
+
+    changeActivity(weekKey, weekAppointments, correctedKey); //Hier wegen der Info:"Don't use 'BuildContext's across async gaps"
+  }
+
+  //Man soll keinen context in async methode verwenden. Muss später eventuell noch Variabel gemacht werden
+  void changeActivity(String weekKey, List<Termin> weekAppointments, String correctedKey) {
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+        builder: (context) => WeekPlanView(
+          title: weekKey,
+          termine: weekAppointments,
+          weekKey: correctedKey,
+        ),
+        ),
+      );
+    }
+  }
+
+  //standard DateTime-Format ist (yyyy-MM-dd), deshalb wird hier übergangsweise der DisplayName zu dem in der Datenbank verwendeten key umformatiert
+  String convertDisplayDateStringToWeekkey(String displayString){
+    DateFormat format = DateFormat("dd-MM-yyyy");
+    DateTime displayDateString = format.parse(displayString.substring(0,10));
+    String correctedDate = DateFormat("yyyy-MM-dd").format(displayDateString);
+
+    return correctedDate;
+  }
+
+  //und anders herum
+  String convertWeekkeyToDisplayDateString(String weekKey){
+    DateFormat format = DateFormat("yyyy-MM-dd");
+    DateTime displayDateString = format.parse(weekKey);
+    String correctedDate = DateFormat("dd-MM-yyyy").format(displayDateString);
+
+    return correctedDate;
   }
 
   void deleteItem(String weekKey) async{
@@ -134,11 +176,11 @@ class _MainPageState extends State<MainPage> {
           return WeekTile(
             item: items[index],
             onItemTap: () {
-              print("${items[index].title} Should be opened");
+              //print("${items[index].title} Should be opened");
               openItem(items[index].title);
             },
             onDeleteTap: () {
-              print("${items[index].title} SHOULD BE DELETED");
+              //print("${items[index].title} SHOULD BE DELETED");
               deleteItem(items[index].title);
               setState(() {
                 items.removeAt(index);
