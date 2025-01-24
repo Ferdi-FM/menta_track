@@ -20,17 +20,24 @@ class WeekTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-      child: ListTile(
-        leading: Icon(item.icon),
-        title: Text(item.title),
-        trailing: IconButton(onPressed: () {
-          onDeleteTap();
-        },
-        icon: Icon(Icons.delete),),
-        onTap: () {
-          onItemTap();
-        },
-      ),
+      elevation: 10,
+        child: Container(
+          decoration: BoxDecoration(
+              border: Border(left: BorderSide(color: Colors.cyan, width: 6)),
+              borderRadius: BorderRadius.circular(10)),
+          child: ListTile(
+            minTileHeight: 72,
+            leading: Icon(item.icon),
+            title: Text(item.title, style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)), //w400 is normal, w700 is bold
+            trailing: IconButton(onPressed: () {
+              onDeleteTap();
+            },
+            icon: Icon(Icons.delete),),
+            onTap: () {
+              onItemTap();
+            },
+          ),
+        ),
     );
   }
 }
