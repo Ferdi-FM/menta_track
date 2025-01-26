@@ -37,6 +37,6 @@ class Termin {
 
   @override
   String toString() {
-    return 'Termin(terminName: $terminName, timeBegin: $timeBegin, timeEnd: $timeEnd, question0: $question0 ,question1: $question1, question2: $question2, question3: $question3, comment: $comment, answered: $answered)';
+    return "Termin(terminName: $terminName, timeBegin: $timeBegin, timeEnd: $timeEnd, question0: $question0 ,question1: $question1, question2: $question2, question3: $question3, comment: $comment, answered: $answered)";
   }
 }

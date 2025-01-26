@@ -41,6 +41,7 @@ dependencies:
   time_planner: ^0.1.2+1
   awesome_notifications: ^0.10.0
   permission_handler: ^11.3.1
+  confetti: ^0.8.0
 
 dev_dependencies:
   flutter_test:
@@ -58,6 +59,8 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  assets:
+    - assets/images/
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

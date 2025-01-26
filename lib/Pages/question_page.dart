@@ -66,15 +66,15 @@ class QuestionPageState extends State<QuestionPage> {
   //Speichert/Updated die Antworten in der Datenbank
   void saveAnswers() {
     Map<String, dynamic> updatedValues = {
-      'question0': radioAnswers[0],
-      'question1': radioAnswers[1],
-      'question2': radioAnswers[2],
-      'question3': radioAnswers[3],
-      'comment': textEditingController.text,
-      'answered': 1,
+      "question0": radioAnswers[0],
+      "question1": radioAnswers[1],
+      "question2": radioAnswers[2],
+      "question3": radioAnswers[3],
+      "comment": textEditingController.text,
+      "answered": 1,
     };
     databaseHelper.updateEntry(widget.weekKey, timeBeginForDataBase, widget.terminName, updatedValues);
-
+    Navigator.pop(context, "updated");
     //print(databaseHelper.getSpecificTermin(widget.weekKey, timeBeginForDataBase, widget.terminName).toString()); UpdateTest
   }
 
@@ -83,7 +83,9 @@ class QuestionPageState extends State<QuestionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      appBar: AppBar(title: Text(pageTitle,style: TextStyle(fontSize: 18),)),
+      appBar: AppBar(
+          title: Text(pageTitle,style: TextStyle(fontSize: 18)),
+          backgroundColor: Colors.transparent),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -105,9 +107,9 @@ class QuestionPageState extends State<QuestionPage> {
                             SizedBox(
                               height: 15,
                               child: Text(
-                                index == 0 ? 'Ja'
-                                    : index == 1 ? 'Später'
-                                    : 'Nein',
+                                index == 0 ? "Ja"
+                                    : index == 1 ? "Später"
+                                    : "Nein",
                                 style: TextStyle(fontSize: 12),
                                 textAlign: TextAlign.center,
                               ),
@@ -145,9 +147,9 @@ class QuestionPageState extends State<QuestionPage> {
                               SizedBox(
                                 height: 30,
                                 child: Text(
-                                  index == 0 ? 'sehr \n schlecht'
-                                      : index == 6 ? 'sehr \n gut'
-                                      : '\n',
+                                  index == 0 ? "sehr \n schlecht"
+                                      : index == 6 ? "sehr \n gut"
+                                      : "\n",
                                   style: TextStyle(fontSize: 12),
                                   textAlign: TextAlign.center,
                                 ),
@@ -186,9 +188,9 @@ class QuestionPageState extends State<QuestionPage> {
                               SizedBox(
                                 height: 30,
                                 child: Text(
-                                  index == 0 ? 'sehr \n ruhig'
-                                      : index == 6 ? 'sehr \n aufgeregt'
-                                      : '\n',
+                                  index == 0 ? "sehr \n aufgeregt"
+                                      : index == 6 ? "sehr \n ruig"
+                                      : "\n",
                                   style: TextStyle(fontSize: 12),
                                   textAlign: TextAlign.center,
                                 ),
@@ -226,9 +228,9 @@ class QuestionPageState extends State<QuestionPage> {
                               SizedBox(
                                 height: 30,
                                 child: Text(
-                                  index == 0 ? 'wenig \n geholfen'
-                                      : index == 6 ? 'sehr \n geholfen'
-                                      : '\n',
+                                  index == 0 ? "wenig \n geholfen"
+                                      : index == 6 ? "sehr \n geholfen"
+                                      : "\n",
                                   style: TextStyle(fontSize: 12),
                                   textAlign: TextAlign.center,
                                 ),
@@ -254,7 +256,7 @@ class QuestionPageState extends State<QuestionPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Wenn du Lust hast kannst du hier einen kurzen Kommentar hinzufügen:',
+                    Text("Wenn du Lust hast kannst du hier einen kurzen Kommentar hinzufügen:",
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     SizedBox(height: 16),
                     TextField(
@@ -263,7 +265,7 @@ class QuestionPageState extends State<QuestionPage> {
                       controller: textEditingController,
                       decoration: InputDecoration(
                         border: OutlineInputBorder(),
-                        labelText: 'Your feedback',
+                        labelText: "Dein feedback",
                       ),
                       onChanged: !widget.isEditable ? null : (value){
                         setState(() {
@@ -279,12 +281,12 @@ class QuestionPageState extends State<QuestionPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text('Cancel'),
+                      onPressed: () => Navigator.pop(context,"test"),
+                      child: Text("Cancel"),
                     ),
                     ElevatedButton(
                       onPressed: saveAnswers,
-                      child: Text('Save'),
+                      child: Text("Save"),
                     ),
                   ],
                 ),

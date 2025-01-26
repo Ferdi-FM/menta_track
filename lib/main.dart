@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:menta_track/helper_utilities.dart';
-import 'package:menta_track/create_dummy_json_for_testing.dart';
 import 'package:menta_track/database_helper.dart';
 import 'package:menta_track/import_json.dart';
+import 'package:menta_track/not_answered_page_helper.dart';
+import 'package:menta_track/not_answered_tile.dart';
 import 'package:menta_track/notification_helper.dart';
 import 'package:menta_track/termin.dart';
-import 'package:menta_track/week_plan_view.dart';
 import 'package:menta_track/week_tile.dart';
 import 'package:menta_track/week_tile_data.dart';
+
+import 'not_answered_data.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,10 +22,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: "Menta Track",
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.cyan), //Evtl darkmode
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.cyan),
+        primaryColor: Colors.lightBlueAccent,
+        appBarTheme: AppBarTheme(color: Colors.lightBlueAccent),//Evtl darkmode
         useMaterial3: true,
+      ),
+      darkTheme: ThemeData(
+
       ),
       navigatorKey: navigatorKey,
       home: MainPage(),
@@ -40,31 +46,36 @@ class MainPage extends StatefulWidget {
 }
 
 class MainPageState extends State<MainPage> {
-  final dummy = CreateDummyJsonForTesting();
-  List<WeekTileData> items = [];
   DatabaseHelper databaseHelper = DatabaseHelper();
   NotificationHelper notificationHelper = NotificationHelper();
+  //Für Seite "Home"
+  List<WeekTileData> items = [];
+  //Für Seite "Offen"
+  int selectedIndex = 1;
+  final PageController _pageController = PageController(initialPage: 1);
+  List<NotAnsweredData> itemsNotAnswered = [];
 
   @override
   void initState() {
     super.initState();
     checkDatabase();
+    setUpPageTwo();
   }
 
   //Plant die Notifications für alle Termine in der Übergebenen Woche. Checkt in den jeweiligen Funktionen erst ob sie schon geplant wurden (Muss noch getestet werden)
   void initializeNotifications(String weekKey) async {
     notificationHelper.startListeningNotificationEvents();
-
     List<Termin> weekAppointments = await databaseHelper.getWeeklyPlan(weekKey);
 
     //Notification mit allen Terminen in der Früh
     await notificationHelper.scheduleBeginNotification(weekAppointments, weekKey);
-
-    //for(Termin termin in weekAppointments){ //TODO: Testing
-      //notificationHelper.scheduleNewTerminNotification(termin, weekKey);
+    //Notification für die einzelnen Termine in der Woche
+    //for(Termin termin in weekAppointments){
+    //  notificationHelper.scheduleNewTerminNotification(termin, weekKey);
     //}
-
-    await notificationHelper.scheduleEndNotification(weekKey);
+    //Notification mit der Tagesübersicht
+    //await notificationHelper.scheduleEndNotification(weekKey);
+    await notificationHelper.scheduleTestNotification(weekKey);
   }
 
   //prüft die Datenbank auf Einträge, lädt sie in die Listenansicht und plant Notifications (TO_DO?: Datenbankeintrag mit „Notificationssheduled“ zur WeeklyPlans-Table hinzufügen, damit keine tatsächlichen Benachrichtigungen geprüft werden müssen, der Nachteil ist, dass es nur indirekt überprüft wird)
@@ -81,82 +92,37 @@ class MainPageState extends State<MainPage> {
       String endOfWeekString = DateFormat("dd-MM-yyyy").format(endOfWeek);
       String title1 = "$startOfWeekString - $endOfWeekString";
 
-      WeekTileData data = WeekTileData(icon: Icons.abc, title: title1);
+      WeekTileData data = WeekTileData(icon: Icons.abc, title: title1, weekKey: weekKey);
       addEntry(data);
 
-      testKey = weekKey;
+      //initializeNotifications(weekKey);
     }
+    testKey = weekPlans[0]["weekKey"];
     initializeNotifications(testKey); //Testing
   }
 
-  //Falls import_json.dart nicht funktioniert
-  /*Future<void> createWeekPlanMapFromJson(Map terminMap) async {
-    for(int i = 0; i < terminMap.length; i++){
-      List<Termin> terminItems = [];
-      String firstWeekDay = terminMap.keys.toList()[i].toString(); //nimmt den key der Map aus der Json-Datei um die Woche zu indentifizieren
-      List termine = terminMap[firstWeekDay]; //Liste der übertragenen Termine für die Woche
+ /* void openItem(String weekKey) async{
+    //String correctedKey = Utilities().convertDisplayDateStringToWeekkey(weekKey);
+    MyApp.navigatorKey.currentState?.push(
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => WeekPlanView(
+            weekKey: weekKey),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          const begin = Offset(1.0, 0.0);
+          const end = Offset.zero;
+          const curve = Curves.easeInOut;
 
-      for(int j = 0; j < termine.length; j++){ //Convertiert die vom Therapeuten erstelle Liste in eine Liste aus Termin-Items für den Patienten
-        var termin = termine[j];
-        Termin t = Termin(
-            terminName: termin["TerminName"],
-            timeBegin: DateTime.parse(termin["TerminBeginn"]),
-            timeEnd: DateTime.parse(termin["TerminEnde"]),
-            question0: -1,
-            question1: -1,
-            question2: -1,
-            question3: -1,
-            comment: "",
-            answered: false);
+          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          var offsetAnimation = animation.drive(tween);
 
-        terminItems.add(t);
-      }
-        List<Termin> existingPlan = await databaseHelper.getWeeklyPlan(firstWeekDay);
-        if(existingPlan.isEmpty){
-          //Erstellt Datenbank Eintrag
-          await databaseHelper.insertWeeklyPlan(firstWeekDay, terminItems);
-
-          //Erstellt item für die Liste
-          DateTime endOfWeek = DateTime.parse(firstWeekDay).add(Duration(days: 6));
-          String startOfWeekString = DateFormat("dd-MM-yyyy").format(DateTime.parse(firstWeekDay));
-          String endOfWeekString = DateFormat("dd-MM-yyyy").format(endOfWeek);
-          String title1 = "$startOfWeekString - $endOfWeekString";
-
-          WeekTileData data = WeekTileData(icon: Icons.abc, title: title1);
-          addEntry(data);
-        }
-    }
-  }
-
-  void _loadDummyData(){
-    final dummyData = dummy.getDummyData();
-    final terminMap = jsonDecode(dummyData) as Map<String, dynamic>;
-    createWeekPlanMapFromJson(terminMap);
+          return SlideTransition(
+            position: offsetAnimation,
+            child: child,
+          );
+        },
+      )
+    );
   }*/
-
-  void openItem(String weekKey) async{
-    String correctedKey = Utilities().convertDisplayDateStringToWeekkey(weekKey);
-    MyApp.navigatorKey.currentState?.push(MaterialPageRoute(
-      builder: (context) => WeekPlanView(
-        weekKey: correctedKey,
-      ),
-    ),);
-    //changeActivity(weekKey, correctedKey); //Hier wegen der Info:"Don't use 'BuildContext's across async gaps"
-  }
-
-  //Man soll keinen context in async methode verwenden. Muss später eventuell noch Variabel gemacht werden
-  void changeActivity(String weekKey, String correctedKey) {
-    if (mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-        builder: (context) => WeekPlanView(
-          weekKey: correctedKey,
-        ),
-        ),
-      );
-    }
-  }
 
   //Fügt der Liste einen Eintrag hinzu
   void addEntry(WeekTileData data){
@@ -175,37 +141,217 @@ class MainPageState extends State<MainPage> {
     databaseHelper.dropTable(correctedDate);
   }
 
+  void setUpPageTwo() async{
+    itemsNotAnswered = await NotAnsweredPageHelper().loadNotAnswered();
+  }
+
+  void addEntryAnswer(NotAnsweredData data){
+    setState(() {
+      if(!itemsNotAnswered.contains(data)){
+        itemsNotAnswered.add(data);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Wochenplan Übersicht'),
-        backgroundColor: Colors.cyan,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(15))), //Vielleicht, tendiere zu anderer Lösung
+        title:  selectedIndex == 0 ?  Text("Unbeantwortete Termine") :
+                selectedIndex == 1 ?  Text("Wochenplan Übersicht") :
+                                      Text("Übersicht"),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
+        ),
       ),
-      body: Padding(padding: EdgeInsets.only(top: 10),
-        child: ListView.builder(
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            return WeekTile(
-              item: items[index],
-              onItemTap: () {
-                openItem(items[index].title);
-              },
-              onDeleteTap: () {
-                deleteItem(items[index].title);
-                setState(() {
-                  items.removeAt(index);
-                });
-              },);
-          },
-        ),)
-      ,
+      body: GestureDetector(
+        onHorizontalDragEnd: (ev) { //links und rechts swipe
+          if (ev.primaryVelocity! > 0 && selectedIndex > 0) { //links
+            setState(() {
+              selectedIndex--;
+            });
+            _pageController.animateToPage(
+              selectedIndex,
+              duration: Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          } else if (ev.primaryVelocity! < 0 && selectedIndex < 2) { //rechts
+            setState(() {
+              selectedIndex++;
+            });
+            _pageController.animateToPage(
+              selectedIndex,
+              duration: Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
+        },
+        child: PageView(
+          controller: _pageController,
+          physics: NeverScrollableScrollPhysics(), // Deaktiviert Swipe-Gesten, um eigene zu verwenden.
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: ListView.builder(
+                itemCount: itemsNotAnswered.length,
+                itemBuilder: (context, index) {
+                  return NotAnsweredTile(
+                    item: itemsNotAnswered[index],
+                    onItemTap: () async {
+                      final result = await NotAnsweredPageHelper().openItem(itemsNotAnswered[index]);
+                      if(result != null){
+                        setState(() {
+                          itemsNotAnswered.removeAt(index);
+                        });
+                      } else {
+                        print("canceled");
+                      }
+                    },
+                  );
+                },
+              ),
+            ),
+            //Seite "Offen" Alternative:
+            //FutureBuilder(
+            //  future: NotAnsweredPageHelper().loadNotAnswered(),
+            //  builder: (context, snapshot) {
+            //    if (snapshot.hasData) {
+            //      return snapshot.data!;
+            //    } else {
+            //      return Center(child: CircularProgressIndicator());
+            //    }
+            //  },
+            //),
+            //Seite 2:
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: ListView.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) {
+                  return WeekTile(
+                    item: items[index],
+                    onDeleteTap: () async {
+                      deleteItem(items[index].title);
+                      setState(() {
+                        items.removeAt(index);
+                      });
+                    },
+                  );
+                },
+              ),
+            ),
+            // Seite "Übersicht":
+            Center(child: Text("Übersicht", style: TextStyle(fontSize: 24))),
+          ],
+        ),
+      ),
+     bottomNavigationBar: BottomNavigationBar(
+        currentIndex: selectedIndex,
+        onTap: (int index) {
+          setState(() {
+            selectedIndex = index;
+          });
+          _pageController.animateToPage(
+            index,
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        },
+        items: [
+          BottomNavigationBarItem(
+            icon: selectedIndex == 0 ? Icon(Icons.album) : Icon(Icons.album_outlined),
+            label: "Offen",
+          ),
+          BottomNavigationBarItem(
+            icon: selectedIndex == 1 ? Icon(Icons.home) : Icon(Icons.home_outlined),
+            label: "Home",
+          ),
+          BottomNavigationBarItem(
+            icon: selectedIndex == 2 ? Icon(Icons.summarize) : Icon(Icons.summarize_outlined),
+            label: "Übersicht",
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: ImportJson().loadDummyData,
+        onPressed: () {
+          print("pressed");
+          List<WeekTileData> weekLists =
+          ImportJson().loadDummyData as List<WeekTileData>;
+          for (WeekTileData data in weekLists) {
+            addEntry(data);
+          }
+        },
         backgroundColor: Colors.cyan,
         child: Icon(Icons.add_box),
       ),
     );
   }
+
+  /* Alternative Variante erst ohne BottomBar, ist ein wenig aufgeräumter,
+  body: GestureDetector(
+        child: Padding(padding: EdgeInsets.only(top: 10),
+          child: ListView.builder(
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              return WeekTile(
+                item: items[index],
+                onItemTap: () {
+                  openItem(items[index].weekKey);
+                },
+                onDeleteTap: () async{
+                  print("DELETE");
+                  deleteItem(items[index].title);
+                  setState(() {
+                    items.removeAt(index);
+                  });
+                },
+              );
+              //return Dismissible( //TODO: Eventuell coole idee zum löschen
+              //    key: Key(index.toString()),
+              //    onDismissed: (s) async{
+              //      _showDeleteDialog(items[index].title);
+              //    },
+              //    direction: DismissDirection.endToStart,
+              //    child: WeekTile(
+              //      item: items[index],
+              //      onItemTap: () {
+              //        openItem(items[index].title);
+              //      },
+              //      onDeleteTap: () {
+              //        deleteItem(items[index].title);
+              //        setState(() {
+              //          items.removeAt(index);
+              //        });
+              //      },),
+            },
+          ),
+        ),
+        onHorizontalDragEnd: (ev) {
+          if (ev.primaryVelocity! > 0){
+            print("Swipe right");
+            MyApp.navigatorKey.currentState?.push(
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      NotAnsweredPage(),
+                  transitionsBuilder: (context, animation, secondaryAnimation,
+                      child) {
+                    const begin = Offset(-1.0, 0.0);
+                    const end = Offset.zero;
+                    const curve = Curves.easeInOut;
+
+                    var tween = Tween(begin: begin, end: end).chain(
+                        CurveTween(curve: curve));
+                    var offsetAnimation = animation.drive(tween);
+
+                    return SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    );
+                  },
+                )
+            );
+          }
+        },
+      ),
+  }*/
 }
