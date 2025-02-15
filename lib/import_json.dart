@@ -21,12 +21,13 @@ class ImportJson {
   }
 
   Future<List<WeekTileData>> createWeekPlanMapFromJson(Map terminMap) async {
+    print("createWeekPlanMapFromJson");
+    print(terminMap);
     List<WeekTileData> weekAppointmentList = [];
     for (int i = 0; i < terminMap.length; i++) {
 
       List<Termin> terminItems = [];
-      String firstWeekDay = terminMap.keys.toList()[i]
-          .toString(); //nimmt den key der Map aus der Json-Datei um die Woche zu indentifizieren
+      String firstWeekDay = terminMap.keys.toList()[i].toString(); //nimmt den key der Map aus der Json-Datei um die Woche zu indentifizieren
       List termine = terminMap[firstWeekDay]; //Liste der übertragenen Termine für die Woche
 
       for (int j = 0; j < termine.length; j++) { //Convertiert die vom Therapeuten erstelle Liste in eine Liste aus Termin-Items für den Patienten
@@ -46,7 +47,7 @@ class ImportJson {
       }
 
       List<Termin> existingPlan = await databaseHelper.getWeeklyPlan(firstWeekDay);
-      if (existingPlan.isEmpty) {
+
         //Erstellt Datenbank Eintrag
         await databaseHelper.insertWeeklyPlan(firstWeekDay, terminItems);
 
@@ -58,8 +59,8 @@ class ImportJson {
 
         WeekTileData data = WeekTileData(icon: Icons.abc, title: title1, weekKey: firstWeekDay);
         //MainPageState().addEntry(data); //Geht das?
-        weekAppointmentList.add(data);
-      }
+        if (existingPlan.isEmpty) weekAppointmentList.add(data);
+
     }
     return weekAppointmentList;
   }

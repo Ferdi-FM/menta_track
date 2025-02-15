@@ -87,9 +87,14 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
       vsync: this,
       duration: Duration(milliseconds: 300),
     );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     _colorAnimation = ColorTween(
-      begin: Colors.white,
-      end: Colors.red,
+      begin: Theme.of(context).listTileTheme.tileColor ?? Colors.blueGrey, // Fallback-Wert
+      end: Colors.grey,
     ).animate(_animationController);
   }
 
@@ -112,39 +117,47 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
               print("tapping");
               openItem(widget.item.weekKey);
             },
-            child:Container(
-              decoration: BoxDecoration(
-                border: Border(left: BorderSide(color: Theme.of(context).primaryColor, width: 6)),
-                borderRadius: BorderRadius.circular(10),
-                color: _colorAnimation.value, // Use animated color
-              ),
-              child: ListTile(
-                minTileHeight: 72,
-                leading: Icon(widget.item.icon),
-                title: Text(
-                  widget.item.title,
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18),
+            child:
+              Container(//color: _colorAnimation.value
+                decoration: BoxDecoration( //rechte seite
+                  border: Border(right: BorderSide(color: _colorAnimation.value as Color, width: 5)),
+                  borderRadius: BorderRadius.horizontal(right: Radius.circular(6)),
                 ),
-                trailing: GestureDetector(
-                  child: Icon(Icons.delete),
-                  onTap: () => _animationController.reset(),
-                  onLongPressDown: (event) {
-                    _animationController.forward();
-                  },
-                  onLongPress: () async {
-                    bool? ans = await _showDeleteDialog(widget.item.title);
-                    if(ans == true){
-                      _animationController.reset(); //reset weil sonst das vorherige ListItem rot ist
-                      widget.onDeleteTap();
-                    } else {
-                      _animationController.reverse();
-                    }
-                  },
-                  onLongPressUp: () async {
-                  },
+                child: Container(
+                  decoration: BoxDecoration( //linke Seite
+                      border: Border(left: BorderSide(color: Theme.of(context).primaryColor, width: 7)),  //Borderside darf immmer nur einfarbig sein
+                      borderRadius: BorderRadius.horizontal(left: Radius.circular(10)),
+                      color: _colorAnimation.value
+                  ),
+                  child: ListTile(
+                    minTileHeight: 72,
+                    leading: Icon(widget.item.icon),
+                    title: Text(
+                      widget.item.title,
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    ),
+                    trailing: GestureDetector( //TODO?: Auf ListTile verschieben und mit Longpress direkt auf Tile löschen lassen, dieses Icon benutzen um die WeekÜbersicht zu öffnen
+                      child: Icon(Icons.delete),
+                      onTap: () => _animationController.reset(),
+                      onLongPressDown: (event) {
+                        _animationController.forward();
+                      },
+                      onLongPress: () async {
+                        bool? ans = await _showDeleteDialog(widget.item.title);
+                        if(ans == true){
+                          _animationController.reset(); //reset weil sonst das vorherige ListItem rot ist
+                          widget.onDeleteTap();
+                        } else {
+                          _animationController.reverse();
+                        }
+                      },
+                      onLongPressUp: () async {
+                      },
+                    ),
+                  ),
                 ),
               ),
-            ),
+
           ),
         );
       },

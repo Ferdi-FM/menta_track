@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:string_similarity/string_similarity.dart';
 
 import 'termin.dart';
 
@@ -21,10 +22,23 @@ class DatabaseHelper {
        await db.execute('''
          CREATE TABLE WeeklyPlans(
            id INTEGER PRIMARY KEY,
-           weekKey TEXT UNIQUE
+           weekKey TEXT UNIQUE,
+           goodMean INTEGER,
+           calmMean INTEGER,
+           helpingMean INTEGER
          )
        ''');
 
+       //Tables zum speichern der Aktivitäten, die gut getan haben
+       await db.execute('''
+         CREATE TABLE savedActivities(
+           id INTEGER PRIMARY KEY,
+           activity TEXT,
+           category TEXT
+         )
+       ''');
+
+       //TODO: Woche nach erstem Termin laden und nicht immer Montag, ist schon integriert?
         await db.execute('''
           CREATE TABLE Termine(
             id INTEGER PRIMARY KEY,
@@ -42,7 +56,7 @@ class DatabaseHelper {
           )
         ''');
       },
-      version: 1,
+      version: 2,
     );
   }
 
@@ -53,30 +67,84 @@ class DatabaseHelper {
     await db.insert(
       "WeeklyPlans",
       {"weekKey": weekKey},
-      conflictAlgorithm: ConflictAlgorithm.replace,
+      conflictAlgorithm: ConflictAlgorithm.ignore,
     );
 
     //Einfügen der Termine in die Tabelle, die als Key den ersten Tag der Woche hat
+    print("Starte Einfügen:____________________________");
     for (var termin in terminItems) {
-      await db.insert(
-        "Termine",
-        {
-          "weekKey": weekKey,
-          "terminName": termin.terminName,
-          "timeBegin": termin.timeBegin.toIso8601String(),
-          "timeEnd": termin.timeEnd.toIso8601String(),
-          "question0" : termin.question0,
-          "question1": termin.question1,
-          "question2": termin.question2,
-          "question3": termin.question3,
-          "comment": termin.comment,
-          "answered": termin.answered ? 1 : 0,
-        }, //Druch die verschachtelung mit dem weekkey konnte ich nicht einfach die Map übertragen
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+      Termin? t = await getSpecificTermin(weekKey, termin.timeBegin.toIso8601String(), termin.terminName); //checkt ob es den Termin schon gibt
+      if(t == null) { //Sollte es notwendig werden, dass eine Woche geupdated wird, ist es so möglich, da Termine-Table keine unique Keys hat. Man könne timebegin und end zu UNIQUE machen, dann könnte man aber keine 2 Termine zur gleichen zeit haben
+        print("Termin hat noch NICHT exisitert!!!: $t" );
+        await db.insert(
+          "Termine",
+          {
+            "weekKey": weekKey,
+            "terminName": termin.terminName,
+            "timeBegin": termin.timeBegin.toIso8601String(),
+            "timeEnd": termin.timeEnd.toIso8601String(),
+            "question0": termin.question0,
+            "question1": termin.question1,
+            "question2": termin.question2,
+            "question3": termin.question3,
+            "comment": termin.comment,
+            "answered": termin.answered ? 1 : 0,
+          },
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
+      } else {
+        print("Termin hat SCHON exisitert:  ${t.toString()}");
+      }
+      print("-----------------------------------------");
     }
   }
 
+  Future<void> saveHelpingActivities(String activity, String category) async {
+   if(category == "good" || category == "calm" || category == "help"){//Check ob es eine der drei richtigen kategorien ist
+     final db = await database;
+     bool doesAlreadyExist = false;
+     //final List<Map<String, dynamic>> result = await db.query(
+     //  "activities",
+     //  where: "activity = ? AND category = ?",
+     //  whereArgs: [activity, category],
+     //);
+     print("In saveHelpingActivities: $activity in Kategorie $category");
+     final List<Map<String, dynamic>> result = await db.query(
+       "savedActivities",
+       where: "category = ?",
+       whereArgs: [category],
+     );
+     for (var row in result) {
+       String databaseActivity = row["activity"].toLowerCase().trim();
+       String newActivity = activity.toLowerCase().trim();
+
+       double similarity = databaseActivity.similarityTo(newActivity); // Wert zwischen 0 und 1
+
+       if (similarity > 0.8) {
+         doesAlreadyExist = true;
+         break;
+       }
+     }
+
+     if(!doesAlreadyExist){
+       await db.insert(
+           "savedActivities",
+           {
+             "activity": activity,
+             "category": category,
+           });
+     }
+   }
+
+  }
+
+  Future<List<Map<String, dynamic>>> getHelpingActivity() async{
+    final db = await database;
+    return await db.query("savedActivities");
+  }
+
+
+  //TODO: vereinfachen
   //Gibt eine Liste mit allen Terminen in einer woche "weekKey" aus der Datenbank zurück. WeekKey braucht format "yyyy-MM-dd"
   Future<List<Termin>> getWeeklyPlan(String weekKey) async {
     final db = await database;

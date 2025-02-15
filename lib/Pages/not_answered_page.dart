@@ -1,29 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:menta_track/database_helper.dart';
-import 'package:menta_track/not_answered_data.dart';
-import 'package:menta_track/not_answered_tile.dart';
 import 'package:menta_track/Pages/question_page.dart';
-import 'package:menta_track/termin.dart';
+import 'package:menta_track/database_helper.dart';
+
 import '../main.dart';
+import '../not_answered_data.dart';
+import '../not_answered_tile.dart';
+import '../termin.dart';
 
-class NotAnsweredPage extends StatefulWidget{
+class NotAnsweredPage extends StatefulWidget {
 
-  const NotAnsweredPage({
-    super.key,});
+  const NotAnsweredPage({super.key,});
 
   @override
-  NotAnsweredPageState createState() => NotAnsweredPageState();
-
+  NotAnsweredState createState() => NotAnsweredState();
 }
 
-class NotAnsweredPageState extends State<NotAnsweredPage> {
-  List<NotAnsweredData> items = [];
-
+class NotAnsweredState extends State<NotAnsweredPage> {
+  DatabaseHelper databaseHelper = DatabaseHelper();
+  List<NotAnsweredData> itemsNotAnswered = [];
+  bool loaded = false;
 
   @override
   void initState() {
-    loadNotAnswered();
+    setUpPage();
     super.initState();
   }
 
@@ -36,103 +36,84 @@ class NotAnsweredPageState extends State<NotAnsweredPage> {
       String weekKey = weekPlan["weekKey"];
 
       List<Termin> weekAppointments = await databaseHelper.getWeeklyPlan(weekKey); //await muss nach den erstellen der CalendarHeader passieren
-        for(Termin t in weekAppointments){
+      for(Termin t in weekAppointments){
 
-          if(!t.answered && DateTime.now().isAfter(t.timeEnd)){
-            String title = "${t.terminName} am ${DateFormat("dd.MM").format(t.timeBegin)} um ${DateFormat("HH:mm").format(t.timeBegin)}";
+        if(!t.answered && DateTime.now().isAfter(t.timeEnd)){
+          //String title = "$t.terminName  \n am ${DateFormat("dd.MM").format(t.timeBegin)} um ${DateFormat("HH:mm").format(t.timeBegin)}";
 
-            NotAnsweredData data = NotAnsweredData(icon: Icons.priority_high_rounded,title: title, dayKey: t.timeBegin.toString(), weekKey: weekKey, terminName: t.terminName);
-
-              items.add(data);
-
-          }
+          NotAnsweredData data = NotAnsweredData(icon: Icons.priority_high_rounded,title: t.terminName, dayKey: t.timeBegin.toString(), weekKey: weekKey, terminName: t.terminName);
+          items.add(data);
+        }
       }
     }
     return items;
   }
 
-  void openItem(NotAnsweredData data) async{
-    MyApp.navigatorKey.currentState?.push(
+  dynamic openItem(NotAnsweredData data,var ev) async{
+    Offset pos = ev.globalPosition;
+
+    return await MyApp.navigatorKey.currentState?.push(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) => QuestionPage(
               weekKey: data.weekKey,
               timeBegin: data.dayKey,
-              terminName: data.terminName,
-              isEditable: true),
+              terminName: data.terminName),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(1.0, 0.0);
-            const end = Offset.zero;
             const curve = Curves.easeInOut;
 
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-            var offsetAnimation = animation.drive(tween);
+            // Erstelle eine Skalierungs-Animation
+            var tween = Tween<double>(begin: 0.01, end: 1.0).chain(CurveTween(curve: curve));
+            var scaleAnimation = animation.drive(tween);
 
-            return SlideTransition(
-              position: offsetAnimation,
+            return ScaleTransition(
+              scale: scaleAnimation,
+              alignment: Alignment(pos.dx / MediaQuery.of(context).size.width * 2 - 1,
+                  pos.dy / MediaQuery.of(context).size.height * 2 - 1),
               child: child,
             );
           },
         )
     );
-
-    //MyApp.navigatorKey.currentState?.push(MaterialPageRoute(
-    //  builder: (context) => WeekPlanView(
-    //    weekKey: correctedKey,
-    //  ),
-    //),);
-    //changeActivity(weekKey, correctedKey); //Hier wegen der Info:"Don't use 'BuildContext's across async gaps"
   }
 
-  //Fügt der Liste einen Eintrag hinzu
-  void addEntryAnswer(NotAnsweredData data){
+  void setUpPage() async {
+    itemsNotAnswered = await loadNotAnswered();
     setState(() {
-      if(!items.contains(data)){
-        items.add(data);
+      loaded = true;
+    });
+  }
+
+  void addEntryAnswer(NotAnsweredData data) {
+    setState(() {
+      if (!itemsNotAnswered.contains(data)) {
+        itemsNotAnswered.add(data);
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Unbeantwortete Termine"),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(15))), //Vielleicht, tendiere zu anderer Lösung
-      ),
-      body:
-      GestureDetector(
-        child: Padding(padding: EdgeInsets.only(top: 10),
-          child: ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              return NotAnsweredTile(
-                item: items[index],
-                onItemTap: () {
-                  openItem(items[index]);
-                },
-              );
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: ListView.builder(
+        itemCount: itemsNotAnswered.length,
+        itemBuilder: (context, index) {
+          return NotAnsweredTile(
+            item: itemsNotAnswered[index],
+            onItemTap: (ev) async {
+              final result = await openItem(
+                  itemsNotAnswered[index],ev);
+              if (result != null) {
+                setState(() {
+                  itemsNotAnswered.removeAt(index);
+                });
+              } else {
+                print("canceled");
+              }
             },
-          ),
-        ),
-        onHorizontalDragEnd: (ev) {
-          if (ev.primaryVelocity! < 0) {
-            print("Swipe left");
-            Navigator.pop(context);
-          }
+          );
         },
       ),
-      bottomNavigationBar:
-      BottomNavigationBar(items: [
-        BottomNavigationBarItem(
-            icon: Icon(Icons.album),
-            label: "Offen"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: "Home"),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.summarize_outlined),
-            label: "Übersicht")
-      ],),
     );
   }
 

@@ -5,7 +5,7 @@ import 'package:menta_track/not_answered_data.dart';
 import 'package:menta_track/Pages/question_page.dart';
 import 'package:menta_track/termin.dart';
 
-import '../main.dart';
+import '../../main.dart';
 
 class NotAnsweredPageHelper{
 
@@ -54,8 +54,7 @@ class NotAnsweredPageHelper{
           pageBuilder: (context, animation, secondaryAnimation) => QuestionPage(
               weekKey: data.weekKey,
               timeBegin: data.dayKey,
-              terminName: data.terminName,
-              isEditable: true),
+              terminName: data.terminName,),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;

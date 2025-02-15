@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:menta_track/Pages/day_overview.dart';
 import 'package:menta_track/Pages/week_overview.dart';
+import 'package:menta_track/database_helper.dart';
 import 'package:menta_track/main.dart';
 import 'package:menta_track/Pages/question_page.dart';
 import 'package:menta_track/termin.dart';
@@ -32,6 +33,8 @@ class NotificationHelper{
               ledColor: Colors.deepPurple)
         ],
         debug: true);
+    bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+    if (!isAllowed) isAllowed = await displayNotificationRationale();
        //await Permission.notification.request(); Alternative permisson funktion, da displayNotificationRationale ursprünglich nicht funktionierte
   }
 
@@ -45,8 +48,6 @@ class NotificationHelper{
     IsolateNameServer.registerPortWithName(
         receivePort!.sendPort, "notification_action_port");
   }
-
-
 
   @pragma("vm:entry-point")
   static Future<void> onActionReceivedMethod(
@@ -97,9 +98,7 @@ class NotificationHelper{
             builder: (context) => QuestionPage(
               weekKey: weekKey,
               timeBegin: timeBegin,
-              terminName: terminName,
-              isEditable: true,
-            ),
+              terminName: terminName),
           ));
         }
         return;
@@ -108,8 +107,9 @@ class NotificationHelper{
           print("Should open DayOverView");
           MyApp.navigatorKey.currentState?.push(MaterialPageRoute(
             builder: (context) => DayOverviewPage(
-                weekKey: weekKey,
-                weekDayKey: weekDayKey,),
+                weekKey: weekKey, //standard DateTime ("yyyy-MM-dd")
+                weekDayKey: weekDayKey, //Format("dd.MM.yy")
+                fromNotification: true,),
           ));
         }
         return;
@@ -119,6 +119,14 @@ class NotificationHelper{
             builder: (context) =>
                 WeekOverview(
                     weekKey: weekKey),
+          ));
+        }
+        return;
+      case "MainPage":
+        if(weekKey != null) {
+          MyApp.navigatorKey.currentState?.push(MaterialPageRoute(
+            builder: (context) =>
+                MainPage(),
           ));
         }
         return;
@@ -200,9 +208,6 @@ class NotificationHelper{
     if (!isAllowed) return;
 
     DateTime firstWeekDayMorning = DateTime.parse(weekKey).add(Duration(hours: 7)); //benachrichtigung um 7Uhr morgens
-    String testTitle = "";
-    String testtestMessage = "";
-
 
     //Ich benutze hier nicht die getDayTermine() funktion aus database_helper, weil ich eh für jeden Wochentag die Termine brauche und so nur einmal die Datenbank auslesen muss, wird evtl noch geändert
     for(int i = 0; i < 7;i++){
@@ -210,51 +215,39 @@ class NotificationHelper{
       DateTime currentDay = firstWeekDayMorning.add(Duration(days: i));
       String title = "Termine am ${DateFormat("dd.MM.yy").format(currentDay)}";
       String message = "Heute stehen folgende Termine an ${Emojis.smile_relieved_face} \n";
-
+      bool noTasks = false;
 
       for(Termin termin in termine){
         if(DateFormat("dd.MM.yy").format(currentDay) == DateFormat("dd.MM.yy").format(termin.timeBegin)){
-          //print("- ${termin.terminName} um ${DateFormat("HH:mm").format(termin.timeBegin)} \n");
           termineForThisDay.add(termin);
         }
       }
 
-      if(termineForThisDay.isNotEmpty){ //Benachrichtigt nur, wenn es auch einen Termin gibt
+      if(termineForThisDay.isNotEmpty){ //Benachrichtigt wenn es Termine gibt
         for(Termin t in termineForThisDay){
           message = "$message - ${t.terminName} um <b>${DateFormat("HH:mm").format(t.timeBegin)}<b> \n";
         }
-        testtestMessage = message;
-        testTitle = title;
       } else {
-        //Evtl andere motivierende Nachricht
+        noTasks = true;
+        message = "Heute stehen keine Termine an, also lehn dich zurück und Entspann dich ${Emojis.smile_smiling_face}";
       }
-    }
 
-    print("----------------------REALTEST-----------------------");
-    //DateTime triggerTestTime = DateTime(DateTime.now().year,DateTime.now().month,DateTime.now().day, 18);
-    DateTime triggerTestTime = DateTime.now().add(Duration(seconds: 5));
+      if(!await isNotificationScheduled(currentDay.hashCode)){ //Works
+        print("Notification should be scheduled");
+        await myNotifyScheduleInHours(
+            hashCode: currentDay.hashCode,
+            title: "${Emojis.office_tear_off_calendar} $title",
+            msg: message,
+            triggerDateTime: currentDay,
+            repeatNotif: false,
+            payLoad: {
+              "weekKey": weekKey,
+              "siteToOpen": noTasks ? "MainPage" : "WeekPlanView"
+            });
+      }else{
+        print("$currentDay Is already scheduled");
+      }
 
-    int testHash = triggerTestTime.hashCode;
-
-    print("$testTitle \n $testtestMessage \n Jetzt ist es ${DateTime.now().toString()} und die Notification wird triggern um:  ${triggerTestTime.toString()}");
-
-    //print(triggerTestTime.toString());
-    //print("New Hash  ${testHash} ");
-
-    if(!await isNotificationScheduled(testHash)){ //Works
-      print("Notification should be scheduled");
-      await myNotifyScheduleInHours(
-          hashCode: testHash,
-          title: "${Emojis.office_tear_off_calendar} $testTitle",
-          msg: testtestMessage,
-          triggerDateTime: triggerTestTime,
-          repeatNotif: false,
-          payLoad: {
-            "weekKey": weekKey,
-            "siteToOpen": "WeekPlanView"
-          });
-    }else{
-      print("$testHash Is already scheduled");
     }
   }
 
@@ -289,40 +282,7 @@ class NotificationHelper{
     }
 
     //TODO: add wendofWekkNotification here
-
-
-    //print("Notification should be scheduled");
   }
-
-  //TODO: Testing
-  Future<void> scheduleTestNotification(String weekKey) async {
-    //Check ob Permissions gegeben wurden
-    bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
-    if (!isAllowed) isAllowed = await displayNotificationRationale();
-    if (!isAllowed) return;
-
-    DateTime testTime = DateTime.now().add(Duration(seconds: 2)); //benachrichtigung um 22Uhr Abends/Nachts
-    DateTime testTerminTime = DateTime.parse(weekKey).add(Duration(hours: 22));
-      String title = "Termin-Übersicht für den ${DateFormat("dd.MM.yy").format(testTime)}";
-      String message = "Heute hast du folgende Termine bewältigt ${Emojis.smile_relieved_face} \n";
-
-      //TODO: - Überlegen, ob eine Nachricht angezeigt werden soll, wenn keine Termine an dem Tag waren
-      //TODO: - Überlegen was in die Benachrichtigung soll, da eig erst in dem DayOverView Daten geladen werden sollen, aber muss evtl hier schon ausgeben
-
-      await myNotifyScheduleInHours(
-          hashCode: testTime.hashCode,
-          title: title,
-          msg: message,
-          triggerDateTime: testTime,
-          repeatNotif: false,
-          payLoad: {
-            "weekKey": weekKey,
-            "weekDayKey": DateFormat("dd.MM.yy").format(testTerminTime), //DayOverView braucht ("dd.MM.yy") format
-            "siteToOpen": "DayOverView" //Muss in DayOverView aus der Datenbank laden um aktuelle Daten zu erhalten
-          });
-    }
-    //print("Notification should be scheduled");
-
 
   //Plant die Benachrichtigungen für die einzelnen Termine
   Future<void> scheduleNewTerminNotification(Termin termin, String weekKey) async {
@@ -356,15 +316,82 @@ class NotificationHelper{
               "weekKey": weekKey,
               "timeBegin": termin.timeBegin.toString(),
               "terminName": termin.terminName,
-              "SiteToOpen": "QuestionPage"
+              "siteToOpen": i == 2 ? "QuestionPage" : "WeekPlanView" //Nur wenn Termin vorbei ist wird zur QuestionPage geleitet //TODO: Evaluieren obs anders besser wäre
             });
       }
     }
   }
-}
 
-Future<void> scheduleEndOfWeekNotification(String weekKey) async {
-  //TODO:
+  Future<void> scheduleEndOfWeekNotification(String weekKey) async {
+    //TODO: Implement
+  }
+
+  //TODO: Testing
+  Future<void> scheduleTestNotification(String weekKey) async {
+    //Check ob Permissions gegeben wurden
+    bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+    if (!isAllowed) isAllowed = await displayNotificationRationale();
+    if (!isAllowed) return;
+
+    DateTime testTime = DateTime.now().add(Duration(seconds: 2)); //benachrichtigung um 22Uhr Abends/Nachts
+    DateTime testTerminTime = DateTime.parse(weekKey).add(Duration(hours: 22));
+    String title = "Aktivität-Übersicht für den ${DateFormat("dd.MM.yy").format(testTime)}";
+    String message = "Heute hast du folgende Aktivitäten bewältigt ${Emojis.smile_relieved_face} \n";
+    List<Termin> testTerminList = await DatabaseHelper().getWeeklyPlan(weekKey);
+    Termin testTermin = testTerminList[0];
+    //TODO: - Überlegen, ob eine Nachricht angezeigt werden soll, wenn keine Termine an dem Tag waren
+    //TODO: - Überlegen was in die Benachrichtigung soll, da eig erst in dem DayOverView Daten geladen werden sollen, aber muss evtl hier schon ausgeben
+
+
+    //DayÜbersicht
+    await myNotifyScheduleInHours(
+        hashCode: testTime.hashCode,
+        title: title,
+        msg: message,
+        triggerDateTime: testTime,
+        repeatNotif: false,
+        payLoad: {
+          "weekKey": weekKey,
+          "weekDayKey": DateFormat("dd.MM.yy").format(testTerminTime), //DayOverView braucht ("dd.MM.yy") format
+          "siteToOpen": "DayOverView" //Muss in DayOverView aus der Datenbank laden um aktuelle Daten zu erhalten
+        });
+    //WeekÜbersicht
+    await myNotifyScheduleInHours(
+        hashCode: testTime.hashCode+1,
+        title: "Aktivitäten diese Woche",
+        msg: "Aktivitäten die diese Woche bewältigt wurden",
+        triggerDateTime: testTime,
+        repeatNotif: false,
+        payLoad: {
+          "weekKey": weekKey,
+          "siteToOpen": "WeekOverView" //Muss in DayOverView aus der Datenbank laden um aktuelle Daten zu erhalten
+        });
+    //Einzelner Termin
+    await myNotifyScheduleInHours(
+        hashCode: testTime.hashCode+2,
+        title: testTermin.terminName,
+        msg: "${testTermin.terminName} steht an",
+        triggerDateTime: testTime,
+        repeatNotif: false,
+        payLoad: {
+          "weekKey": weekKey,
+          "timeBegin": testTermin.timeBegin.toString(),
+          "terminName": testTermin.terminName,
+          "siteToOpen": "QuestionPage"
+        });
+    //BeginÜbersicht
+    await myNotifyScheduleInHours(
+        hashCode: testTime.hashCode+3,
+        title: "Heute steht an",
+        msg: "Heute steht \n - Hunde gassi \n an",
+        triggerDateTime: testTime,
+        repeatNotif: false,
+        payLoad: {
+          "weekKey": weekKey,
+          "siteToOpen": "WeekPlanView"
+        });
+  }
+
 }
 
 //Checkt ob schon eine Benachrichtigung geplant ist
@@ -392,8 +419,6 @@ Future<void> myNotifyScheduleInHours({
       allowWhileIdle: true,
       preciseAlarm: true,
     ),
-    // schedule: NotificationCalendar.fromDate(
-    //    date: DateTime.now().add(const Duration(seconds: 10))),
     content: NotificationContent(
       id: hashCode,
       channelKey: "termin_Notifications",
@@ -407,15 +432,5 @@ Future<void> myNotifyScheduleInHours({
       // customSound: "resource://raw/notif",
       payload: payLoad,
     ),
-    actionButtons: [
-      NotificationActionButton(
-        key: "NOW",
-        label: "btnAct1",
-      ),
-      NotificationActionButton(
-        key: "LATER",
-        label: "btnAct2",
-      ),
-    ],
   );
 }

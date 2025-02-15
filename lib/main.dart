@@ -1,40 +1,88 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:menta_track/Pages/activity_summary.dart';
+import 'package:menta_track/Pages/not_answered_page.dart';
 import 'package:menta_track/database_helper.dart';
+import 'package:menta_track/helper_utilities.dart';
 import 'package:menta_track/import_json.dart';
-import 'package:menta_track/not_answered_page_helper.dart';
-import 'package:menta_track/not_answered_tile.dart';
 import 'package:menta_track/notification_helper.dart';
 import 'package:menta_track/termin.dart';
 import 'package:menta_track/week_tile.dart';
 import 'package:menta_track/week_tile_data.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'not_answered_data.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
   static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  MyAppState createState() => MyAppState();
+
+  static MyAppState of(BuildContext context) =>
+      context.findAncestorStateOfType<MyAppState>()!;
+}
+
+class MyAppState extends State<MyApp> {
+  ThemeMode themeMode = ThemeMode.system;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "Menta Track",
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.cyan),
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.cyan,
+            brightness: Brightness.light),
         primaryColor: Colors.lightBlueAccent,
-        appBarTheme: AppBarTheme(color: Colors.lightBlueAccent),//Evtl darkmode
+        appBarTheme: AppBarTheme(color: Colors.lightBlue.shade300),//Evtl darkmode
+        scaffoldBackgroundColor: Colors.lightBlue.shade50,
+        listTileTheme: ListTileThemeData(
+          tileColor: Colors.white,
+          textColor: Colors.black,
+          iconColor: Colors.lightBlueAccent,
+        ),
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+            backgroundColor: Colors.lightBlue.shade100,
+            selectedItemColor:Colors.lightBlueAccent.shade400 ,
+            unselectedItemColor: Colors.black87),
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
-
+        fontFamily: "Comfortaa",
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.cyan,
+          brightness: Brightness.dark,
+        ),
+        primaryColor: Colors.lightBlueAccent,
+        appBarTheme: AppBarTheme(color: Colors.lightBlueAccent.shade400),
+        scaffoldBackgroundColor: Colors.blueGrey.shade800,
+        listTileTheme: ListTileThemeData(
+          tileColor: Colors.grey.shade600,
+          textColor: Colors.white,
+          iconColor: Colors.lightBlueAccent,
+        ),
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          backgroundColor: Colors.blueGrey.shade700,
+          selectedItemColor: Colors.lightBlueAccent,
+          unselectedItemColor: Colors.white70,
+        ),
+        useMaterial3: true,
       ),
-      navigatorKey: navigatorKey,
+      themeMode: themeMode,
+      navigatorKey: MyApp.navigatorKey,
       home: MainPage(),
     );
+  }
+
+  void changeTheme(ThemeMode themeMode) {
+    setState(() {
+      this.themeMode = themeMode;
+    });
   }
 }
 
@@ -43,23 +91,29 @@ class MainPage extends StatefulWidget {
 
   @override
   MainPageState createState() => MainPageState();
+
 }
 
 class MainPageState extends State<MainPage> {
   DatabaseHelper databaseHelper = DatabaseHelper();
   NotificationHelper notificationHelper = NotificationHelper();
+  final FocusNode _buttonFocusNode = FocusNode(debugLabel: 'Menu Button');
+  bool isDarkMode = false;
+  final PageController _pageController = PageController(initialPage: 1);
+
   //Für Seite "Home"
   List<WeekTileData> items = [];
+
   //Für Seite "Offen"
   int selectedIndex = 1;
-  final PageController _pageController = PageController(initialPage: 1);
+
   List<NotAnsweredData> itemsNotAnswered = [];
 
   @override
   void initState() {
     super.initState();
+    loadTheme();
     checkDatabase();
-    setUpPageTwo();
   }
 
   //Plant die Notifications für alle Termine in der Übergebenen Woche. Checkt in den jeweiligen Funktionen erst ob sie schon geplant wurden (Muss noch getestet werden)
@@ -70,86 +124,77 @@ class MainPageState extends State<MainPage> {
     //Notification mit allen Terminen in der Früh
     await notificationHelper.scheduleBeginNotification(weekAppointments, weekKey);
     //Notification für die einzelnen Termine in der Woche
-    //for(Termin termin in weekAppointments){
-    //  notificationHelper.scheduleNewTerminNotification(termin, weekKey);
-    //}
+    for(Termin termin in weekAppointments){
+      notificationHelper.scheduleNewTerminNotification(termin, weekKey);
+    }
     //Notification mit der Tagesübersicht
-    //await notificationHelper.scheduleEndNotification(weekKey);
+    await notificationHelper.scheduleEndNotification(weekKey);
     await notificationHelper.scheduleTestNotification(weekKey);
   }
 
   //prüft die Datenbank auf Einträge, lädt sie in die Listenansicht und plant Notifications (TO_DO?: Datenbankeintrag mit „Notificationssheduled“ zur WeeklyPlans-Table hinzufügen, damit keine tatsächlichen Benachrichtigungen geprüft werden müssen, der Nachteil ist, dass es nur indirekt überprüft wird)
-  void checkDatabase() async{
+  void checkDatabase() async {
     List<Map<String, dynamic>> weekPlans = await databaseHelper.getAllWeekPlans();
     String testKey = "";
-    if(weekPlans.isEmpty) return;
+    if (weekPlans.isEmpty) return;
+
     for (var weekPlan in weekPlans) {
       String weekKey = weekPlan["weekKey"];
 
       //Konvertiert standard DateTime in  DE-standard
       DateTime endOfWeek = DateTime.parse(weekKey).add(Duration(days: 6));
-      String startOfWeekString = DateFormat("dd-MM-yyyy").format(DateTime.parse(weekKey));
+      String startOfWeekString = DateFormat("dd-MM-yyyy").format(
+          DateTime.parse(weekKey));
       String endOfWeekString = DateFormat("dd-MM-yyyy").format(endOfWeek);
       String title1 = "$startOfWeekString - $endOfWeekString";
 
-      WeekTileData data = WeekTileData(icon: Icons.abc, title: title1, weekKey: weekKey);
+      WeekTileData data = WeekTileData(
+          icon: Icons.abc, title: title1, weekKey: weekKey);
       addEntry(data);
 
       //initializeNotifications(weekKey);
     }
-    testKey = weekPlans[0]["weekKey"];
+    testKey = weekPlans[1]["weekKey"];
     initializeNotifications(testKey); //Testing
   }
 
- /* void openItem(String weekKey) async{
-    //String correctedKey = Utilities().convertDisplayDateStringToWeekkey(weekKey);
-    MyApp.navigatorKey.currentState?.push(
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => WeekPlanView(
-            weekKey: weekKey),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0);
-          const end = Offset.zero;
-          const curve = Curves.easeInOut;
-
-          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-          var offsetAnimation = animation.drive(tween);
-
-          return SlideTransition(
-            position: offsetAnimation,
-            child: child,
-          );
-        },
-      )
-    );
-  }*/
-
   //Fügt der Liste einen Eintrag hinzu
-  void addEntry(WeekTileData data){
+  void addEntry(WeekTileData data) {
     setState(() {
-      if(!items.contains(data)){
+      if (!items.contains(data)) {
         items.add(data);
       }
     });
   }
 
   //löscht Eintrag aus der Liste
-  void deleteItem(String weekKey) async{
+  void deleteItem(String weekKey) async {
     DateFormat format = DateFormat("dd-MM-yyyy");
-    DateTime displayDateString = format.parse(weekKey.substring(0,10));
+    DateTime displayDateString = format.parse(weekKey.substring(0, 10));
     String correctedDate = DateFormat("yyyy-MM-dd").format(displayDateString);
     databaseHelper.dropTable(correctedDate);
   }
 
-  void setUpPageTwo() async{
-    itemsNotAnswered = await NotAnsweredPageHelper().loadNotAnswered();
+  // Lädt den gespeicherten Darkmode-Wert
+  void loadTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      isDarkMode = prefs.getBool("darkMode") ?? false;
+      print(isDarkMode);
+      ThemeMode mode = isDarkMode ? ThemeMode.dark : ThemeMode.light;
+      MyApp.of(context).changeTheme(mode);
+    });
+
   }
 
-  void addEntryAnswer(NotAnsweredData data){
+  Future<void> toggleDarkMode(bool val) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool("darkMode", val);
+    print(val);
     setState(() {
-      if(!itemsNotAnswered.contains(data)){
-        itemsNotAnswered.add(data);
-      }
+      isDarkMode = val;
+      ThemeMode mode = isDarkMode ? ThemeMode.dark : ThemeMode.light;
+      MyApp.of(context).changeTheme(mode);
     });
   }
 
@@ -157,15 +202,67 @@ class MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:  selectedIndex == 0 ?  Text("Unbeantwortete Termine") :
-                selectedIndex == 1 ?  Text("Wochenplan Übersicht") :
-                                      Text("Übersicht"),
+        title: selectedIndex == 0 ? Text("Unbeantwortete Termine") :
+        selectedIndex == 1 ? Text("Wochenplan Übersicht") :
+        Text("Übersicht"),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
         ),
+        actions: [ //TODO: Reaktivieren, implementation ist fertig
+      Padding(
+      padding: EdgeInsets.only(right: 5),
+      child: MenuAnchor(
+                menuChildren: <Widget>[
+                  MenuItemButton(
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.help_rounded),
+                          SizedBox(width: 10),
+                          Text("Hilfe")
+                        ],
+                      ),
+                    ),
+                    onPressed: () => Utilities().showHelpDialog(context, "MainPage"),
+                  ),
+                  MenuItemButton(
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text("Darkmode"),
+                          SizedBox(width: 5),
+                          Switch(
+                            value: isDarkMode,
+                            onChanged: (value) {
+                              isDarkMode = isDarkMode;
+                              toggleDarkMode(value);
+                            },
+                          ),
+                        ]
+                    ),
+                    onPressed: () => print("Two"),
+                  ),
+                ],
+                builder: (BuildContext context, MenuController controller, Widget? child) {
+                  return TextButton(
+                    focusNode: _buttonFocusNode,
+                    onPressed: () {
+                      if (controller.isOpen) {
+                        controller.close();
+                      } else {
+                        controller.open();
+                      }
+                    },
+                    child: const Icon(Icons.menu, size: 30),
+                  );
+                }
+            ),
+          ),
+        ],
       ),
       body: GestureDetector(
-        onHorizontalDragEnd: (ev) { //links und rechts swipe
+        onHorizontalDragEnd: (ev) { //links und rechts swipe Logik
           if (ev.primaryVelocity! > 0 && selectedIndex > 0) { //links
             setState(() {
               selectedIndex--;
@@ -190,62 +287,70 @@ class MainPageState extends State<MainPage> {
           controller: _pageController,
           physics: NeverScrollableScrollPhysics(), // Deaktiviert Swipe-Gesten, um eigene zu verwenden.
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: ListView.builder(
-                itemCount: itemsNotAnswered.length,
-                itemBuilder: (context, index) {
-                  return NotAnsweredTile(
-                    item: itemsNotAnswered[index],
-                    onItemTap: () async {
-                      final result = await NotAnsweredPageHelper().openItem(itemsNotAnswered[index]);
-                      if(result != null){
+            NotAnsweredPage(),
+            //Seite 2 (Hauptseite):
+          CustomScrollView( //Wegen Evtl Einbindung von Illustration über Liste, die mitscrollen soll
+            slivers: [
+              // Das Bild als "Sliver" für das Scrollen
+              SliverToBoxAdapter(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    //SizedBox(width: MediaQuery.of(context).size.width * 0.2,),
+                    Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 16,),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.asset("assets/images/flat-design illustration.png",//"assets/images/test.jpg",
+                              width: MediaQuery.of(context).size.width * 0.4,
+                            ),
+                          ),
+                          SizedBox(height: 30,)
+                        ]
+                    ),
+                    Container(
+                      width: 150,
+                      child: RichText(
+                          textAlign: TextAlign.left,
+                          text: TextSpan(
+                              children: [
+                                TextSpan(text: "Startseite: \n", style: TextStyle(color: Colors.black,fontWeight: FontWeight.bold)),
+                                TextSpan(text: "Das ist ein Test um zu sehen wie es aussieht", style: TextStyle(color: Colors.black))
+                              ]
+                          )
+                      ),
+                    )
+
+                  ],
+                )  
+              ),
+              // Der ListView als Sliver
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                    return WeekTile(
+                      item: items[index],
+                      onDeleteTap: () async {
+                        deleteItem(items[index].title);
                         setState(() {
-                          itemsNotAnswered.removeAt(index);
+                          items.removeAt(index);
                         });
-                      } else {
-                        print("canceled");
-                      }
-                    },
-                  );
-                },
+                      },
+                    );
+                  },
+                  childCount: items.length,
+                ),
               ),
-            ),
-            //Seite "Offen" Alternative:
-            //FutureBuilder(
-            //  future: NotAnsweredPageHelper().loadNotAnswered(),
-            //  builder: (context, snapshot) {
-            //    if (snapshot.hasData) {
-            //      return snapshot.data!;
-            //    } else {
-            //      return Center(child: CircularProgressIndicator());
-            //    }
-            //  },
-            //),
-            //Seite 2:
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: ListView.builder(
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  return WeekTile(
-                    item: items[index],
-                    onDeleteTap: () async {
-                      deleteItem(items[index].title);
-                      setState(() {
-                        items.removeAt(index);
-                      });
-                    },
-                  );
-                },
-              ),
-            ),
+            ],
+          ),
             // Seite "Übersicht":
-            Center(child: Text("Übersicht", style: TextStyle(fontSize: 24))),
+            ActivitySummary(),
           ],
         ),
       ),
-     bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex,
         onTap: (int index) {
           setState(() {
@@ -259,24 +364,25 @@ class MainPageState extends State<MainPage> {
         },
         items: [
           BottomNavigationBarItem(
-            icon: selectedIndex == 0 ? Icon(Icons.album) : Icon(Icons.album_outlined),
+            icon: selectedIndex == 0 ? Icon(Icons.album) : Icon(
+                Icons.album_outlined),
             label: "Offen",
           ),
           BottomNavigationBarItem(
-            icon: selectedIndex == 1 ? Icon(Icons.home) : Icon(Icons.home_outlined),
+            icon: selectedIndex == 1 ? Icon(Icons.home) : Icon(
+                Icons.home_outlined),
             label: "Home",
           ),
           BottomNavigationBarItem(
-            icon: selectedIndex == 2 ? Icon(Icons.summarize) : Icon(Icons.summarize_outlined),
+            icon: selectedIndex == 2 ? Icon(Icons.summarize) : Icon(
+                Icons.summarize_outlined),
             label: "Übersicht",
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          print("pressed");
-          List<WeekTileData> weekLists =
-          ImportJson().loadDummyData as List<WeekTileData>;
+        onPressed: () async {
+          List<WeekTileData> weekLists = await ImportJson().loadDummyData();
           for (WeekTileData data in weekLists) {
             addEntry(data);
           }
@@ -286,72 +392,122 @@ class MainPageState extends State<MainPage> {
       ),
     );
   }
-
-  /* Alternative Variante erst ohne BottomBar, ist ein wenig aufgeräumter,
-  body: GestureDetector(
-        child: Padding(padding: EdgeInsets.only(top: 10),
-          child: ListView.builder(
-            itemCount: items.length,
-            itemBuilder: (context, index) {
-              return WeekTile(
-                item: items[index],
-                onItemTap: () {
-                  openItem(items[index].weekKey);
-                },
-                onDeleteTap: () async{
-                  print("DELETE");
-                  deleteItem(items[index].title);
-                  setState(() {
-                    items.removeAt(index);
-                  });
-                },
-              );
-              //return Dismissible( //TODO: Eventuell coole idee zum löschen
-              //    key: Key(index.toString()),
-              //    onDismissed: (s) async{
-              //      _showDeleteDialog(items[index].title);
-              //    },
-              //    direction: DismissDirection.endToStart,
-              //    child: WeekTile(
-              //      item: items[index],
-              //      onItemTap: () {
-              //        openItem(items[index].title);
-              //      },
-              //      onDeleteTap: () {
-              //        deleteItem(items[index].title);
-              //        setState(() {
-              //          items.removeAt(index);
-              //        });
-              //      },),
-            },
-          ),
-        ),
-        onHorizontalDragEnd: (ev) {
-          if (ev.primaryVelocity! > 0){
-            print("Swipe right");
-            MyApp.navigatorKey.currentState?.push(
-                PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) =>
-                      NotAnsweredPage(),
-                  transitionsBuilder: (context, animation, secondaryAnimation,
-                      child) {
-                    const begin = Offset(-1.0, 0.0);
-                    const end = Offset.zero;
-                    const curve = Curves.easeInOut;
-
-                    var tween = Tween(begin: begin, end: end).chain(
-                        CurveTween(curve: curve));
-                    var offsetAnimation = animation.drive(tween);
-
-                    return SlideTransition(
-                      position: offsetAnimation,
-                      child: child,
-                    );
-                  },
-                )
-            );
-          }
-        },
-      ),
-  }*/
 }
+
+//PageView alternate CHildren
+/*Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: ListView.builder(
+                itemCount: itemsNotAnswered.length,
+                itemBuilder: (context, index) {
+                  return NotAnsweredTile(
+                    item: itemsNotAnswered[index],
+                    onItemTap: () async {
+                      final result = await NotAnsweredPageHelper().openItem(
+                          itemsNotAnswered[index]);
+                      if (result != null) {
+                        setState(() {
+                          itemsNotAnswered.removeAt(index);
+                        });
+                      } else {
+                        print("canceled");
+                      }
+                    },
+                  );
+                },
+              ),
+            ),*/
+//Seite "Offen" Alternative:
+//FutureBuilder(
+//  future: NotAnsweredPageHelper().loadNotAnswered(),
+//  builder: (context, snapshot) {
+//    if (snapshot.hasData) {
+//      return snapshot.data!;
+//    } else {
+//      return Center(child: CircularProgressIndicator());
+//    }
+//  },
+//),
+/* DropDown Menu
+MenuAnchor(
+            childFocusNode: _buttonFocusNode,
+            menuChildren: <Widget>[
+              MenuItemButton(
+                child: Text("Hilfe?"),
+                onPressed: () => print("ONE"),
+              ),
+              MenuItemButton(
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                    Text("Darkmode"),
+                    Switch(
+                      value: isDarkMode,
+                        onChanged: (value) {
+                          isDarkMode = isDarkMode; // Darkmode umschalten
+                        },
+                      ),
+                    ]
+                ),
+                onPressed: () => print("Two"),
+              ),
+            ],
+            builder:
+            (BuildContext context, MenuController controller, Widget? child) {
+              return TextButton(
+                focusNode: _buttonFocusNode,
+                onPressed: () {
+                  if (controller.isOpen) {
+                    controller.close();
+                  } else {
+                    controller.open();
+                  }
+                },
+                child: const Icon(Icons.menu),
+              );
+            }
+          )
+ */
+
+/*PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == "hilfe") {
+                // Zeige Hilfe-Dialog
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog( //TODO: in Klasse verlegen, die text annimmt und je nach Seite Hilfe ändert
+                    title: Text("Hilfe"),
+                    content: Text("Hier könnte Hilfe stehen."),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text("OK"),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: "hilfe",
+                child: Text("Hilfe?"),
+              ),
+              PopupMenuItem(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Darkmode"),
+                    Switch(
+                      value: isDarkMode,
+                      onChanged: (val) {
+                        toggleDarkMode(val);
+                      }
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+ */
