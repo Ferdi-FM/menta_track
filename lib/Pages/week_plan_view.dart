@@ -6,11 +6,11 @@ import 'package:menta_track/database_helper.dart';
 import 'package:menta_track/Pages/question_page.dart';
 import 'package:menta_track/termin.dart';
 import 'package:time_planner/time_planner.dart';
-
+import '../generated/l10n.dart';
 import '../main.dart';
 import 'day_overview.dart';
 
-//Used Example-Code von: https://pub.dev/packages/time_planner/example as Reference
+//Example-Code von: https://pub.dev/packages/time_planner/example
 
 class WeekPlanView extends StatefulWidget {
   const WeekPlanView({
@@ -31,9 +31,9 @@ class MyHomePageState extends State<WeekPlanView>{
 
   @override
   void initState() {
-    super.initState();
     setUpCalendar(widget.weekKey);
-    print(MyApp.of(context).themeMode);
+    super.initState();
+
   }
 
   void setUpCalendar(String weekKey) async{
@@ -41,16 +41,15 @@ class MyHomePageState extends State<WeekPlanView>{
     calendarStart = DateTime.parse(weekKey);
     calendarHeaders = [];
 
-    DateFormat format = DateFormat("dd.MM.yy");
-
     for(int i = 0; i < 7;i++){
       DateTime date = calendarStart.add(Duration(days: i));
-      String displayDate = format.format(date);
+      String displayDate = DateFormat("dd.MM.yy").format(date);
       String weekDay = getWeekdayName(date);
       calendarHeaders.add(
           TimePlannerTitle(
               title: weekDay,
-              date: displayDate,
+              date: displayDate, //Wichtig fürs öffnen des dayOverview
+              displayDate: S.current.displayADate(date),
               voidAction: clickOnCalendarHeader,
           ));
     }
@@ -70,7 +69,6 @@ class MyHomePageState extends State<WeekPlanView>{
   }
 
   void clickOnCalendarHeader(String dateString){
-    print(dateString);
     String weekDayKey = dateString;
     MyApp.navigatorKey.currentState?.push(MaterialPageRoute(
       builder: (context) => DayOverviewPage(
@@ -90,14 +88,15 @@ class MyHomePageState extends State<WeekPlanView>{
 
 
   String getWeekdayName(DateTime dateTime) {
+    print(S.current.monday);
     List<String> weekdays = [
-      "Montag",
-      "Dienstag",
-      "Mittwoch",
-      "Donnerstag",
-      "Freitag",
-      "Samstag",
-      "Sonntag"
+      S.current.monday,
+      S.current.tuesday,
+      S.current.wednesday,
+      S.current.thursday,
+      S.current.friday,
+      S.current.saturday,
+      S.current.sunday
     ];
     return weekdays[dateTime.weekday - 1]; //-1 weil index bei 0 beginnt aber weekday bei 1 beginnt
   }
@@ -135,87 +134,80 @@ class MyHomePageState extends State<WeekPlanView>{
               minutes: minutes),
           minutesDuration: duration,
           daysDuration: 1,
-            //Weißer Text mit schwarzer umrandung ist tendenziell auf jeder Farbe lesbar
           child:
           GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTapDown: (event) async {
-                  // print("WeekKey: ${widget.weekKey} \n timeBegin: ${startTime.toString()} \n terminName: $title");
-                  Offset pos = event.globalPosition;
-                  final result = await MyApp.navigatorKey.currentState?.push(
-                      PageRouteBuilder(
-                        pageBuilder: (context, animation, secondaryAnimation) => QuestionPage(
-                            weekKey: widget.weekKey,
-                            timeBegin: startTime.toString(),
-                            terminName: title),
-                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                          const curve = Curves.easeInOut;
-
-                          // Erstelle eine Skalierungs-Animation
-                          var tween = Tween<double>(begin: 0.1, end: 1.0).chain(CurveTween(curve: curve));
-                          var scaleAnimation = animation.drive(tween);
-
-                          return ScaleTransition(
-                            scale: scaleAnimation,
-                            alignment: Alignment(pos.dx / MediaQuery.of(context).size.width * 2 - 1,
-                                pos.dy / MediaQuery.of(context).size.height * 2 - 1), // Die Tap-Position relativ zur Bildschirmgröße
-                            child: child,
-                          );
-                        },
-                      )
-                  );
-                  if(result != null){
-                    print(result.toString());
-                    updateCalendar();
-                  } else {
-                    print("no data");
-                  }
-                },
-                child: Stack(
-                  children: [
-                    Container(
-                      //decoration: BoxDecoration(
-                      //  border: Border.all(
-                      //    width: 1,
-                      //  ),
-                      //  borderRadius: BorderRadius.circular(12),
-                      //),
-                        padding: EdgeInsets.all(2),
-                        alignment: Alignment.topRight,
-                        child: Icon(color == Colors.grey ? Icons.priority_high : null) //TODO: unabhöngig von Farbe machen
-                    ),
-                    // Stroked text as border.
-                    Container(
-                      alignment: Alignment.center,
-                      child: Stack(
-                        children: [
-                          Text(
-                            title,
-                            style: TextStyle(
-                              fontSize: 13,
-                              foreground: Paint()
-                                ..style = PaintingStyle.stroke
-                                ..strokeWidth = 0
-                                ..color = Colors.black,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          // Solid text as fill.
-                          Text(
-                            title,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.black,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+              behavior: HitTestBehavior.translucent,
+              onTapDown: (event) async {
+                Offset pos = event.globalPosition;
+                final result = await MyApp.navigatorKey.currentState?.push(
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) => QuestionPage(
+                          weekKey: widget.weekKey,
+                          timeBegin: startTime.toIso8601String(),
+                          terminName: title),
+                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                        const curve = Curves.easeInOut;
+                        // Erstelle eine Skalierungs-Animation
+                        var tween = Tween<double>(begin: 0.1, end: 1.0).chain(CurveTween(curve: curve));
+                        var scaleAnimation = animation.drive(tween);
+                        return ScaleTransition(
+                          scale: scaleAnimation,
+                          alignment: Alignment(pos.dx / MediaQuery.of(context).size.width * 2 - 1,
+                              pos.dy / MediaQuery.of(context).size.height * 2 - 1), // Die Tap-Position relativ zur Bildschirmgröße
+                          child: child,
+                        );},
+                    )
+                );
+                if(result != null){
+                  updateCalendar();
+                }
+              },
+              child: Stack( //Uhrzeit und Text könnten bei zu kurzen Terminen überlappen
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                      top: -6,
+                      right: -5,
+                      child: Icon(color == Colors.grey ? Icons.priority_high : null)
+                  ),
+                  Positioned(
+                      bottom: 2,
+                      left: 5,
+                      child: Text(DateFormat("HH:mm").format(startTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic, fontSize: 10),) //TODO: Farbe und Italic? 
+                  ),
+                  // Stroked text as border.
+                  Container(
+                    alignment: Alignment.center,
+                    padding: EdgeInsets.only(left: 12, right: 12, bottom: 20, top: 3),
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.black,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
-                )
-              ),
-          )
+                        //Text( //Weißer Text mit schwarzer Umrandung ist tendenziell auf jeder Farbe lesbar, gerade aber schwarz
+                        //  title,
+                        //  style: TextStyle(
+                        //    fontSize: 11,
+                        //    foreground: Paint()
+                        //      ..style = PaintingStyle.stroke
+                        //      ..strokeWidth = 0
+                        //      ..color = Colors.black,
+                        //  ),
+                        //  textAlign: TextAlign.center,
+                        //  maxLines: 2,
+                        //  overflow: TextOverflow.ellipsis,
+                        //),
+
+                  ),
+                ],
+              )
+          ),
+        )
       );
     });
   }
@@ -224,15 +216,21 @@ class MyHomePageState extends State<WeekPlanView>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(Utilities().convertWeekkeyToDisplayPeriodString(widget.weekKey)),
+        title: FittedBox(
+          child: Text(Utilities().convertWeekkeyToDisplayPeriodString(widget.weekKey)),
+        ),
         centerTitle: true,
         leading: IconButton(
             onPressed: () => {Navigator.pop(context)},
             icon: Icon(Icons.arrow_back)),
+        actions: [
+          Utilities().getHelpBurgerMenu(context, "WeekPlanView")
+        ],
         ),
-      body: OrientationBuilder(builder: (context, orientation){
+      body: LayoutBuilder(builder: (context, constraints){
+          bool isPortrait = constraints.maxWidth < 600;
           return Container(
-            decoration: BoxDecoration(color: Theme.of(context).primaryColor),
+            decoration: BoxDecoration(color: Theme.of(context).appBarTheme.backgroundColor),
             child: Container(
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20)),
@@ -240,20 +238,19 @@ class MyHomePageState extends State<WeekPlanView>{
               ),
               child: Padding(
                 padding: EdgeInsets.only(left: 0, right: 0),
-                child: TimePlanner(
-                  startHour: 6,
+                child: TimePlanner( //evtl auf 24/7 ändern
+                  startHour: 0,
                   endHour: 23,
                   use24HourFormat: true,
                   setTimeOnAxis: true,
                   currentTimeAnimation: true,
-                  style: TimePlannerStyle( //Needs to be adjusted
+                  style: TimePlannerStyle(
                     cellHeight: 50,
-                    cellWidth:  orientation == Orientation.portrait ? 115 : 120, //leider nur wenn neu gebuildet wird
+                    cellWidth:  isPortrait ? 115 : ((MediaQuery.of(context).size.width - 60)/7).toInt(), //leider nur wenn neu gebuildet wird
                     showScrollBar: true,
                     borderRadius: BorderRadius.all(Radius.circular(5)),
                     interstitialEvenColor: MyApp.of(context).themeMode == ThemeMode.light ? Colors.grey[50] : Colors.blueGrey.shade400,
                     interstitialOddColor: MyApp.of(context).themeMode == ThemeMode.light ? Colors.grey[200] : Colors.blueGrey.shade500,
-                    //backgroundColor: Theme.of(context).scaffoldBackgroundColor
                   ),
                   headers: calendarHeaders,
                   tasks: tasks,
@@ -267,10 +264,10 @@ class MyHomePageState extends State<WeekPlanView>{
           MyApp.navigatorKey.currentState?.push(MaterialPageRoute(
             builder: (context) =>
                 WeekOverview(
-                    weekKey: widget.weekKey),
+                    weekKey: widget.weekKey,
+                    fromNotification: false,),
           ));
-        },//print("Könnte zusammenfassung zeigen"),
-        tooltip: "Zeig Zusammenfassung",
+        },
         child: const Icon(Icons.summarize_rounded),
       ),
     );

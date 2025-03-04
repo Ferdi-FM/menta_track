@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:menta_track/week_tile_data.dart';
 import 'Pages/week_plan_view.dart';
+import 'generated/l10n.dart';
 import 'main.dart';
 
 class WeekTile extends StatefulWidget {
@@ -29,25 +30,25 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Löschen"),
+          title: Text(S.current.delete),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text("Willst du den Wochenplan für :", textAlign: TextAlign.center,),
+                Text(S.current.delete_week_plan, textAlign: TextAlign.center,),
                 Text(title, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),),
-                Text("wirklich löschen?", textAlign: TextAlign.center),
+                Text(S.current.delete_week_plan2, textAlign: TextAlign.center),
               ],
             ),
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text("Löschen",style: TextStyle(color: Colors.redAccent),),
+              child: Text(S.current.delete,style: TextStyle(color: Colors.redAccent),),
               onPressed: () {
                 Navigator.of(context).pop(true);
               },
             ),
             TextButton(
-              child: const Text("Zurück"),
+              child: Text(S.current.back),
               onPressed: () {
                 Navigator.of(context).pop(false);
               },),
@@ -67,7 +68,6 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
             const curve = Curves.easeInOut;
-
             var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
             var offsetAnimation = animation.drive(tween);
 
@@ -114,11 +114,9 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
           elevation: 10,
           child: GestureDetector(
             onTapUp: (ev){
-              print("tapping");
               openItem(widget.item.weekKey);
             },
-            child:
-              Container(//color: _colorAnimation.value
+            child: Container(//color: _colorAnimation.value
                 decoration: BoxDecoration( //rechte seite
                   border: Border(right: BorderSide(color: _colorAnimation.value as Color, width: 5)),
                   borderRadius: BorderRadius.horizontal(right: Radius.circular(6)),
@@ -132,11 +130,14 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
                   child: ListTile(
                     minTileHeight: 72,
                     leading: Icon(widget.item.icon),
-                    title: Text(
-                      widget.item.title,
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    title: FittedBox(
+                      fit: BoxFit.contain,
+                      child: Text(
+                        widget.item.title,
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16,),
+                      ) ,
                     ),
-                    trailing: GestureDetector( //TODO?: Auf ListTile verschieben und mit Longpress direkt auf Tile löschen lassen, dieses Icon benutzen um die WeekÜbersicht zu öffnen
+                    trailing: GestureDetector(
                       child: Icon(Icons.delete),
                       onTap: () => _animationController.reset(),
                       onLongPressDown: (event) {
@@ -145,7 +146,7 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
                       onLongPress: () async {
                         bool? ans = await _showDeleteDialog(widget.item.title);
                         if(ans == true){
-                          _animationController.reset(); //reset weil sonst das vorherige ListItem rot ist
+                          _animationController.reset(); //reset weil sonst das vorherige ListItem gefärbt ist
                           widget.onDeleteTap();
                         } else {
                           _animationController.reverse();
@@ -156,8 +157,7 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
                     ),
                   ),
                 ),
-              ),
-
+            ),
           ),
         );
       },

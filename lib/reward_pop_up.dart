@@ -1,25 +1,31 @@
-import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+import 'package:menta_track/database_helper.dart';
+import 'package:menta_track/termin.dart';
+import 'package:menta_track/theme_helper.dart';
+import 'package:sqflite/sqflite.dart';
+import 'Pages/settings.dart';
+import 'generated/l10n.dart';
+import 'gif_progress_widget.dart';
+
+//TODO: Randomisierten Text je nach Seite
 
 class RewardPopUp {
 
   const RewardPopUp();
 
-  void show(BuildContext context, String message, GlobalKey buttonKey, VoidCallback onConfirm) {
-    final RenderBox renderBox = buttonKey.currentContext!.findRenderObject() as RenderBox;
-    final Offset position = renderBox.localToGlobal(Offset.zero);
-
-    showDialog(
+  Future<String?> show(BuildContext context, String message, String weekKey, bool gifFromBeginning) {
+     return showDialog<String>(
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black87,
       builder: (context) {
         return _AnimatedRewardPopUp(
           message: message,
-          buttonPosition: position,
-          onConfirm: onConfirm,
+          weekKey: weekKey,
+          gifBegin : gifFromBeginning, //Weil je nach RewardPopUp für Termin/Tag/Woche soll das gif unterschiedlich beginnen
         );
       },
     );
@@ -28,13 +34,13 @@ class RewardPopUp {
 
 class _AnimatedRewardPopUp extends StatefulWidget {
   final String message;
-  final Offset buttonPosition;
-  final VoidCallback onConfirm;
+  final String weekKey;
+  final bool gifBegin;
 
   const _AnimatedRewardPopUp({
     required this.message,
-    required this.buttonPosition,
-    required this.onConfirm,
+    required this.weekKey,
+    required this.gifBegin,
   });
 
   @override
@@ -47,10 +53,19 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
   late AnimationController _buttonController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _scaleButtonAnimation;
+  Widget illustrationImage = SizedBox();
+  String _theme = "nothing";
+  bool _showOnlyOnMainPage = false;
+  double startFrame = 0;
+  double endFrame = 0;
+  bool finishedGif = false;
 
   @override
   void initState() {
     super.initState();
+    _loadTheme();
+    getProgressForGif();
+
     //Animation zum öffnen
     _controller = AnimationController(
       vsync: this,
@@ -60,6 +75,7 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
       parent: _controller,
       curve: Curves.easeOutBack,
     );
+
     //Animation für den Confirm Button
     _buttonController = AnimationController(
       vsync: this,
@@ -68,11 +84,53 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
     _scaleButtonAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
       CurvedAnimation(parent: _buttonController, curve: Curves.easeOut),
     );
-    _confettiController = ConfettiController(duration: const Duration(seconds: 2));
-    _confettiController.play();
+
+    //Animation für Confetti
+    _confettiController = ConfettiController(
+        duration: const Duration(seconds: 2),);
+
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _controller.forward();
     });
+  }
+
+  void _loadTheme() async {
+    SettingData data = await SettingsPageState().getSettings();
+    _theme = data.theme;
+    _showOnlyOnMainPage = data.themeOnlyOnMainPage;
+    if(mounted) illustrationImage = await ThemeHelper().getRewardImage();
+    setState(() {
+      _theme;
+      _showOnlyOnMainPage;
+      illustrationImage;
+    });
+  }
+
+  void getProgressForGif() async {
+    Database db = await DatabaseHelper().database;
+    final List<Map<String, dynamic>> doneTasksMap = await db.query( //Holt alle Termine, die den spezifizierten weekKey verwenden
+      "Termine",
+      where: "weekKey = ? AND answered = ?",
+      whereArgs: [widget.weekKey, 1],
+    );
+    List<Termin> allTasksList = await DatabaseHelper().getWeeklyPlan(widget.weekKey);
+
+    int totalTasks = allTasksList.length;
+    double doneTasks = doneTasksMap.length.toDouble();
+    setState(() {
+      finishedGif = widget.gifBegin;
+      !widget.gifBegin ? startFrame = doneTasks/totalTasks : startFrame = 0;
+      endFrame = (doneTasks+1)/totalTasks;
+    });
+  }
+
+  void gifIsFinished(){
+      if(mounted && !finishedGif){ //!finishedGif weil gif_progress_widget jeden loop gifIsFinished aufruft
+        _confettiController.play();
+        setState(() {
+          finishedGif = true;
+        });
+      }
   }
 
   @override
@@ -86,21 +144,26 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
   void _buttonAnimation() async {
     await _buttonController.forward();
     _buttonController.reverse();
-    await Future.delayed(Duration(milliseconds: 300));
-
-    //TODO: BaumAnimation hinzufügen?
+    await Future.delayed(Duration(milliseconds: 120));
     backToPage(); // Seite wechseln
   }
 
   void backToPage() {
-    Navigator.of(context).pop(); //Until((route) => route.isFirst);
-    widget.onConfirm();
+    Navigator.of(context).pop("confirmed"); //"onConfirm" ist alternative Version mit VoidCallBack
+    //widget.onConfirm();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(left: 32,right: 32,bottom: 128,top: 128),
+    return PopScope(
+        canPop: false, //Muss false sein, damit ich es selbst steuern kann
+        onPopInvokedWithResult: (bool didPop, result) {
+      if (!didPop) {
+        //backToPage();
+      }
+    },
+    child: Padding(
+      padding: EdgeInsets.only(left: 32,right: 32,bottom: 66,top: 42),
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -115,52 +178,99 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
           ),*/
           ScaleTransition(
               scale: _scaleAnimation,
-            alignment: Alignment(widget.buttonPosition.dx / MediaQuery.of(context).size.width * 2 - 1,
-                widget.buttonPosition.dy / MediaQuery.of(context).size.height * 2 - 1),
-              child: Stack(
+            alignment: Alignment.center, //Alignment(widget.buttonPosition!.dx / MediaQuery.of(context).size.width * 2 - 1, widget.buttonPosition!.dy / MediaQuery.of(context).size.height * 2 - 1),
+              child: Column(
                 children: [
-                  Positioned.fill(
-                      bottom: 66,
-                      child: Material(
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 8,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              widget.message,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                  SizedBox( //Hat einige Probleme mit Skalierung gemacht, wesegen der Code etwas Kompliziert geworden ist
+                    width: MediaQuery.of(context).size.width * 0.8,  // Feste Breite
+                    height: MediaQuery.of(context).size.height * 0.7, // Feste Höhe
+                  child: Material(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    color: Theme.of(context).listTileTheme.tileColor,
+                    elevation: 8,
+                    child: ShaderMask(
+                        shaderCallback: (Rect rect) {
+                          return LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Theme.of(context).listTileTheme.tileColor as Color, Colors.transparent, Colors.transparent, Theme.of(context).listTileTheme.tileColor as Color],
+                            stops: [0.0, 0.1, 0.9, 1.0], // 10% purple, 80% transparent, 10% purple
+                          ).createShader(rect);
+                        },
+                        blendMode: BlendMode.dstOut,
+                        child:SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.1),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                if(!_showOnlyOnMainPage && finishedGif) illustrationImage,
+                                if(finishedGif)SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                                if(finishedGif)ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    maxHeight: MediaQuery.of(context).size.height * 0.35,
+                                    minHeight: 40.0,
+                                  ),
+                                  child: Text(
+                                    widget.message,
+                                    textAlign: TextAlign.center,
+                                    overflow: TextOverflow.visible,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: MediaQuery.of(context).size.width * 0.045,
+                                    ),
+                                  ),
+                                ),
+                                if(finishedGif)Text(S.of(context).rewardPopUp_scroll,style: TextStyle(fontSize: 10),),
+                                SizedBox(height: MediaQuery.of(context).size.height * 0.04,),
+                                if(endFrame != 0)GifProgressWidget(
+                                    progress: endFrame,
+                                    startFrame: startFrame,
+                                    finished: () => gifIsFinished(),
+                                    forRewardPage: true,
+
+                                ),
+                              ],
                             ),
-                          ],
-                        )
+                          ),
+                        ],
                       ),
+                    )
                   ),
-                  const SizedBox(height: 16), // Abstand zwischen Dialog und Button
-                  Positioned(
-                      bottom: 5,
-                      left: 0,
-                      right: 0,
-                      height: 50,
-                      child: ScaleTransition(
-                        scale: _scaleButtonAnimation,
-                        child: ElevatedButton(
-                          onPressed: () => _buttonAnimation(), //backToPage(),
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).primaryColor,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15.0),
-                              )),
-                          child: const Text("Gut Gemacht! ${Emojis.emotion_beating_heart}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black87),),
+                  ),
+                  ),
+                  SizedBox(height: 15,),
+                  if(finishedGif)ScaleTransition(
+                    alignment: Alignment.center,
+                    scale: _scaleButtonAnimation,
+                    child: SizedBox(  // Use a Container to wrap the ElevatedButton
+                      width: double.infinity,  // Make the container take the full width
+                      child: ElevatedButton(
+                        onPressed: () => {
+                          HapticFeedback.lightImpact(),
+                          _buttonAnimation(),
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
+                        ),
+                        child: Text(
+                          S.of(context).rewardPopUp_conf,
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.width * 0.045,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black87,
+                          ),
                         ),
                       ),
-                  )
-
+                    ),
+                  ),
                 ],
               ),
             ),
-
           Align(
             alignment: Alignment.topLeft,
             child: ConfettiWidget(
@@ -169,6 +279,7 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
               emissionFrequency: 0.25,
               numberOfParticles: 20, // a lot of particles at once
               gravity: 0.1,
+              shouldLoop: false,
             ),
           ),
           Align(
@@ -179,11 +290,15 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
               emissionFrequency: 0.25,
               numberOfParticles: 20, // a lot of particles at once
               gravity: 0.1,
+              shouldLoop: false,
             ),
           ),
         ],
       ),
+    )
     );
     
   }
+
+
 }

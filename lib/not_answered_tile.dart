@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:menta_track/not_answered_data.dart';
+import 'generated/l10n.dart';
 
 class NotAnsweredTile extends StatelessWidget {
   final NotAnsweredData item;
@@ -12,9 +12,9 @@ class NotAnsweredTile extends StatelessWidget {
     super.key,
   });
 
-  String getDateAndTimeFromDay(String dayString){
+  String getDateAndTimeFromDay(String dayString, BuildContext context){
     DateTime dateTime = DateTime.parse(dayString);
-    String correctedString = "am ${DateFormat("dd.MM").format(dateTime)} um ${DateFormat("HH:mm").format(dateTime)}";
+    String correctedString = "${S.of(context).am} ${S.current.displayADate(dateTime)} ${S.of(context).um} ${S.of(context).displayATime(dateTime)}";
     return correctedString;
   }
 
@@ -34,29 +34,24 @@ class NotAnsweredTile extends StatelessWidget {
               borderRadius: BorderRadius.horizontal(left: Radius.circular(6)),
               ),
               child: GestureDetector(
-              onTapDown: (ev) => {
-                onItemTap(ev)
-              },
-              child: ListTile(
-                //onTap: (){
-                //  print("tapping");
-                //  //onItemTap();
-                //},
-                minTileHeight: 72,
-                leading: Icon(item.icon),
-                title: Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(text: "${item.title} \n", style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(text: getDateAndTimeFromDay(item.dayKey)),
-                      ]
-                    ),
+                onTapDown: (ev) => {
+                  onItemTap(ev)
+                },
+                child: ListTile(
+                  minTileHeight: 72,
+                  leading: Icon(item.icon),
+                  title: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(text: "${item.terminName} \n", style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: getDateAndTimeFromDay(item.dayKey,context)),
+                        ]
+                      ),
+                  ),
                 ),
               ),
             ),
-
-            ),
           ),
-        );
+    );
   }
 }

@@ -4,16 +4,14 @@ import 'package:flutter/cupertino.dart';
 
 class NotAnsweredData {
   final IconData icon;
-  final String title;
+  final String terminName;
   final String dayKey;
   final String weekKey;
-  final String terminName;
 
   NotAnsweredData({
     required this.icon,
-    required this.title,
+    required this.terminName,
     required this.dayKey,
     required this.weekKey,
-    required this.terminName,
   });
 }

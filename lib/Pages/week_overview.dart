@@ -1,18 +1,24 @@
-import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:fl_chart/fl_chart.dart';
+import 'package:action_slider/action_slider.dart';
+import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:menta_track/Pages/settings.dart';
+import 'package:menta_track/fl_chart_graph.dart';
 import 'package:menta_track/helper_utilities.dart';
-
 import '../database_helper.dart';
+import '../generated/l10n.dart';
+import '../gif_progress_widget.dart';
+import '../reward_pop_up.dart';
 import '../termin.dart';
 
 class WeekOverview extends StatefulWidget {
   final String weekKey;
+  final bool fromNotification;
 
   const WeekOverview({
     super.key,
-    required this.weekKey
+    required this.weekKey,
+    required this.fromNotification,
   });
 
   @override
@@ -21,51 +27,83 @@ class WeekOverview extends StatefulWidget {
 
 class WeekOverviewState extends State<WeekOverview> {
   DatabaseHelper databaseHelper = DatabaseHelper();
-  List<Termin> termineForThisWeek = [];
+  late ConfettiController _controllerCenter;
   List<List<double>> meanLists = [[], [], []];
-  List<String> responses = [
-    "Sehr gut gemacht ${Emojis.smile_smiling_face_with_hearts}",
-    "Auch wenn es nach wenig aussieht, du hast etwas für deine Besserung gemacht \n Du kannst stolz auf dich sein ${Emojis.body_flexed_biceps}",
-    "Du hast diese Woche keine Termine gehabt oder noch kein Feedback gegeben, komm später wieder ${Emojis.smile_winking_face}"
-  ];
-  double doneTasksPercent = 0;
+  List<String> favoriteAnswers = [];
+  String name = "";
   int overallAnswered = 0;
+  int totalTasks = 0;
+  bool favoritesInThisWeek = false;
   bool isShowingMainData = true;
-  bool isLoading = true;
   bool isListAvailabe = false;
-
-
+  
   @override
   void initState() {
     getTermineForWeek();
+    _controllerCenter = ConfettiController(duration: const Duration(seconds: 2));
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controllerCenter.dispose();
+    super.dispose();
   }
 
   //weekKey als "yyyy-MM-dd" format
   void getTermineForWeek() async{
     DateTime firstDay = DateTime.parse(widget.weekKey);
     List<Termin> wholeWeekTerminNumber = await DatabaseHelper().getWeeklyPlan(widget.weekKey);
-    int overallAnsweredCounter = 0;
+    totalTasks = wholeWeekTerminNumber.length;
+    String favoriteTasks = "";
+    String calmTasks = "";
+    String helpingTasks = "";
+    SettingData data = await SettingsPageState().getSettings();
+    name = data.name;
 
+    for(int i = 0; i < 7;i++){ //Iteriert Tag für Tag um Den Mittelwert für jeden Tag zu bekommen
+      String weekDayKey = DateFormat("yyyy-MM-dd").format(firstDay.add(Duration(days: i, hours: 1)));
+      List<Termin> termine = await DatabaseHelper().getDayTermineAnswered(weekDayKey,true);
+      int answeredCounter = termine.length;
 
-    for(int i = 0; i < 7;i++){
-      String weekDayKey = DateFormat("dd.MM.yy").format(firstDay.add(Duration(days: i, hours: 1)));
-      List<Termin> termine = await DatabaseHelper().getDayTermine(widget.weekKey, weekDayKey); //weekDayKey als dd.MM.yy
-      //int dayTermineMean = 0;
-      int answeredCounter = 0;
+      //Alternative Idee
+      /*Database db = DatabaseHelper().database;
+      final List<Map<String, dynamic>> terminMap = await db.query(
+        "Termine",
+        where: "timeBegin LIKE ? AND answered AND (question1 = ? OR question2 = ? OR question3 = ?)",
+        whereArgs: ["$weekDayKey%", 1 , 6 , 6 , 6],
+      );
+      List<Termin> termine = DatabaseHelper().mapToTerminList(terminMap);*/
 
       double goodMean = 0;
       double calmMean = 0;
       double didGoodMean = 0;
 
       for(Termin t in termine){
-        if(t.answered){
-          answeredCounter++;
-          overallAnswered++; //muss eigentlich question0 abfragen;
-          goodMean = goodMean + (t.question1+1);
-          calmMean = calmMean + (t.question2+1);
-          didGoodMean = didGoodMean + (t.question3+1);
-        }
+          overallAnswered++; //Könnte auch direkte SQL Abfrage sein, muss aber sowieso durch Tage iterieren
+          String negative = "";
+          if(t.doneQuestion == 2){
+            negative = "(nicht zu tun)";
+          } else {
+            negative = "";
+          }
+
+          goodMean = goodMean + (t.goodMean + 1);
+          calmMean = calmMean + (t.calmMean + 1);
+          didGoodMean = didGoodMean + (t.helpMean + 1);
+
+          if (t.goodMean == 6 && !favoriteTasks.contains(t.terminName)) {
+            favoriteTasks = "$favoriteTasks • ${t.terminName} $negative\n";
+            //databaseHelper.saveHelpingActivities(t.terminName, "good");
+          }
+          if (t.calmMean == 6 && !calmTasks.contains(t.terminName)) {
+            calmTasks = "$calmTasks • ${t.terminName} $negative\n";
+            //databaseHelper.saveHelpingActivities(t.terminName, "calm");
+          }
+          if (t.helpMean == 6 && !helpingTasks.contains(t.terminName)) {
+            helpingTasks = "$helpingTasks • ${t.terminName} $negative\n";
+            //databaseHelper.saveHelpingActivities(t.terminName, "help");
+          }
       }
       goodMean = goodMean/answeredCounter;
       calmMean = calmMean/answeredCounter;
@@ -76,11 +114,66 @@ class WeekOverviewState extends State<WeekOverview> {
       meanLists[2].add(didGoodMean);
     }
 
-    print(meanLists.toString());
     setState(() {
-      doneTasksPercent = overallAnswered/wholeWeekTerminNumber.length*100;
+      favoriteAnswers = [favoriteTasks.trimRight(), calmTasks.trimRight(), helpingTasks.trimRight()];
+      if(favoriteTasks != "" || calmTasks != "" || helpingTasks != "") favoritesInThisWeek = true;
+      //doneTasksPercent = overallAnswered/totalTasks*100;
       isListAvailabe = true;
     });
+  }
+
+  /*Widget favoriteItems(int i) {
+    List<String> favoriteComments = [
+      "Am besten ging es dir hier ${Emojis.smile_grinning_face_with_smiling_eyes}:",
+      "Hier warst du am ruhigsten ${Emojis.smile_relieved_face}:",
+      "Am meisten geholfen hat dir ${Emojis.body_flexed_biceps}:"];
+
+    if(favoriteAnswers.isNotEmpty){
+      if(favoriteAnswers[i] != ""){
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FittedBox(
+              child: Text(favoriteComments[i],textAlign: TextAlign.left, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
+            ),
+            Padding(
+                padding: EdgeInsets.only(left: 20,top: 2, bottom: 2),
+                child: Text(favoriteAnswers[i],style: TextStyle(fontSize: 15, fontWeight: FontWeight.w100),textAlign: TextAlign.left,)
+            )
+          ],
+        );
+      }
+    }
+    return SizedBox(height: 0,);
+  }*/
+
+  Widget buildConfettiWidgets() {
+    if (!widget.fromNotification) {
+      return SizedBox(); // Wenn eine der Bedingungen nicht erfüllt ist, kein Confetti anzeigen
+    }
+    _controllerCenter.play();
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        buildConfetti(_controllerCenter, BlastDirectionality.explosive, 0.25, 20, 0.1, false, Alignment.topRight),
+        buildConfetti(_controllerCenter, BlastDirectionality.explosive, 0.25, 20, 0.1, false, Alignment.topLeft),
+      ],
+    );
+  }
+
+  Widget buildConfetti(ConfettiController controller, BlastDirectionality blastDirectionality, double emissionFrequency, int numberOfParticles, double gravity, bool shouldLoop, Alignment alignment) {
+    return Align(
+      alignment: alignment,
+      child: ConfettiWidget(
+        confettiController: controller,
+        blastDirectionality: blastDirectionality,
+        emissionFrequency: emissionFrequency,
+        numberOfParticles: numberOfParticles,
+        gravity: gravity,
+        shouldLoop: shouldLoop,
+        pauseEmissionOnLowFrameRate: true,
+      ),
+    );
   }
 
   Widget createDescription(String text, Color color){
@@ -105,333 +198,235 @@ class WeekOverviewState extends State<WeekOverview> {
     );
   }
 
+  void openRewardPopUp() async{
+    String? result = await RewardPopUp().show(
+        context,
+        S.of(context).week_reward_message,
+        widget.weekKey,
+        true
+    );
+    if(result == "confirmed"){
+      backToPage();
+    }
+  }
+
+  void backToPage(){ //Um keinen context in async zu haben
+    Navigator.of(context).pop();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(Utilities().convertWeekkeyToDisplayPeriodString(widget.weekKey)),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop(); // Zurück zur vorherigen Seite
+      //appBar: AppBar(
+      //  title: Text(Utilities().convertWeekkeyToDisplayPeriodString(widget.weekKey)),
+      //  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      //  leading: IconButton(
+      //    icon: Icon(Icons.arrow_back),
+      //    onPressed: () {
+      //      Navigator.of(context).pop(); // Zurück zur vorherigen Seite
+      //    },
+      //  ),
+      //),
+      body: !isListAvailabe ? Center(child: CircularProgressIndicator()) : Stack(
+        children: [ShaderMask(
+          shaderCallback: (Rect bounds) {
+          return LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
+          stops: [0.0, 0.08, 0.9, 1.0],
+          ).createShader(bounds);
           },
-        ),
-      ),
-      body: !isListAvailabe ? Center(child: CircularProgressIndicator()) : SingleChildScrollView( //wenn Liste noch nicht geladen ist, wird ladekreis angezeigt
-        physics: ScrollPhysics(),
-        child: Padding(padding: EdgeInsets.all(10),
-        child: Column(
-          children: [
-            SizedBox(height: 16,),
-            Text(
-              widget.weekKey,
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 16),
-            overallAnswered > 0 ? RichText(
-              text: TextSpan(
-                  style: TextStyle(
-                    fontSize: 24,
-                    color: Colors.grey[700],
-                  ),
-                  children:  [
-                    TextSpan(text: "Du hast diese Woche \n"),
-                    TextSpan(text: "  \n", style: TextStyle(fontSize: 5)),//Lücke,Spacing
-                    TextSpan(text: "$overallAnswered \n", style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold)),
-                    TextSpan(text: "  \n", style: TextStyle(fontSize: 5)), //Lücke,Spacing
-                    TextSpan(text: "Termine bewältigt\n\n"),
-                    TextSpan(text:  doneTasksPercent >= 50 ? responses[0] : doneTasksPercent == 0 ? responses[2] : responses[1], style: TextStyle(fontWeight: FontWeight.bold)
-                    )
-                  ]
-              ),
-              textAlign: TextAlign.center,
-            ) : RichText(
-                text: TextSpan(
-                  children: [],
-                )),
-            SizedBox(height: 32,),
-            const Text(
-              'Wöchentliche Werte',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 2,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(
-              height: 16,
-            ),
-            createDescription("Wie gut ginge es dir", Colors.lightBlueAccent),
-            createDescription("Wie ruhig warst du", Colors.lightGreen),
-            createDescription("Wie gut hat es getan", Colors.purple),
-            const SizedBox(
-              height: 12,
-            ),
-            Stack(
-              children: [
-                Padding(padding: EdgeInsets.only(top: 15),
-                child: SizedBox(
-                  height: 300,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 6, left: 6),
-                    child: isListAvailabe == true ? _LineChart(isShowingMainData: isShowingMainData, meanList: meanLists) : SizedBox.shrink(),),
-                ),
-                ),
-
-                Positioned(
-                  top: 0,
-                  right: 10,
-                  child: IconButton(
-                    iconSize: 40,
-                    icon: Icon(
-                      Icons.refresh,
-                      color: Theme.of(context).primaryColor.withValues(alpha: isShowingMainData ? 1.0 : 0.5),
+            blendMode: BlendMode.dstIn,
+            child: SingleChildScrollView( //wenn Liste noch nicht geladen ist, wird ladekreis angezeigt
+              physics: ScrollPhysics(),
+              child: Padding(padding: EdgeInsets.symmetric(vertical: 40,horizontal: 10),
+                child: Column(
+                  children: [
+                    SizedBox(height: 16,),
+                    FittedBox(
+                      child: Text(
+                        Utilities().convertWeekkeyToDisplayPeriodString(widget.weekKey),
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                    onPressed: () {
-                      setState(() {
-                        isShowingMainData = !isShowingMainData;
-                      });
-                    },
-                  ),
+                    SizedBox(height: 16),
+                    overallAnswered > 0 ? RichText(
+                      text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 24,
+                            color: Theme.of(context).textTheme.bodyMedium?.color,
+                          ),
+                          children:  [
+                            TextSpan(text: S.current.weekOverView_summary),
+                            TextSpan(text: "$overallAnswered\n", style: TextStyle(fontWeight: FontWeight.bold)),
+                            TextSpan(text: S.current.weekOverView_summary_part2(overallAnswered, Utilities().getRandomisedEncouragement(widget.fromNotification, name))),
+                            TextSpan(text: S.current.weekOverView_leftAnswers(totalTasks-overallAnswered),style: TextStyle(fontSize: 16)),
+                            TextSpan(text: S.current.weekOverView_scroll, style: TextStyle(fontSize: 16))
+
+                            //TextSpan(text: "Du hast diese Woche \n"),
+                            //TextSpan(text: "  \n", style: TextStyle(fontSize: 5)),//Lücke,Spacing
+                            //TextSpan(text: "$overallAnswered \n", style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold)),
+                            //TextSpan(text: "  \n", style: TextStyle(fontSize: 5)), //Lücke,Spacing
+                            //TextSpan(text: "Termine bewältigt\n\n"),
+                            //TextSpan(text:  Utilities().getRandomisedEncouragement(context,widget.fromNotification, name), style: TextStyle(fontWeight: FontWeight.bold),),
+                            //if(totalTasks-overallAnswered > 0) TextSpan(text: "\n \n Wenn du Lust hast kannst du noch Feedback zu ${totalTasks-overallAnswered} Aktivitäten geben", style: TextStyle(fontSize: 16)),
+                            //TextSpan(text: S.of(context).weekOverView_scroll, style: TextStyle(fontSize: 16))
+                          ]
+                      ),
+                      textAlign: TextAlign.center,
+                    ) : RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(text: S.of(context).weekOverView_noAnswers, style: TextStyle(fontSize: 24))
+                        ],
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    //if(overallAnswered > 0) Text("\n \n Scroll weiter um mehr Infos zu bekommen ;)"),
+                    SizedBox(height: 20,),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if(favoritesInThisWeek)
+                          Center(
+                            child:Text(
+                              S.of(context).special_activities,
+                              style: TextStyle(color: Theme.of(context).primaryColor.withAlpha(200), fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2,
+                              ),
+                              textAlign: TextAlign.center,
+                          ),
+                        ),
+                        SizedBox(height: 10,),
+                        for(int i = 0; i < 3; i++)...{ //favoriteComments.length
+                          Utilities().favoriteItems(i, favoriteAnswers, context),
+                        },
+                      ],
+                    ),
+                    SizedBox(height: 20,),
+                    if(overallAnswered != 0)GifProgressWidget(
+                      progress: overallAnswered/totalTasks,
+                      startFrame: 0,
+                      finished: () => {},
+                      forRewardPage: false,
+                    ),
+
+                    SizedBox(height: 20,),
+                    if(overallAnswered != 0)Column( //Evtl. mit sync_graph austaushen, mag aber den Style recht gerne
+                      children: [
+                        SizedBox(height: 15,),
+                        Text(
+                          S.current.weekly_values,
+                          style: TextStyle(color: Theme.of(context).primaryColor.withAlpha(200), fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 2,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(
+                          height: 16,
+                        ),
+                        createDescription(S.of(context).legend_Msg0, Colors.lightBlueAccent),
+                        createDescription(S.of(context).legend_Msg1, Colors.lightGreen),
+                        createDescription(S.of(context).legend_Msg2, Colors.purple),
+                        SizedBox(
+                          height: 12,
+                        ),
+                        Stack(
+                          children: [
+                            Center(
+                              child: Padding(
+                                padding: EdgeInsets.only(top: 15),
+                                child: SizedBox(
+                                  height: MediaQuery.of(context).size.height*0.4,
+                                  width: MediaQuery.of(context).size.width*0.9,
+                                  child: Padding(
+                                    padding: EdgeInsets.only(right: 26, left: 0),
+                                    child: isListAvailabe
+                                        ? FlChartGraph(isShowingMainData: isShowingMainData, meanList: meanLists, weekKey: widget.weekKey, context: context,)
+                                        : SizedBox.shrink(),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 0,
+                              right: 10,
+                              child: IconButton(
+                                iconSize: 40,
+                                icon: Icon(
+                                  Icons.refresh,
+                                  color: Theme.of(context).primaryColor.withValues(alpha: isShowingMainData ? 1.0 : 0.5),
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    isShowingMainData = !isShowingMainData;
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 36,),
+                    widget.fromNotification ? ActionSlider.standard( //Wenn von Notification gekommen wird
+                      child: Text(S.current.understood, key: GlobalKey(debugLabel: "actKey")),
+                      action: (controller) async {
+                        controller.loading();
+                        await Future.delayed(const Duration(seconds: 1));
+                        controller.success();
+                        controller.reset();
+                        openRewardPopUp();
+                      },
+                    ) : ElevatedButton(
+                        style: ElevatedButton.styleFrom(minimumSize: Size(200,50),),
+                        onPressed: Navigator.of(context).pop,
+                        child: Text(S.current.back)),
+                    SizedBox(height: 20,)
+                  ],
                 ),
-              ],
+              ),
             ),
-            SizedBox(height: 36,)
-          ],
-        ),
-      ),
-      ),
-
-
+          ),
+          buildConfettiWidgets(),
+        ],
+      )
     );
   }
 }
 
-class _LineChart extends StatelessWidget { //TODO: eigene Klasse mit Variabeln um sie auch für eine gesamtübersicht zu verwenden
-  const _LineChart({
-    required this.isShowingMainData,
-    required this.meanList,
-  });
-
-  final bool isShowingMainData;
-  final List<List<double>> meanList;
-
-
-  @override
-  Widget build(BuildContext context) {
-    return LineChart(
-      isShowingMainData ? sampleData(true) : sampleData(false),
-      duration: const Duration(milliseconds: 250),
-    );
-  }
-
-
-  LineChartData sampleData(bool version1){
-    return LineChartData(
-      lineTouchData: lineTouchData1,
-      gridData: gridData,
-      titlesData: titlesData1,
-      borderData: borderData,
-      lineBarsData: version1 ? lineBarsData(true, true) : lineBarsData(true, false),
-      minX: 0,
-      maxX: 7,
-      maxY: 7,
-      minY: 0,
-    );
-  }
-
-  LineTouchData get lineTouchData1 => LineTouchData(
-    handleBuiltInTouches: true,
-    touchTooltipData: LineTouchTooltipData(
-      getTooltipColor: (touchedSpot) =>
-          Colors.blueGrey.withValues(alpha: 0.8),
-    ),
-  );
-
-  LineTouchData get lineTouchData2 => const LineTouchData(
-    enabled: false,
-  );
+/* Direkte implementation des GIFS
+            Material(
+                elevation: 10,
+                color: Theme.of(context).scaffoldBackgroundColor,
+                borderRadius: BorderRadius.circular(15),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.fromBorderSide(BorderSide(width: 0.5, color: Colors.black)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.all(15),
+                        child:  Text("Dein Progress diese Woche ${Emojis.smile_partying_face}", textAlign: TextAlign.start,),
+                      ),
+                      if(overallAnswered != 0)GifProgressWidget(
+                        progress: overallAnswered/totalTasks,
+                        startFrame: 0,
+                        finished: () => {},
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(15),
+                        child:  Text("Kommentar zu Progress?", textAlign: TextAlign.start,),
+                      ),
+                    ],
+                  ),
+                )
+            ),*/
 
 
-  FlTitlesData get titlesData1 => FlTitlesData(
-    bottomTitles: AxisTitles(
-      sideTitles: bottomTitles,
-    ),
-    rightTitles: const AxisTitles(
-      sideTitles: SideTitles(showTitles: false),
-    ),
-    topTitles: const AxisTitles(
-      sideTitles: SideTitles(showTitles: false),
-    ),
-    leftTitles: AxisTitles(
-      sideTitles: leftTitles(),
-    ),
-  );
-
-  List<LineChartBarData> lineBarsData(bool showDots, bool showCurves){
-    List<LineChartBarData> l = [];
-    for(int i = 0; i < 3; i++) {
-      print("in lineBarsData: ${meanList[i]} + ${meanList.length} ");
-      l.add(lineChartBarData(meanList[i],i, showDots, showCurves));
-    }
-    return l;
-  }
-
-  Widget leftTitleWidgets(double value, TitleMeta meta) {
-    const style = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 14,
-    );
-    String text;
-    switch (value.toInt()) {
-      case 1:
-        text = '1';
-        break;
-      case 3:
-        text = '3';
-        break;
-      case 5:
-        text = '5';
-        break;
-      case 7:
-        text = '7';
-        break;
-      default:
-        return Container();
-    }
-
-    return SideTitleWidget(
-      meta: meta,
-      child: Text(
-        text,
-        style: style,
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-
-  SideTitles leftTitles() => SideTitles(
-    getTitlesWidget: leftTitleWidgets,
-    showTitles: true,
-    interval: 1,
-    reservedSize: 40,
-  );
-
-  Widget bottomTitleWidgets(double value, TitleMeta meta) {
-    const style = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 16,
-    );
-    print(value.toString()); //TODO: Adjust for firstWeekDay
-    Widget text;
-    switch (value.toInt()) {
-      case 0:
-        text = const Text('Mo', style: style);
-        break;
-      case 1:
-        text = const Text('Di', style: style);
-        break;
-      case 2:
-        text = const Text('Mi', style: style);
-        break;
-      case 3:
-        text = const Text('Do', style: style);
-        break;
-      case 4:
-        text = const Text('Fr', style: style);
-        break;
-      case 5:
-        text = const Text('Sa', style: style);
-        break;
-      case 6:
-        text = const Text('So', style: style);
-        break;
-      default:
-        text = const Text('');
-        break;
-    }
-
-    return SideTitleWidget(
-      meta: meta,
-      space: 10,
-      child: text,
-    );
-  }
-
-  LineChartBarData lineChartBarData(List<double> meanList, int index, bool dotData, bool isCurved) {
-    List<FlSpot> spots = [];
-    for (int i = 0; i < 7; i++) { //i = jeder Tag der Woche, also jeweils x für FLSpot
-      print("${meanList.length} + ${meanList[i]}");
-
-      double tableXIndex = i.toDouble();
-      if(!meanList[i].isNaN){
-        double meanDouble = double.parse(meanList[i].toStringAsFixed(1));
-        spots.add(FlSpot(tableXIndex,  meanDouble)); //meanList[i] ist der Durchschnitt des Wochentags i, also i = 0 = Montag, i = 1 = Dienstag, etc.
-      }
-    }
-    //spots.add(FlSpot(6, index+3)); Test letzter Wochentag
-
-    Color c = index == 0 ? Colors.lightBlueAccent : index == 1 ? Colors.lightGreen : index == 2 ? Colors.purple : Colors.black87;
-
-    return LineChartBarData(
-      isCurved: isCurved,
-      color: c,
-      barWidth: 2,
-      isStrokeCapRound: true,
-      dotData: FlDotData(show: dotData),
-      belowBarData: BarAreaData(show: false),
-      spots: spots,
-    );
-  }
-
-    SideTitles get bottomTitles => SideTitles(
-      showTitles: true,
-      reservedSize: 32,
-      interval: 1,
-      getTitlesWidget: bottomTitleWidgets,
-    );
-
-    FlGridData get gridData => const FlGridData(show: true);
-
-    FlBorderData get borderData => FlBorderData(
-      show: true,
-      border: Border(
-        bottom: BorderSide(
-            color: AppColors.primary.withValues(alpha: 0.2), width: 4),
-        left: BorderSide(
-            color: AppColors.primary.withValues(alpha: 0.2), width: 4),
-        right: const BorderSide(color: Colors.transparent),
-        top: const BorderSide(color: Colors.transparent),
-      ),
-    );
-}
-
-class AppColors {
-  static const Color primary = contentColorCyan;
-  static const Color menuBackground = Color(0xFF090912);
-  static const Color itemsBackground = Color(0xFF1B2339);
-  static const Color pageBackground = Color(0xFF282E45);
-  static const Color mainTextColor1 = Colors.white;
-  static const Color mainTextColor2 = Colors.white70;
-  static const Color mainTextColor3 = Colors.white38;
-  static const Color mainGridLineColor = Colors.white10;
-  static const Color borderColor = Colors.white54;
-  static const Color gridLinesColor = Color(0x11FFFFFF);
-
-  static const Color contentColorBlack = Colors.black;
-  static const Color contentColorWhite = Colors.white;
-  static const Color contentColorBlue = Color(0xFF2196F3);
-  static const Color contentColorYellow = Color(0xFFFFC300);
-  static const Color contentColorOrange = Color(0xFFFF683B);
-  static const Color contentColorGreen = Color(0xFF3BFF49);
-  static const Color contentColorPurple = Color(0xFF6E1BFF);
-  static const Color contentColorPink = Color(0xFFFF3AF2);
-  static const Color contentColorRed = Color(0xFFE80054);
-  static const Color contentColorCyan = Color(0xFF50E4FF);
-}

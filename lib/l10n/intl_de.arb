@@ -1,0 +1,279 @@
+{
+  "@@locale": "de",
+  "appTitle": "Menta Track",
+
+
+  "@Basic Expersionss": {
+  },
+  "unanswered": "Unbeantwortet",
+  "weeklyPlans": "Wochenpläne",
+  "bestActivities": "Beste Aktivitäten",
+  "help": "Hilfe",
+  "settings": "Einstellungen",
+  "open": "Offene Aktivitäten",
+  "home": "Start",
+  "overview": "Übersicht",
+  "am": "am",
+  "um": "um",
+  "cancel": "Abbrechen",
+  "back": "zurück",
+  "accept": "Accept",
+  "understood": "Understood!",
+
+  "displayADateWithYear": "{date}",
+  "@displayADateWithYear" : {
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "dd.MM.yy",
+        "example": "20.01.25",
+        "isCustomDateFormat": "true"
+      }
+    }
+  },
+  "displayADate": "{date}",
+  "@displayADate" : {
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "dd.MM",
+        "example": "20.01",
+        "isCustomDateFormat": "true"
+      }
+    }
+  },
+  "displayATime": "{date}",
+  "@displayATime" : {
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "HH:mm",
+        "example": "12:00 pm",
+        "isCustomDateFormat": "true"
+      }
+    }
+  },
+  "till": "bis",
+
+  "summary_no_entries": " Noch Keine Einträge",
+  "special_activities": "Besondere Aktivitäten:",
+  "good_activities_desc": "Aktivitäten bei denen du dich gut gefühlt hast:",
+  "calm_activities_desc": "Aktivitäten bei denen du dich ruhig gefühlt hast:",
+  "help_activities_desc": "Aktivitäten die dir gut getan haben:",
+
+  "monday": "Montag",
+  "tuesday": "Dienstag",
+  "wednesday": "Mittwoch",
+  "thursday": "Donnerstag",
+  "friday": "Freitag",
+  "saturday": "Samstag",
+  "sunday":"Sonntag",
+
+
+  "@qrScanner": {
+  },
+  "qr_desc": "Scane einen QR-Code\num einen Wochenplan zu importieren!",
+  "qr_success":"QR-Code erfolgreich gescannt! 👍",
+
+
+  "@Question_Page": {
+  },
+  "questionPage_rewardMsg": "Danke 😊 \n\n Du hast dich mit deinen Emotionen auseinandergesetzt 🥰 \n\n Das war wirklich stark von dir 💪",
+  "questionPage_q1": "Konntest du den Termin wahrnehmen?",
+  "questionPage_q2": "Wie ist es dir bei dem Termin gegangen?",
+  "questionPage_q3": "Warst du dabei aufgeregt?",
+  "questionPage_q4": "Hat es dir gut getan den Termin einzuhalten?",
+
+  "questionPage_a1s": "sehr \n schlecht",
+  "questionPage_a2s": "sehr \n aufgeregt",
+  "questionPage_a3s": "wenig \n geholfen",
+
+  "questionPage_a1e": "sehr \n gut",
+  "questionPage_a2e": "sehr \n ruhig",
+  "questionPage_a3e": "sehr \n geholfen",
+
+  "questionPage_a0s": "Ja",
+  "questionPage_a0m": "Später",
+  "questionPage_a0e": "Nein",
+
+  "questionPage_too_early": "Du bist zu früh dran 😊 \nAber trotzdem cool, dass du vorbeischaust 👍",
+  "questionPage_comment": "Wenn du Lust hast kannst du hier einen kurzen Kommentar hinzufügen:",
+  "questionPage_commentLabel": "Dein Feedback",
+
+  "questionPage_save": "Slide zum speichern",
+
+
+  "@Settings": {
+  },
+  "settings_name": "Dein Name",
+  "settings_theme": "Thema",
+  "settings_themePictures": "Keine Bilder",
+  "settings_themeOnlyMainPage": "Thema nur auf Hauptseite" ,
+  "settings_darkMode": "Dark Mode",
+  "settings_chooseAccent": "Wähle eine Akzentfarbe",
+  "settings_notifications": "{count, plural, =0{Benachrichtigung} other{Benachrichtigungen}}",
+
+
+  "@HelpMessages": {
+  },
+  "mainPageDescription": "Dies ist die Startseite",
+  "mainPageInstructions": "Hier findest du alle deine gespeicherten Wochenpläne.",
+  "mainPageQrScanner": "Wenn du auf die Schaltfläche unten rechts tippst, öffnet sich ein QR-Scanner. Nutze ihn, um einen QR-Code von deinem Therapeuten zu scannen.",
+  "mainPageTapOnPlan": "Tippe auf einen Plan, um ihn zu öffnen :)",
+  "mainPageDeleteWeek": "Um eine Woche zu löschen, halte das 'Mülleimer'-Symbol gedrückt.",
+  "mainPageSwipeOrButton": "Wische nach links/rechts oder nutze eine Schaltfläche im unteren Menü, um die Seiten zu wechseln.",
+
+  "unansweredActivities": "Auf dieser Seite findest du Aktivitäten, zu denen du noch kein Feedback gegeben hast ;)",
+
+  "weekPlanDescription": "Dies ist dein Wochenplan",
+  "weekPlanInstructions": "Hier siehst du alle Aktivitäten, die für diese Woche geplant sind :)",
+  "weekPlanGrayActivities": "• Graue Aktivitäten bedeuten, dass die Zeit dafür noch nicht gekommen ist.",
+  "weekPlanGreenActivities": "• Grüne Aktivitäten bedeuten, dass du bereits Feedback gegeben hast.",
+  "weekPlanActivitiesWithExclamation": "• Aktivitäten mit einem Ausrufezeichen können noch bewertet werden 😊",
+  "weekPlanTapForDayView": "Tippe auf die Kopfzeile, um eine Tagesübersicht zu öffnen.",
+  "weekPlanTapForWeekView": "Tippe auf die Schaltfläche unten rechts, um die Wochenübersicht zu öffnen.",
+
+  "activitySummaryDescription": "Dies ist deine übersicht über alle Wochen",
+  "activitySummaryGraphDescription": "Die Grafik zeigt deine Durchschnittswerte für jede Woche.",
+  "activitySummaryGoodFeedback": "Die Liste unten merkt sich Aktivitäten, die du besonders gut bewertet hast.",
+  "generalHelp": "Allgemeine Hilfe",
+
+
+  "@RewardPopUp": {
+  },
+  "rewardPopUp_scroll": "\n scrolle für deinen Progress \uD83D\uDE09",
+  "rewardPopUp_conf": "Gut gemacht! ❤️",
+
+
+  "@GifProgress": {
+  },
+  "gifProgress_title": "{count, plural, =0{Dein Progress bis zu diesem Tag \uD83D\uDE07} other{Dein Progress an diesem Tag \uD83D\uDE07}}",
+  "gifProgress_title_week": "Dein Fortschritt diese Woche \uD83D\uDE07",
+  "gifProgress_case0": "Toller Start{name}! Weiter so! 🎉",
+  "gifProgress_case1": "Ein Viertel geschafft{name}! Das machst du fantastisch! 🌟",
+  "gifProgress_case2": "Mehr als ein Drittel geschafft{name}! 💪",
+  "gifProgress_case3": "Halbzeit erreicht! Weiter so {name}! 🔥",
+  "gifProgress_case4": "Drei Viertel rum {name}! Fast geschafft! 🌟",
+  "gifProgress_case5": "Fast fertig {name}! Du hast hart gearbeitet, nur noch ein bisschen mehr! 🚀",
+  "gifProgress_case6": "Gratuliere {name}! Du hast es geschafft! 🏆🎉",
+
+
+  "@helper Utilities": {
+  },
+  "helper_activities0": "Das hast du wirklich großartig gemacht! 🎉",
+  "helper_activities1": "Wieder einen Fortschritt vorwärts! 🌟",
+  "helper_activities2": "Tolle Leistung, mach weiter so! 🔥",
+  "helper_activities3": "Richtig gut gemacht, du ziehst das durch! 🏅",
+  "helper_activities4": "Weiter so! 🚀",
+  "helper_activities5": "Wirklich beeindruckend, wie du das gemeistert hast! ✨",
+  "helper_activities6": "Du verdienstt Anerkennung! 🥇",
+  "helper_activities7": "Toll, wie du dich anstrengst! 🎯",
+  "helper_activities8": "Du kommst jeden Tag einen Schritt näher an dein Ziel! 🚶‍♀️",
+  "helper_activities9": "Wirklich stark, von dir! 💪",
+  "helper_activities10":"Du bist auf dem richtigen Weg! 🌟",
+  "helper_activities11":"Großartige Arbeit 🌟",
+
+  "helper_activities0_name": "Super gemacht, {name}!\nDu bist echt auf dem richtigen Weg! 🌟",
+  "helper_activities1_name": "Ganz stark, {name}!\nDeine harte Arbeit wird sich auszahlen! 💪",
+  "helper_activities2_name": "{name}, das hast du großartig gemacht\n– weiter so! 🎉",
+  "helper_activities3_name": "Echt toll, {name}!\nDu kommst stetig vorwärts! 🚀",
+  "helper_activities4_name": "{name}, toller Fortschritt! ✨",
+  "helper_activities5_name": "{name}, deine Leistung ist beeindruckend! 🏅",
+  "helper_activities6_name": "Richtig gut,\n{name}! 🏆",
+  "helper_activities7_name": "{name}, du machst das klasse,\nBleib dran! 🔥",
+  "helper_activities8_name": "Du rockst das, {name}!\nEin Schritt nach dem anderen! 🎯",
+  "helper_activities9_name": "{name}, du hast was geschaft, das ist großartig! 💥",
+  "helper_activities10_name":"Fantastische Arbeit,\n{name}! 💪",
+  "helper_activities11_name":"Großartige Arbeit,\n{name} 🌟",
+
+
+  "@Summary": {
+  },
+  "favorite_comments0": "Am besten ging es dir hier 🙂:",
+  "favorite_comments1": "Hier warst du am ruhigsten 😊:",
+  "favorite_comments2": "Am meisten geholfen hat dir 💪:",
+
+  "legend_Msg0": "Wie gut ging es dir?",
+  "legend_Msg1": "Wie ruhig warst du?",
+  "legend_Msg2":  "Wie sehr hat es geholfen?",
+  "legend_Msg1_clip": "Wie ruhig\nwarst du?",
+  "legend_Msg2_clip": "Wie sehr hat\nes geholfen?",
+
+
+  "@ThemeHelper": {
+  },
+  "themeHelper_msg0": "{name} hier findest du eine Auflistung all deiner Wochenpläne 😊",
+  "themeHelper_open_msg0": "{name} hier findest du alle Termine, zu denen du noch kein Feedback gegeben hast 😉\n",
+  "themeHelper_open_msg1": "{count, plural, =0{Gerade gibt es nichts zu beantworten \uD83D\uDE09} =1{Es steht noch {count} Termin aus \uD83D\uDE09} other{Es stehen noch {count} Termine aus ;)}}",
+
+
+  "@DayOverView": {
+  },
+  "taskCompletedOn": "Du hast {date} geschafft\n",
+  "today": "heute",
+  "tasksCompleted": "{count, plural, =1{\nTermin geschafft} other{\nTermine geschafft}}",
+  "tasksPendingFeedback": "\n\n(Wenn du Lust hast, kannst du noch Feedback zu {count, plural, =1{einem Termin} other{{count} Terminen}} auf der 'Offen'-Seite geben 😊)",
+  "noAppointmentsOn": "Du hattest {date} keine Termine geplant gehabt.",
+  "hopeYouHadAGoodDay": "Ich hoffe, du hast und hattest trotzdem einen schönen Tag {count, plural, zero{} other{, {name}}} 😊",
+  "tasksNotAnsweredOn": "Du hast {date} {count, plural, =1{deinen Termin} other{{count} Termine}} noch nicht beantwortet.",
+  "checkPendingFeedback": "Schau auf der Startseite unter \"Offen\" oder in der \"Wochenübersicht\" nach, um Feedback zu einer Aktivität zu geben 👍",
+  "dayNotYetArrived": "Der Tag ist noch nicht gekommen 😉 Trotzdem schön, dass du schon mal hier reinschaust {name} :)",
+  "unexpectedCaseFound": "Glückwunsch!!! 🎉 Du hast einen Fall gefunden, an den ich nicht gedacht habe! Gut gemacht! 😊 Falls möglich, sag deinem Therapeuten oder Entwickler der App, welche Kombination zu diesem Fall geführt hat.",
+  "daily_Values": "Tägliche Werte",
+  "day_reward_message": "Danke! \uD83D\uDE0A \n\n Ich hoffe der Tag hat dich vorangebracht und dir gut getan \n\n Du schaffst das Tag für Tag \uD83D\uDCAA",
+
+  "@WeekOverview": {
+  },
+  "weekOverView_summary": "Du hast diese Woche\n",
+  "weekOverView_summary_part2": "{count, plural, =1{Termin bewältigt\n\n {randomText}} other{Termine bewältigt\n\n {randomText}}}",
+  "weekOverView_leftAnswers": "{count, plural, =0{ } =1{\n\n Wenn du Lust hast kannst du noch Feedback zu {count} Aktivität geben} other{\n\n Wenn du Lust hast kannst du noch Feedback zu {count} Aktivitäten geben}}",
+  "weekOverView_noAnswers": "Du hast diese Woche noch keine Aktivität bewertet \n komm bitte später wieder 🙋‍♂️",
+  "weekOverView_scroll": "\n\n Scroll weiter um mehr Infos zu bekommen ;)",
+  "week_reward_message": "Danke! \uD83D\uDE0A \n\n Ich hoffe deine Woche hat dich vorangebracht und dir geholfen \n\n Du schaffst das Woche für Woche \uD83D\uDCAA",
+  "weekly_values": "Wöchentliche Werte",
+
+
+  "@Notifications": {
+  },
+  "@Start": {  },
+  "noti_start_title": "📅 Termine am {date}",
+  "@noti_start_title" : {
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "dd.MM.yy",
+        "example": "20.01.2025",
+        "isCustomDateFormat": "true"
+      }
+    }
+  },
+  "noti_start_message": "Heute stehen folgende Termine an 🙂 \n",
+  "noti_noTasks_message":"Heute stehen keine Termine an, also lehn dich zurück und Entspann ein bisschen \uD83D\uDE42",
+
+  "@Termin": {  },
+  "noti_termin_messageBefore": "{terminName} steht in {count} Minuten an. Du schaffst das!🤞",
+  "noti_termin_messageAt": "Es ist soweit für {terminName}! Viel Erfolg!🤞",
+  "noti_termin_messageAfter": "{terminName} ist vorbei. Ich hoffe es hat geklappt und dir geholfen 😊\nBitte klicke auf mich und nimm dir eine Minute und reflektiere den Termin\nEgal ob geschaft oder nicht, das reflektieren darüber ist schon eine tolle Leistung 🤘",
+
+
+  "@End": {  },
+  "noti_dayEnd_title":"$\uD83C\uDF89 Termin-Übersicht für den {date}",
+  "@noti_dayEnd_title" : {
+    "placeholders": {
+      "date": {
+        "type": "DateTime",
+        "format": "dd.MM.yy",
+        "example": "20.01.2025",
+        "isCustomDateFormat": "true"
+      }
+    }
+  },
+  "noti_dayEnd_message":"Wieder ein Tag vorbei. \n Klicke auf mich um zu sehn was heute so los war \uD83D\uDE0A \n",
+  "noti_weekEnd_title": "Wochenübersicht \uD83C\uDF8A",
+  "noti_weekEnd_message":"Super! Wieder eine Woche geschaft\n Klicke hier um deine Wochenübersicht\n anzeigen zu lassen",
+
+  "delete": "Löschen",
+  "delete_week_plan":"Willst du den Wochenplan für:",
+  "delete_week_plan2": "wirklich löschen?"
+
+}

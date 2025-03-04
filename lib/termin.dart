@@ -2,10 +2,10 @@ class Termin {
   String terminName;
   DateTime timeBegin;
   DateTime timeEnd;
-  int question0;
-  int question1;
-  int question2;
-  int question3;
+  int doneQuestion;
+  int goodMean;
+  int calmMean;
+  int helpMean;
   String comment;
   bool answered;
 
@@ -13,10 +13,10 @@ class Termin {
     required this.terminName,
     required this.timeBegin,
     required this.timeEnd,
-    required this.question0,
-    required this.question1,
-    required this.question2,
-    required this.question3,
+    required this.doneQuestion,
+    required this.goodMean,
+    required this.calmMean,
+    required this.helpMean,
     required this.comment,
     required this.answered,
   });
@@ -26,10 +26,10 @@ class Termin {
      "terminName":terminName,
      "timeBegin": timeBegin.toString(),
      "timeEnd": timeEnd.toString(),
-     "question0": question0,
-     "question1": question1,
-     "question2": question2,
-     "question3": question3,
+     "question0": doneQuestion,
+     "question1": goodMean,
+     "question2": calmMean,
+     "question3": helpMean,
      "comment": comment,
      "answered": answered == true ? 1 : 0
    };
@@ -37,6 +37,6 @@ class Termin {
 
   @override
   String toString() {
-    return "Termin(terminName: $terminName, timeBegin: $timeBegin, timeEnd: $timeEnd, question0: $question0 ,question1: $question1, question2: $question2, question3: $question3, comment: $comment, answered: $answered)";
+    return "Termin(terminName: $terminName, timeBegin: $timeBegin, timeEnd: $timeEnd, question0: $doneQuestion ,question1: $goodMean, question2: $calmMean, question3: $helpMean, comment: $comment, answered: $answered)";
   }
 }

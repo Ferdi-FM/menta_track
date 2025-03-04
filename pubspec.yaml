@@ -30,7 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  flutter_localizations:
+    sdk: flutter
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -45,10 +46,22 @@ dependencies:
   fl_chart: ^0.70.2
   string_similarity: ^2.0.0
   action_slider: ^0.7.0
+  mobile_scanner: ^6.0.6
+  flex_color_picker: ^3.7.0
+  qr_flutter: ^4.1.0
+  gif_view: ^1.0.0
+  flutter_launcher_icons: ^0.14.3
+  syncfusion_flutter_charts: ^28.2.6
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/Icon Kalender.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -64,6 +77,9 @@ dev_dependencies:
 flutter:
   assets:
     - assets/images/
+    - assets/images/mascot/
+    - assets/images/illustrations/
+    - lib/l10n/
   fonts:
     - family: Comfortaa
       fonts:
@@ -76,6 +92,7 @@ flutter:
           weight: 600
         - asset: assets/fonts/Comfortaa-Bold.ttf
           weight: 700
+  generate: true
 
 
   # The following line ensures that the Material Icons font is
@@ -113,3 +130,5 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_intl:
+  enabled: true

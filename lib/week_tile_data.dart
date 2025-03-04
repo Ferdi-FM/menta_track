@@ -12,4 +12,9 @@ class WeekTileData {
     required this.title,
     required this.weekKey,
   });
+
+  @override
+  String toString() {
+    return "{icon: $icon; title: $title; weekKey: $weekKey; ";
+  }
 }
