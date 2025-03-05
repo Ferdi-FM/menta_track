@@ -125,21 +125,14 @@ class DayOverviewState extends State<DayOverviewPage> {
         }
       }
       radarEntries = [
+        //wie gut ging es dir
         RadarEntry(value: meanQuestion1 / tasksDoneInt),
-        //wie gut ging es dir
+        //wie gut hat es getan
         RadarEntry(value: meanQuestion3 / tasksDoneInt),
-        //wie gut hat es getan
+        //wie ruhig warst du
         RadarEntry(value: meanQuestion2 / tasksDoneInt),
-        //wie ruhig warst du
 
-      ];
-      radarEntries = [
-        RadarEntry(value: 1),
-        //wie gut ging es dir
-        RadarEntry(value: 4),
-        //wie gut hat es getan
-        RadarEntry(value: 7),
-        //wie ruhig warst du
+
 
       ];
       favoriteAnswers = [favoriteTasks.trimRight(), calmTasks.trimRight(), helpingTasks.trimRight()]; //.trimRight() entfernt letztes \n, if(favoriteTasks != "") favoriteAnswers.add(...) geht nicht, da die Tasks den Comments zugeordnet werden müssen, wenn nur calmTaks da wären, würden diese sonst den favoriteComment zugeordnet werden
@@ -379,7 +372,8 @@ class DayOverviewState extends State<DayOverviewPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      SizedBox(height: 15,),
+                      //SizedBox(height: MediaQuery.of(context).size.height*0.07,), //TODO: Falls Appbar entfernt wird
+                      SizedBox(height: MediaQuery.of(context).size.height*0.03,),
                       loaded ? getText() : SizedBox(width: MediaQuery.of(context).size.width,),
                       SizedBox(height: 20,),
                       if (!noFavorites) Material(//zuerst favoriteAnswers.isNotEmpty, durch es ist aber immer mindestens ["","",""] was als voll gezählt wird
@@ -447,14 +441,22 @@ class DayOverviewState extends State<DayOverviewPage> {
                             titleTextStyle: TextStyle(color: Colors.black, fontSize: 14),
                             getTitle: (index, angle) {
                               switch (index) {
-                                case 0:
+                                /// case 0 ist oben, case 1 ist unten links, case 2 ist unten rechts
+                                ///aber radar
+                                case 0: //Wie gut hast du dich gefühlt
                                   return RadarChartTitle(
                                     text: "${S.of(context).legend_Msg0}\n ${radarEntries[0].value.toString().substring(0, 3)}/7",
-                                  );case 2:return RadarChartTitle(
-                                  text: "${radarEntries[2].value.toString().substring(0, 3)}/7 \n Wie Ruhig\nwarst du",
-                                  angle: 0);case 1:return RadarChartTitle(
-                                  text: "${radarEntries[1].value.toString().substring(0, 3)}/7 \n Wie sehr hat \n es geholfen",
-                                  angle: 0);default:return const RadarChartTitle(text: '');
+                                  );
+                                case 1: //Wie ruhig warst du
+                                  return RadarChartTitle(
+                                    text: "${radarEntries[1].value.toString().substring(0, 3)}/7 \n Wie sehr hat\nes geholfen",
+                                    angle: 0);
+                                case 2: //Wie sehr hat es geholfen?
+                                  return RadarChartTitle(
+                                      text: "${radarEntries[2].value.toString().substring(0, 3)}/7 \n Wie Ruhig\nwarst du",
+                                      angle: 0);
+                                default:
+                                  return RadarChartTitle(text: "");
                               }},
                             tickCount: 1,
                             ticksTextStyle: const TextStyle(color: Colors.transparent, fontSize: 10),

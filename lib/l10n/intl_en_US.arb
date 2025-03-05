@@ -1,5 +1,5 @@
 {
-  "@@locale": "en_GB",
+  "@@locale": "en_US",
   "appTitle": "Menta Track",
 
 
@@ -25,7 +25,7 @@
     "placeholders": {
       "date": {
         "type": "DateTime",
-        "format": "dd.MM.yy",
+        "format": "MM.dd.yy",
         "example": "01.20.2025",
         "isCustomDateFormat": "true"
       }
@@ -36,7 +36,7 @@
     "placeholders": {
       "date": {
         "type": "DateTime",
-        "format": "dd.MM",
+        "format": "MM.dd",
         "example": "20.01",
         "isCustomDateFormat": "true"
       }
@@ -47,7 +47,7 @@
     "placeholders": {
       "date": {
         "type": "DateTime",
-        "format": "HH:mm",
+        "format": "h:mm a",
         "example": "12:00 pm",
         "isCustomDateFormat": "true"
       }
@@ -202,8 +202,8 @@
   "@ThemeHelper": {
   },
   "themeHelper_msg0": "{name} here is a list of all your weekly plans 😊",
-  "themeHelper_open_msg0": "{name} here are all the activities where you haven't given feedback yet 😉\n",
-  "themeHelper_open_msg1": "{count, plural, =0{Currently there is nothing to answer \uD83D\uDE09} =1{{count} activity is left \uD83D\uDE09} other{{count} appointments are left \uD83D\uDE09}}",
+  "themeHelper_open_msg0": "{name} here are all the appointments where you haven't given feedback yet 😉\n",
+  "themeHelper_open_msg1": "{count, plural, =0{Currently there is nothing to answer \uD83D\uDE09} =1{{count} appointment is left \uD83D\uDE09} other{{count} appointments are left \uD83D\uDE09}}",
 
 
   "@DayOverView": {
@@ -212,9 +212,9 @@
   "today": "today",
   "tasksCompleted": "{count, plural, =1{\nTask} other{\nTasks}}",
   "tasksPendingFeedback": "\n\n(If you like, you can still give feedback on {count, plural, =1{one activity} other{{count} activities}} on the 'Open' page 😊)",
-  "noAppointmentsOn": "You had no activities planned {date}.",
+  "noAppointmentsOn": "You had no appointments planned {date}.",
   "hopeYouHadAGoodDay": "I hope you had a good day {count, plural, zero{} other{, {name}}} 😊",
-  "tasksNotAnsweredOn": "You haven't answered {count, plural, =1{your activity} other{{count} activities}} {date} yet.",
+  "tasksNotAnsweredOn": "You haven't answered {count, plural, =1{your activity} other{{count} activites}} {date} yet.",
   "checkPendingFeedback": "Check on the home page under 'Open' or in the 'Week Overview' to give feedback on an activity 👍",
   "dayNotYetArrived": "The day hasn't arrived yet 😉 \n Still, it's nice that you're checking in early {name} :)",
   "unexpectedCaseFound": "Congratulations!!! 🎉 You found a case I didn't think of! Great job! 😊 If possible, let your therapist or the app developer know which combination led to this case.",
@@ -241,7 +241,7 @@
     "placeholders": {
       "date": {
         "type": "DateTime",
-        "format": "dd.MM.yy",
+        "format": "MM.dd.yy",
         "example": "20.01.2025",
         "isCustomDateFormat": "true"
       }
@@ -262,7 +262,7 @@
     "placeholders": {
       "date": {
         "type": "DateTime",
-        "format": "dd.MM.yy",
+        "format": "MM.dd.yy",
         "example": "20.01.2025",
         "isCustomDateFormat": "true"
       }

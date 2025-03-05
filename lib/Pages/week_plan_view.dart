@@ -55,13 +55,33 @@ class MyHomePageState extends State<WeekPlanView>{
     }
 
      List<Termin> weekAppointments = await databaseHelper.getWeeklyPlan(widget.weekKey); //await muss nach den erstellen der CalendarHeader passieren
-     for(Termin t in weekAppointments){
+     List<String> foundOvrelaps = [];
+    for(Termin t in weekAppointments){
        String title = t.terminName;
        DateTime startTime = t.timeBegin;
        DateTime endTime = t.timeEnd;
        Color? color = t.answered ? Colors.lightGreen : Colors.white60; //Purple nur übergangsweise, bis ich mich für style entschieden habe und Termin braucht einen weiteren zustand, wenn etwas schon passiert ist, aber nicht beantwortet wurde
        if(!t.answered && DateTime.now().isAfter(endTime)){
          color = Colors.grey;
+       }
+       ///Checkt nach Überschneidungen und macht den überlappenden Termin zu ca 25% Transparent
+       if(foundOvrelaps.contains(t.terminName)){
+         color = color.withAlpha(60);
+       } else {
+         DateTimeRange range = DateTimeRange(start: t.timeBegin, end: t.timeEnd);
+         for (Termin t2 in weekAppointments) {
+           DateTimeRange rangeCompare = DateTimeRange(start: t2.timeBegin, end: t2.timeEnd);
+
+           // Check if the ranges overlap
+           bool overlaps = range.start.isBefore(rangeCompare.end) && range.end.isAfter(rangeCompare.start);
+
+           if (overlaps && t2.terminName != t.terminName && !foundOvrelaps.contains(t2.terminName)&& !foundOvrelaps.contains(t.terminName)) {
+             foundOvrelaps.add(t2.terminName);
+             foundOvrelaps.add(t.terminName);
+            // color = Colors.grey.shade600;
+
+           }
+         }
        }
 
        _addObject(title, startTime, endTime, color);
@@ -167,41 +187,66 @@ class MyHomePageState extends State<WeekPlanView>{
                 children: [
                   Positioned(
                       top: -6,
-                      right: -5,
+                      right: -3,
                       child: Icon(color == Colors.grey ? Icons.priority_high : null)
                   ),
+                  ///Start and Endzeit, beide, damit falls sich einträge Überlappen, sie auseinandergehalten werden können
                   Positioned(
-                      bottom: 2,
+                      top: 1,
                       left: 5,
-                      child: Text(DateFormat("HH:mm").format(startTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic, fontSize: 10),) //TODO: Farbe und Italic? 
+                      child: Text(DateFormat("HH:mm").format(startTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic, fontSize: duration < 46 ? 5 : 7),), //Ursprünglich 7 : 9
                   ),
+                  Positioned(
+                    bottom: 1,
+                    left: 5,
+                    child: Text(DateFormat("HH:mm").format(endTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic,  fontSize: duration < 46 ? 5 : 7),), //${DateFormat("HH:mm").format(startTime)} -
+                  ),
+                  //Positioned(
+                  //  top: 2,
+                  //    left: 1,
+                  //    right: 1,
+                  //    bottom: 20,
+                  //    child: Center(
+                  //        child: Text(
+                  //          title,
+                  //          style: TextStyle(
+                  //            fontSize: 11,
+                  //            color: Colors.black,
+                  //          ),
+                  //          textAlign: TextAlign.center,
+                  //          maxLines: 2,
+                  //          overflow: TextOverflow.ellipsis,
+                  //        )
+                  //    )
+                  //),
                   // Stroked text as border.
                   Container(
                     alignment: Alignment.center,
-                    padding: EdgeInsets.only(left: 12, right: 12, bottom: 20, top: 3),
+                    margin: EdgeInsets.only(left: 10, right: 10, bottom: duration < 46 ? 5: 10, top: duration < 46 ? 5: 10), //Ursprünglich 8 : 12
                       child: Text(
                         title,
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10, //Ursprünglich 11
                           color: Colors.black,
                         ),
                         textAlign: TextAlign.center,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                      ),
-                        //Text( //Weißer Text mit schwarzer Umrandung ist tendenziell auf jeder Farbe lesbar, gerade aber schwarz
-                        //  title,
-                        //  style: TextStyle(
-                        //    fontSize: 11,
-                        //    foreground: Paint()
-                        //      ..style = PaintingStyle.stroke
-                        //      ..strokeWidth = 0
-                        //      ..color = Colors.black,
-                        //  ),
-                        //  textAlign: TextAlign.center,
-                        //  maxLines: 2,
-                        //  overflow: TextOverflow.ellipsis,
-                        //),
+                      )
+
+                      /*FittedBox(
+                        fit: BoxFit.fitWidth,
+                        child: Text(
+                          wrapTitle(title),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.black,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )*/
 
                   ),
                 ],
@@ -210,6 +255,24 @@ class MyHomePageState extends State<WeekPlanView>{
         )
       );
     });
+  }
+
+  ///Wraped den Text manuel, da mit Constrains, Positioned, etc. immer Text horizontal abgeschnitten wurde
+  String wrapTitle(String text) {
+    String correctedText = text;
+    if (text.length > 9) { //9 wirkte wie guter Wert
+      List<String> words = text.split(" ");
+      if (words.length > 2) {
+        if (words[0].length + words[1].length >= 9) {
+          correctedText = "${words[0]} ${words[1]}\n${words[2]}";
+        } else {
+          correctedText = "${words[0]}\n${words.sublist(1).join(" ")}";
+        }
+      } else if (words.length == 2) {
+        correctedText = "${words[0]}\n${words[1]}";
+      }
+    }
+    return correctedText;
   }
 
   @override

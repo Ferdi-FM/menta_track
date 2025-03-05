@@ -10,15 +10,15 @@
   "bestActivities": "Beste Aktivitäten",
   "help": "Hilfe",
   "settings": "Einstellungen",
-  "open": "Offene Aktivitäten",
-  "home": "Start",
+  "open": "Offenes",
+  "home": "Startseite",
   "overview": "Übersicht",
   "am": "am",
   "um": "um",
   "cancel": "Abbrechen",
   "back": "zurück",
   "accept": "Accept",
-  "understood": "Understood!",
+  "understood": "Verstanden!",
 
   "displayADateWithYear": "{date}",
   "@displayADateWithYear" : {
@@ -82,7 +82,7 @@
   "questionPage_q1": "Konntest du den Termin wahrnehmen?",
   "questionPage_q2": "Wie ist es dir bei dem Termin gegangen?",
   "questionPage_q3": "Warst du dabei aufgeregt?",
-  "questionPage_q4": "Hat es dir gut getan den Termin einzuhalten?",
+  "questionPage_q4": "Hat es dir gut getan?",
 
   "questionPage_a1s": "sehr \n schlecht",
   "questionPage_a2s": "sehr \n aufgeregt",
@@ -209,7 +209,7 @@
 
   "@DayOverView": {
   },
-  "taskCompletedOn": "Du hast {date} geschafft\n",
+  "taskCompletedOn": "Du hast {date}\n",
   "today": "heute",
   "tasksCompleted": "{count, plural, =1{\nTermin geschafft} other{\nTermine geschafft}}",
   "tasksPendingFeedback": "\n\n(Wenn du Lust hast, kannst du noch Feedback zu {count, plural, =1{einem Termin} other{{count} Terminen}} auf der 'Offen'-Seite geben 😊)",

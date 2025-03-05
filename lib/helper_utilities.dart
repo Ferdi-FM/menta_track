@@ -176,7 +176,7 @@ class Utilities{
               QrImageView(
                 backgroundColor: Colors.white,
                 version: QrVersions.auto,
-                data: CreateDummyJsonForTesting().toCompressedIntList(),
+                data: CreateDummyJsonForTesting().toCompressedIntListTwoTermine(),
               ),
             ],
           ),

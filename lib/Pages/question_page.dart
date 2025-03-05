@@ -50,7 +50,7 @@ class QuestionPageState extends State<QuestionPage> {
             isEditable = false;
           });
         } else {
-          if(DateTime.now().isAfter(termin.timeEnd)){  //2 = Termin war schon, aber wurde noch nicht beantwortet
+          if(DateTime.now().isAfter(termin.timeBegin)){  //2 = Termin war schon, aber wurde noch nicht beantwortet
             isEditable = true;
           } else {
             isEditable = false;
@@ -262,17 +262,18 @@ class QuestionPageState extends State<QuestionPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                           ActionSlider.standard(
-                            child: Text(S.of(context).questionPage_save, key: GlobalKey()), //TODO! TEsting ob GlobalKey() funktioniert
+                            child: Text(S.of(context).questionPage_save, key: GlobalKey()),
                             action: (controller) async {
                               controller.loading();
                               await Future.delayed(const Duration(seconds: 1));
                               controller.success();
                               controller.reset();
+                              HapticFeedback.lightImpact();
                               openRewardPopUp();
                             },
                             stateChangeCallback:(actionsliderState1 ,actionSliderState2, actionSliderController1) {
                                // print(actionSliderState2.position); //Prozent des Sliders
-                              HapticFeedback.lightImpact(); //Vibrations feedback
+                              HapticFeedback.vibrate();
                             },
                           ),
                         SizedBox(height: 16,),

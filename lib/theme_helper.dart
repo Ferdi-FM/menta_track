@@ -50,7 +50,7 @@ class ThemeHelper {
 
     switch (page) {
       case "MainPage":
-        title = "Startseite";
+        title = S.current.home;
         message = S.current.themeHelper_msg0(name);
         switch (theme) {
           case "illustration":
@@ -69,7 +69,7 @@ class ThemeHelper {
             height: 10,
           );
         }
-        title = "Offen";
+        title = S.current.open;
         message =  "${S.current.themeHelper_open_msg0(name)}${S.current.themeHelper_open_msg1(unansweredCount)}";
         switch (theme) {
           case "illustration":
@@ -95,7 +95,6 @@ class ThemeHelper {
       builder: (context, constraints) {
         double width = constraints.maxWidth; // Maximal verfügbare Breite
         //double height = constraints.maxHeight; // Maximal verfügbare Höhe (= Infinity)
-
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -110,7 +109,7 @@ class ThemeHelper {
                   borderRadius: BorderRadius.circular(12),
                   child: Image.asset(
                     path,
-                    height: width * 0.5,
+                    height: width * 0.48,
                   ),
                 ),
               ),

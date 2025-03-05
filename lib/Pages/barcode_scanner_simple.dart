@@ -28,7 +28,6 @@ class _BarcodeScannerSimpleState extends State<BarcodeScannerSimple> {
 
     return Text(
       S.of(context).qr_success,
-      //value.displayValue ?? 'No display value.',
       overflow: TextOverflow.fade,
       style: const TextStyle(color: Colors.white),
     );

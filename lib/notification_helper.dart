@@ -212,6 +212,16 @@ class NotificationHelper{
     }
   }
 
+  Future<void> loadNewNotifications(String weekKey)async {
+      List<Termin> terminList = await DatabaseHelper().getWeeklyPlan(weekKey);
+      scheduleBeginNotification(terminList, weekKey);
+      for(Termin termin in terminList){
+        scheduleNewTerminNotification(termin, weekKey);
+      }
+      scheduleEndNotification(weekKey);
+
+  }
+
 
   ///Plant die erste Benachrichtigung am Tag
   Future<void> scheduleBeginNotification(List<Termin> termine, String weekKey) async {
@@ -317,21 +327,29 @@ class NotificationHelper{
     if (!isAllowed) isAllowed = await displayNotificationRationale();
     if (!isAllowed) return;
 
-    //Implementation der Benachrichtigungen TODO: Aktivieren und testen
-    //SharedPreferences pref = await SharedPreferences.getInstance();
-    //List<int> notificationTimeList = pref.getStringList("notificationIntervals")?.map(int.parse).toList() ?? [15];
-    //int numberOfNotifications = notificationTimeList.length+2
-    //List<DateTime> times = [];
-    //List<int> hashcodes = [];
-    //
-    //for(int k in notificationTimeList){
-    //  times.add(termin.timeBegin.subtract(Duration(minutes: k))); //Benachrichtigung 15 Minuten vor Termin (evtl variabel anpassbar machen)
-    //  hashcodes.add(termin.timeBegin.subtract(Duration(minutes: k)).hashCode);
-    //}
-    //times.add((termin.timeBegin));
-    //hashcodes.add(termin.timeBegin.hashCode);
-    //times.add(termin.timeEnd.add(Duration(minutes: 10)));
-    //hashcodes.add(termin.timeBegin.add(Duration(minutes: 10)).hashCode);
+    /*Implementation der Benachrichtigungen TODO: Aktivieren und testen
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    List<int> notificationTimeList = pref.getStringList("notificationIntervals")?.map(int.parse).toList() ?? [15];
+    int numberOfNotifications = notificationTimeList.length+2
+    List<DateTime> times = [];
+    List<int> hashcodes = [];
+
+    for(int k in notificationTimeList){
+      times.add(termin.timeBegin.subtract(Duration(minutes: k))); //Benachrichtigung 15 Minuten vor Termin (evtl variabel anpassbar machen)
+      hashcodes.add(termin.timeBegin.subtract(Duration(minutes: k)).hashCode);
+    }
+    times.add((termin.timeBegin));
+    hashcodes.add(termin.timeBegin.hashCode);
+    times.add(termin.timeEnd.add(Duration(minutes: 10)));
+    hashcodes.add(termin.timeBegin.add(Duration(minutes: 10)).hashCode);
+
+    List<String messages = []
+    for(int i = 0; i < notificationTimeList.length; i++){
+       messages.add(S.current.noti_termin_messageBefore(termin.terminName, notificationTimeList[i])
+    }
+    messages.add(S.current.noti_termin_messageAt(termin.terminName));
+    messages.add(S.current.noti_termin_messageAfter(termin.terminName));
+    */
 
     List<DateTime> times = [
       (termin.timeBegin.subtract(Duration(minutes: 15))), //Benachrichtigung 15 Minuten vor Termin (evtl variabel anpassbar machen)
@@ -505,12 +523,12 @@ Future<void> myNotifyScheduleInHours({
 }) async {
   //Checkt ob eine Notification eh schon in der Vergangenheit liegt
   if(DateTime.now().isAfter(triggerDateTime)){ //Scheinbar checkt Awesome_Notification selbst ob eine Benachrichtigung in der vergangenheit liegt, Ich weiß jedoch nicht wo
-    print("Already too late for $triggerDateTime with Title: [$title] and Message [$msg] ");
+    print("Already too late for $triggerDateTime");
     return;
   }
   //Checkt ob die Notification mehr als eine Woche entfernt wäre. Checke, weil für jeden Termin 3 Benachrichtigungen + 2 für den Tag + 1 für die Woche generiert wird, wobei schnell sehr viele zusammenkommen können
-  if (triggerDateTime.isAfter(DateTime.now().add(Duration(days: 7)))) {
-    print("Trigger date $triggerDateTime with Title: [$title] and Message [$msg] is more than a week in the future/Not scheduling notification.");
+  if (triggerDateTime.isAfter(DateTime.now().add(Duration(days: 14)))) {
+    print("more than a two weeks in the future $triggerDateTime");
     return;
   }
 
@@ -527,8 +545,8 @@ Future<void> myNotifyScheduleInHours({
         title: title,
         body: msg,
         notificationLayout: layout ?? NotificationLayout.Inbox,
-        largeIcon: "asset://assets/images/mascot/Mascot DaumenHoch Transparent.png",
-        bigPicture: "asset://assets/images/mascot/Mascot DaumenHoch Transparent.png",
+        //largeIcon: "asset://assets/images/mascot/Mascot DaumenHoch Transparent.png",
+        //bigPicture: "asset://assets/images/mascot/Mascot DaumenHoch Transparent.png",
         actionType : ActionType.Default,
         color: Colors.black,
         backgroundColor: Colors.black,

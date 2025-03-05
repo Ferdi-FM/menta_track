@@ -53,7 +53,7 @@ class ScrollableWeekGraphState extends State<ScrollableWeekGraph> {
       double helpingMean = (weekPlan["helpingMean"] ?? -1).toDouble();
 
       if(weekPlan["goodMean"] != -1 && weekPlan["goodMean"] != -1 && weekPlan["goodMean"] != -1) {
-        graphList.add(SyncGraphData(weekData, goodMean, calmMean, helpingMean));
+        graphList.add(SyncGraphData(weekData, goodMean+1, calmMean+1, helpingMean+1)); //Da Datebank Werte 0-6 enthält, aber Werte 1-7 darstellen sollen
       }
     }
     return graphList;
@@ -93,7 +93,7 @@ class ScrollableWeekGraphState extends State<ScrollableWeekGraph> {
           child: SfCartesianChart(
             primaryXAxis: DateTimeAxis(
               minimum: graphList.isNotEmpty ? graphList.first.dayOrWeek : DateTime.now(),
-              maximum: graphList.first.dayOrWeek.add(Duration(days: 28)),
+              maximum: graphList.length > 1 ? graphList.last.dayOrWeek.add(Duration(days: 7)) : graphList.first.dayOrWeek.add(Duration(days: 7)),
               intervalType: DateTimeIntervalType.days,
               dateFormat: DateFormat("dd.MM"), // Wochen-Datum formatieren
               edgeLabelPlacement: EdgeLabelPlacement.none,

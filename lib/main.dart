@@ -18,7 +18,7 @@ import 'Pages/barcode_scanner_simple.dart';
 import 'generated/l10n.dart';
 
 //TODO: - Aufräumen
-//TODO - Lokal für DayOverview, WeekOverview, NotificationHelper(+test to Release)
+//TODO: - Date Localisation für dayOverView/weekOverview anpassen
 
 void main() {
   runApp(const MyApp());
@@ -51,8 +51,9 @@ class MyAppState extends State<MyApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: [
-        Locale('en', 'US'),
-        Locale('de', 'DE'),
+        Locale("en", "US"),
+        Locale("en", "GB"),
+        Locale("de", "DE"),
         // Füge hier weitere Sprachen hinzu
       ],
       title: "Menta Track",
@@ -147,24 +148,24 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     checkDatabase();
   }
 
-  //Plant die Notifications für alle Termine in der Übergebenen Woche. Checkt in den jeweiligen Funktionen erst ob sie schon geplant wurden (Muss noch getestet werden)
+  ///Plant die Notifications für alle Termine in der Übergebenen Woche. Checkt in den jeweiligen Funktionen erst ob sie schon geplant wurden (Muss noch getestet werden)
   void initializeNotifications(String weekKey) async {
     notificationHelper.startListeningNotificationEvents();
 
     List<Termin> weekAppointments = await databaseHelper.getWeeklyPlan(weekKey);
-    //Notification mit allen Terminen in der Früh
+    ///Notification mit allen Terminen in der Früh
     await notificationHelper.scheduleBeginNotification(weekAppointments, weekKey);
 
-    //Notification für die einzelnen Termine in der Woche
+    ///Notification für die einzelnen Termine in der Woche
     for(Termin termin in weekAppointments) {
       notificationHelper.scheduleNewTerminNotification(termin, weekKey);
     }
 
-    //Notification mit der Tagesübersicht und Wochenübersicht
+    ///Notification mit der Tagesübersicht und Wochenübersicht
     await notificationHelper.scheduleEndNotification(weekKey);
   }
 
-  //prüft die Datenbank auf Einträge, lädt sie in die Listenansicht und plant Notifications (TO_DO?: Datenbankeintrag mit „Notificationssheduled“ zur WeeklyPlans-Table hinzufügen, damit keine tatsächlichen Benachrichtigungen geprüft werden müssen, der Nachteil ist, dass es nur indirekt überprüft wird)
+  ///prüft die Datenbank auf Einträge, lädt sie in die Listenansicht und plant Notifications (TO_DO?: Datenbankeintrag mit „Notificationssheduled“ zur WeeklyPlans-Table hinzufügen, damit keine tatsächlichen Benachrichtigungen geprüft werden müssen, der Nachteil ist, dass es nur indirekt überprüft wird)
   void checkDatabase() async {
     //funktion direkt in SQLite
     Database db = await databaseHelper.database;
@@ -183,26 +184,25 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       String title1 = "${weekPlan["startOfWeekString"]} - ${weekPlan["endOfWeekString"]}";
       WeekTileData data = WeekTileData(icon: Icons.date_range, title: title1, weekKey: weekKey);
       addEntry(data);
-      //TODO: zukunftscheck sinnvoll? Was wenn App dann länger nicht geöffnet wurde und deshalb keine neuen Benachrichtigungen kommen?
 
-      //Wird dann nochmals genauer in Notificationhelper getestet, aber man spart sich einige funktionen und iterationen es hier zu checken
-      if(DateTime.parse(weekKey).difference(DateTime.now()).isNegative){ //Checkt ob die gesamte Woche in der Vergangenheit liegt
+      ///Checkt ob die gesamte Woche in der Vergangenheit oder mehr als 2Wochen in der Zukunftliegt
+      if(DateTime.parse(weekKey).difference(DateTime.now()).isNegative){
         print("Week already passed");
-      } else if(DateTime.parse(weekKey).difference(DateTime.now()) > Duration(days: 14)){ //Checkt ob der Wochenstart mehr als eine Woche in der Zukunft liegt
-        print("Week more than a two weeks in the future");
+      } else if(DateTime.parse(weekKey).difference(DateTime.now()) > Duration(days: 14)){
+        print("Week more than two weeks in the future");
       }else {
         initializeNotifications(weekKey);
       }
 
       DatabaseHelper().updateActivities(weekKey); //Checkt den Wochendurchschnitt für die Anzeige auf der Übersichtsseite
     }
-    String testKey = weekPlans[0]["weekKey"];
-    await notificationHelper.scheduleTestNotification(testKey); //Testing
+    //String testKey = weekPlans[0]["weekKey"];
+    //await notificationHelper.scheduleTestNotification(testKey); //Testing
     //notificationHelper.startListeningNotificationEvents(); //TODO: Aktivieren
     //notificationHelper.loadAllNotifications(false); //TODO: Aktivieren
   }
 
-  //Fügt der Liste einen Eintrag hinzu
+  ///Fügt der Liste einen Eintrag hinzu
   void addEntry(WeekTileData data) {
     setState(() {
       if (!items.contains(data)) {
@@ -211,18 +211,15 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     });
   }
 
-  //löscht Eintrag aus der Liste
+  ///löscht Eintrag aus der Liste
   void deleteItem(String weekKey) async {
-    //print(weekKey);
     DateFormat format = DateFormat("dd.MM.yyyy");
     DateTime displayDateString = format.parse(weekKey.substring(0, 10));
-    //print(displayDateString);
     String correctedDate = DateFormat("yyyy-MM-dd").format(displayDateString);
-    //print(correctedDate);
     databaseHelper.dropTable(correctedDate);
   }
 
-  // Lädt den gespeicherte Settings-Werte
+  /// Lädt den gespeicherte Settings-Werte
   void loadTheme() async {
     SettingData data = await SettingsPageState().getSettings();
     bool isDarkMode = data.isDarkMode;
@@ -312,20 +309,20 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
                    ),
                    onPressed: () => openSettings(),
                  ),
-                  //QR-Code generator fürs testen TODO: WICHTIG
-                  //MenuItemButton(
-                  //  child: Center(
-                  //    child: Row(
-                  //      mainAxisAlignment: MainAxisAlignment.start,
-                  //      children: [
-                  //        Icon(Icons.settings),
-                  //        SizedBox(width: 10),
-                  //        Text("ShowQrCode")
-                  //      ],
-                  //    ),
-                  //  ),
-                  //  onPressed: () => Utilities().showQrCode(context),
-                 // )
+                  /// # QR-Code generator
+                 MenuItemButton(
+                   child: Center(
+                     child: Row(
+                       mainAxisAlignment: MainAxisAlignment.start,
+                       children: [
+                         Icon(Icons.settings),
+                         SizedBox(width: 10),
+                         Text("ShowQrCode")
+                       ],
+                     ),
+                   ),
+                   onPressed: () => Utilities().showQrCode(context),
+                 )
                ],
                builder: (BuildContext context, MenuController controller, Widget? child) {
                  return TextButton(
@@ -370,34 +367,78 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
           controller: _pageController,
           physics: NeverScrollableScrollPhysics(), // Deaktiviert Swipe-Gesten, um eigene zu verwenden.
           children: [
-            NotAnsweredPage(key: GlobalKey<NotAnsweredState>(),), //_notAnsweredKey TODO? testen ersetzen mit GlobalKey<NotAnsweredState>()
+            NotAnsweredPage(key: GlobalKey<NotAnsweredState>(),),
             //Seite 2 (Hauptseite):
-            CustomScrollView( //Wegen Evtl Einbindung von Illustration über Liste, die mitscrollen soll
-            slivers: [
-              // Das Bild als "Sliver" für das Scrollen
-               SliverToBoxAdapter(
-                child: themeIllustration
-              ),
-              // Der ListView als Sliver
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    return WeekTile(
-                      item: items[index],
-                      onDeleteTap: () async {
-                        deleteItem(items[index].title);
-                        setState(() {
-                          items.removeAt(index);
-                        });
-                      },
-                    );
-                  },
-                  childCount: items.length,
-                ),
-              ),
-            ],
-          ),
-            // Seite "Übersicht":
+            LayoutBuilder(
+              builder: (context, constraints) {
+                bool isPortrait = constraints.maxWidth < 600;
+                return isPortrait ? CustomScrollView(
+                  slivers: [
+                    // Das Bild als "Sliver" für das Scrollen
+                    SliverToBoxAdapter(
+                        child: themeIllustration
+                    ),
+                    // Der ListView als Sliver
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                          return WeekTile(
+                            item: items[index],
+                            onDeleteTap: () async {
+                              deleteItem(items[index].title);
+                              setState(() {
+                                items.removeAt(index);
+                              });
+                            },
+                          );
+                        },
+                        childCount: items.length,
+                      ),
+                    ),
+                  ],
+                ) : Row(
+                  children: [
+                    if(themeIllustration is! SizedBox) Expanded(
+                        child: themeIllustration
+                    ) else SizedBox(width: 80,),
+                    Expanded(
+                      child: ShaderMask(
+                        shaderCallback: (Rect bounds) {
+                          return LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black,
+                              Colors.black,
+                              Colors.transparent
+                            ],
+                            stops: [0.0, 0.03, 0.95, 1.0],
+                          ).createShader(bounds);
+                        },
+                        blendMode: BlendMode.dstIn,
+                        child: ListView.builder(
+                          itemCount: items.length,
+                          itemBuilder: (context, index) {
+                            return WeekTile(
+                              item: items[index],
+                              onDeleteTap: () async {
+                                deleteItem(items[index].title);
+                                setState(() {
+                                  items.removeAt(index);
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    if(themeIllustration is! SizedBox) SizedBox(width: 0,) else SizedBox(width: 80,),
+                  ],
+                );
+              },
+            ),
+            /// Seite "Übersicht":
             ActivitySummary(),
           ],
         ),
@@ -444,17 +485,15 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
         ),
       floatingActionButton: selectedIndex == 1 ? FloatingActionButton(
         onPressed: () async {
-          //print(CreateDummyJsonForTesting().toJsonString());
          var result = await Navigator.of(context).push(
            MaterialPageRoute(
              builder: (context) => BarcodeScannerSimple(),
            ),
          );
-         print("RESULT: $result");
          if(result != null){
              List<WeekTileData> weekLists = await ImportJson().loadDummyDataForQr(result);
              for (WeekTileData data in weekLists) {
-               data.toString();
+               //data.toString();
                addEntry(data);
              }
          }

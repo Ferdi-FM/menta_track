@@ -10,8 +10,6 @@ import 'Pages/settings.dart';
 import 'generated/l10n.dart';
 import 'gif_progress_widget.dart';
 
-//TODO: Randomisierten Text je nach Seite
-
 class RewardPopUp {
 
   const RewardPopUp();

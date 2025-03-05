@@ -2,29 +2,30 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:menta_track/create_dummy_json_for_testing.dart';
 import 'package:menta_track/database_helper.dart';
+import 'package:menta_track/notification_helper.dart';
 import 'package:menta_track/termin.dart';
 import 'package:menta_track/week_tile_data.dart';
 
 class ImportJson {
   DatabaseHelper databaseHelper = DatabaseHelper();
 
-    Future<List<WeekTileData>> loadDummyData(String data) async { //ALT
-      CreateDummyJsonForTesting dummy = CreateDummyJsonForTesting();
-
-      //Neue Version, die eine reine Liste nimmt
-      final dummyData = dummy.getOneDummyData();
-      final terminMap = await getWeekMaps(jsonDecode(dummyData) as List<dynamic>); //Old: jsonDecode(dummyData) as Map<String, dynamic>;
-      return await createWeekPlanMapFromJson(terminMap);
-    }
+    //Future<List<WeekTileData>> loadDummyData(String data) async { //ALT
+    //  CreateDummyJsonForTesting dummy = CreateDummyJsonForTesting();
+    //
+    //  //Neue Version, die eine reine Liste nimmt
+    //  final dummyData = dummy.getOneDummyData();
+    //  final terminMap = await getWeekMaps(jsonDecode(dummyData) as List<dynamic>); //Old: jsonDecode(dummyData) as Map<String, dynamic>;
+    //  return await createWeekPlanMapFromJson(terminMap);
+    //}
 
   Future<List<WeekTileData>> loadDummyDataForQr(String data) async { //Funktioniert
       List<dynamic> decodedData = jsonDecode(decompressData(data));
       final terminMapQR = await getWeekMaps(decodedData); //Old: jsonDecode(dummyData) as Map<String, dynamic>;
       return await createWeekPlanMapFromJson(terminMapQR);
   }
-    
+
+  ///Dekompremiert die vom QR-Code gescannten String
   String decompressData(String base64Data) {
     //Decode von Base64 String in List<int>
     List<int> compressedData = base64Decode(base64Data);
@@ -41,11 +42,9 @@ class ImportJson {
   // 2025-01-27: [{TerminName: Hunde gassi, TerminBeginn: 2025-01-27 09:00:00, TerminEnde: 2025-01-27 10:00:00}]}
   Future<Map<String, dynamic>> getWeekMaps(List<dynamic> terminMap) async {
     Map<String, dynamic> newTerminMap = {};
-
-    DateTime firstWeekDay = DateTime.parse(terminMap[0]["TerminBeginn"]);             //Tag des ersten Termins
+    DateTime firstWeekDay = DateTime.parse(terminMap[0]["tB"]);             //Tag des ersten Termins
     String firstWeekDayString = DateFormat("yyyy-MM-dd").format(firstWeekDay);        //formatieren in String für die Map
     firstWeekDay = DateTime.parse(firstWeekDayString);      //Um es auf 0:00 am ersten Tag zu setzen
-    print(firstWeekDayString);
     final db = await databaseHelper.database;
     //Checkt ob der neue Termin weniger als eine Woche von einem bereits enthaltenen WeekKey statt findet und setzt dann den weekKey auf die Woche davor, sodass der erste Wochentag beibehalten wird
     String query = '''
@@ -56,13 +55,18 @@ class ImportJson {
     List<Map<String, dynamic>> result = await db.rawQuery(query, [firstWeekDayString, firstWeekDayString]);
     print(result);
 
+    ///Wenn der neue WeekKey in eine Bereits erkannte Zeitspanne fallen würde, wird errechnet, ob er sie einschneiden würde (isNegative) => Dann wird der weekKey auf die Woche davor gesetzt, ansonsten wird der weekKey auf die schon existente Woche gelegt
     if (result.isNotEmpty) {
-      firstWeekDayString = result.first["weekKey"]; // Falls eine Überschneidung existiert, nimm die vorhandene Woche
+      if(DateTime.parse(firstWeekDayString).difference(DateTime.parse(result.first["weekKey"])).isNegative){
+          firstWeekDayString = DateFormat("yyyy-MM-dd").format(DateTime.parse(result.first["weekKey"]).subtract(Duration(days: 7)));
+      } else {
+        firstWeekDayString = result.first["weekKey"]; // Falls eine Überschneidung existiert, nimm die vorhandene Woche
+      }
+      firstWeekDay = DateTime.parse(firstWeekDayString);
     }
-
-
+    
     for(int i = 0; i < terminMap.length; i++){                                        //Iteriert durch Map
-      DateTime terminTime =  DateTime.parse(terminMap[i]["TerminBeginn"]);
+      DateTime terminTime =  DateTime.parse(terminMap[i]["tB"]);
       while(terminTime.difference(firstWeekDay).inDays > 6){                             //schaut ob die Difference zum ersten Wochentag größer als 7Tage ist
         //firstWeekDay = firstWeekDay.add(Duration(days: 7));    //geht einfach weiter  // wenn true setzt er die nächste woche als neue referenz
         firstWeekDay = terminTime;
@@ -71,7 +75,9 @@ class ImportJson {
       if(!newTerminMap.containsKey(firstWeekDayString)){                              //wenn die Map noch nicht den Wochenkey enthält
         newTerminMap[firstWeekDayString] = [];                                        //wird er eingefügt
       }
-      newTerminMap[firstWeekDayString]?.add(terminMap[i]);                            //Dann wird der Eintrag in die nach Wochen geordnete Liste eingefügt
+      if(DateTime.parse(terminMap[i]["tB"]).isBefore(DateTime.parse(terminMap[i]["tE"]))){  //Wenn der Begin vor dem Ende liegt
+        newTerminMap[firstWeekDayString]?.add(terminMap[i]);                          //Dann wird der Eintrag in die nach Wochen geordnete Liste eingefügt
+      }
     }
     return newTerminMap;
   }
@@ -86,9 +92,9 @@ class ImportJson {
       for (int j = 0; j < termine.length; j++) { //Convertiert die vom Therapeuten erstelle Liste in eine Liste aus Termin-Items für den Patienten
         var termin = termine[j];
         Termin t = Termin(
-            terminName: termin["TerminName"],
-            timeBegin: DateTime.parse(termin["TerminBeginn"]),
-            timeEnd: DateTime.parse(termin["TerminEnde"]),
+            terminName: termin["tN"], //tM = TerminName
+            timeBegin: DateTime.parse(termin["tB"]), //tB = TerminBeginn
+            timeEnd: DateTime.parse(termin["tE"]), //tE = TerminEnde
             doneQuestion: -1,
             goodMean: -1,
             calmMean: -1,
@@ -110,7 +116,10 @@ class ImportJson {
         String title1 = "$startOfWeekString - $endOfWeekString";
 
         WeekTileData data = WeekTileData(icon: Icons.new_releases, title: title1, weekKey: firstWeekDay);
-        if (existingPlan.isEmpty) weekAppointmentList.add(data);
+        if (existingPlan.isEmpty) {
+          weekAppointmentList.add(data);
+          NotificationHelper().loadNewNotifications(firstWeekDay);
+        }
     }
     return weekAppointmentList;
   }

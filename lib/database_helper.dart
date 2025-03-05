@@ -278,7 +278,7 @@ class DatabaseHelper {
     return mapToTerminList(terminMap);
   }
 
-  //Gibt einen einzelnen bestimmten Termin zurück, der über weekKey, timeBegin und terminName identifiziert wird (sollte keine überschneidungen geben)
+  ///Gibt einen einzelnen bestimmten Termin zurück, der über weekKey, timeBegin und terminName identifiziert wird (sollte keine überschneidungen geben)
   Future<Termin?> getSpecificTermin(String weekKey, String timeBegin, String terminName) async {
     Database db = await database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -294,7 +294,7 @@ class DatabaseHelper {
     }
   }
 
-  //Updated einen Termineintrag in der Datenbank
+  ///Updated einen Termineintrag in der Datenbank
   Future<void> updateEntry(String weekKey, String timeBegin, String terminName, Map<String, dynamic> updatedValues) async {
     final db = await database;
 
