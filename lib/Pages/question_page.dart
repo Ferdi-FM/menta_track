@@ -1,6 +1,7 @@
 import 'package:action_slider/action_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:menta_track/database_helper.dart';
 import 'package:menta_track/reward_pop_up.dart';
 import 'package:menta_track/termin.dart';
@@ -9,7 +10,7 @@ import '../generated/l10n.dart';
 //TODO?: Man könnte ziemlich einfach den Termin im nachhinein wieder bearbeitbar machen, wenn gewünscht
 
 class QuestionPage extends StatefulWidget{
-  final String weekKey;
+  final String weekKey; ///"MM-dd-yyyy"
   final String timeBegin;
   final String terminName;
 
@@ -50,7 +51,7 @@ class QuestionPageState extends State<QuestionPage> {
             isEditable = false;
           });
         } else {
-          if(DateTime.now().isAfter(termin.timeBegin)){  //2 = Termin war schon, aber wurde noch nicht beantwortet
+          if(DateTime.now().isAfter(termin.timeBegin.add(Duration(minutes: 10)))){
             isEditable = true;
           } else {
             isEditable = false;
@@ -194,21 +195,25 @@ class QuestionPageState extends State<QuestionPage> {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-          title: Row(
-              children: [
-                RichText(
-                  text: TextSpan(
-                      children: [
-                        TextSpan(text: "${widget.terminName}  \n", style: TextStyle(fontWeight: FontWeight.bold)),
-                        TextSpan(text: "${S.of(context).am} ${S.current.displayADate(DateTime.parse(widget.timeBegin))} "
-                                       "${S.of(context).um} ${S.current.displayATime(DateTime.parse(widget.timeBegin))}")
-                      ],
-                      style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 18)),
-                ),
-                if(!isEditable && !isTooEarly) SizedBox(width: 15,),
-                if(!isEditable && !isTooEarly) Icon(Icons.check,size: 35,),
-            ]
-          ) , //Text(pageTitle,style: TextStyle(fontSize: 18)),
+          title: FittedBox(
+            fit: BoxFit.fitWidth,
+            child: Row(
+                children: [
+                  RichText(
+                    text: TextSpan(
+                        children: [
+                          TextSpan(text: "${widget.terminName}  \n", style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: "${S.of(context).am} ${S.current.displayADate(DateTime.parse(widget.timeBegin))} "
+                              "${S.of(context).um} ${S.current.displayATime(DateTime.parse(widget.timeBegin))}")
+                        ],
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 18)),
+                  ),
+                  if(!isEditable && !isTooEarly) SizedBox(width: 15,),
+                  if(!isEditable && !isTooEarly) Icon(Icons.check,size: 35, color: Colors.green,),
+                  if(!isEditable && !isTooEarly) SizedBox(width: 15,),
+                ]
+            ) ,
+          ), //Text(pageTitle,style: TextStyle(fontSize: 18)),
           backgroundColor: Colors.transparent),
       body: GestureDetector(
         child: SingleChildScrollView(
@@ -219,7 +224,8 @@ class QuestionPageState extends State<QuestionPage> {
               children: [
                 SizedBox(height: 15,),
                 //Erste Frage
-                !isTooEarly ? buildQuestion(0, true) : Text(S.of(context).questionPage_too_early, style: TextStyle(fontSize: 24),textAlign: TextAlign.center,),
+                //!isEditable ? ÜBERSICHT ÜBER WERTE?
+                !isTooEarly ? buildQuestion(0, true) : Text("${widget.terminName} ist ${S.current.am} ${DateFormat("dd.MM").format(DateTime.parse(widget.timeBegin))} ${S.current.um} ${DateFormat("HH:mm").format(DateTime.parse(widget.timeBegin))}\n${S.of(context).questionPage_too_early}", style: TextStyle(fontSize: 24),textAlign: TextAlign.center,),
                 SizedBox(height: 16),
                 //Frage 2,3,4
                 for (int i = 1; i < 4; i++)

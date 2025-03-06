@@ -29,7 +29,7 @@ class ScrollableWeekGraphState extends State<ScrollableWeekGraph> {
   }
 
   Future<void> setupList() async {
-    List<SyncGraphData> tempGraphList = widget.weekKey != null ? await getDayGraphList(widget.weekKey) : await getWeekGraphList(); //Schonmal, falls der Graph in DayOverview noch verwendet wird
+    List<SyncGraphData> tempGraphList = widget.weekKey != null ? [] : await getWeekGraphList(); //Schonmal, falls der Graph in DayOverview noch verwendet wird
     setState(() {
       graphList = tempGraphList;
       graphLoaded = true;
@@ -40,10 +40,18 @@ class ScrollableWeekGraphState extends State<ScrollableWeekGraph> {
   Future<List<SyncGraphData>> getWeekGraphList() async {
     Database db = await DatabaseHelper().database;
     List<SyncGraphData> graphList = [];
-    List<Map<String, dynamic>> weekPlans = await db.query(
-      "WeeklyPlans",
-      where: "goodMean > -1 AND calmMean > -1 AND helpingMean > -1",
+    List<Map<String, dynamic>> weekPlans = List.from(await db.query( //List.from, da die List aus der query sonst read-only ist
+        "WeeklyPlans",
+        where: "goodMean > -1 AND calmMean > -1 AND helpingMean > -1",
+      )
     );
+
+    ///Liste nach datum sortieren, da die Anzeige nach erstem und letztem Tag in der Liste funktioniert
+    weekPlans.sort((a, b) {
+      DateTime dateA = DateTime.parse(a["weekKey"]);
+      DateTime dateB = DateTime.parse(b["weekKey"]);
+      return dateA.compareTo(dateB);
+    });
 
     for (var weekPlan in weekPlans) {
       String weekKey = weekPlan["weekKey"];
@@ -59,28 +67,31 @@ class ScrollableWeekGraphState extends State<ScrollableWeekGraph> {
     return graphList;
   }
 
-  Future<List<SyncGraphData>> getDayGraphList(String? weekKey) async {
-    Database db = await DatabaseHelper().database;
-    List<SyncGraphData> graphList = [];
-    List<Map<String, dynamic>> weekPlans = await db.query(
-      "Termine",
-      where: "weekKey = ? AND answered = 1",
-    );
-
-    for (var weekPlan in weekPlans) {
-      String weekKey = weekPlan["weekKey"];
-      DateTime weekData = DateTime.parse(weekKey);
-      double goodMean = (weekPlan["goodMean"] ?? 1).toDouble();
-      double calmMean = (weekPlan["calmMean"] ?? 1).toDouble();
-      double helpingMean = (weekPlan["helpingMean"] ?? 1).toDouble();
-
-      if(weekPlan["goodMean"] != -1 && weekPlan["goodMean"] != -1 && weekPlan["goodMean"] != -1) {
-        graphList.add(SyncGraphData(weekData, goodMean+1, calmMean+1, helpingMean+1));
-      }
-    }
-
-    return graphList;
-  }
+  //Falls in WeekOVerview eingefügt werden sollte, wahrscheinlich eh nicht
+  //Future<List<SyncGraphData>> getDayGraphList(String? weekKey) async {
+  //  Database db = await DatabaseHelper().database;
+  //  List<SyncGraphData> graphList = [];
+  //  List<Map<String, dynamic>> weekPlans = await db.query(
+  //    "Termine",
+  //    where: "weekKey = ? AND answered = 1",
+  //  );
+//
+  //  print(weekPlans);
+//
+  //  for (var weekPlan in weekPlans) {
+  //    String weekKey = weekPlan["weekKey"];
+  //    DateTime weekData = DateTime.parse(weekKey);
+  //    double goodMean = (weekPlan["goodMean"] ?? 1).toDouble();
+  //    double calmMean = (weekPlan["calmMean"] ?? 1).toDouble();
+  //    double helpingMean = (weekPlan["helpingMean"] ?? 1).toDouble();
+//
+  //    if(weekPlan["goodMean"] != -1 && weekPlan["goodMean"] != -1 && weekPlan["goodMean"] != -1) {
+  //      graphList.add(SyncGraphData(weekData, goodMean+1, calmMean+1, helpingMean+1));
+  //    }
+  //  }
+//
+  //  return graphList;
+  //}
 
   @override
   Widget build(BuildContext context) {
@@ -149,27 +160,3 @@ class SyncGraphData {
 
   SyncGraphData(this.dayOrWeek, this.goodMean, this.calmMean, this.helpMean);
 }
-
-
-/*
-Future<List<SyncGraphData>> getWeekGraphListAlternative() async {
-    List<SyncGraphData> graphList = [];
-    Map<String, dynamic> meanMap = await DatabaseHelper().getMeanForWeeks();
-    print(meanMap);
-
-    for(var entry in meanMap.entries){
-      String weekKey = entry.key;
-      DateTime weekData = DateTime.parse(weekKey);
-      print(entry.value.first[0]);
-      double goodMean = (entry.value.first[0] ?? 1).toDouble();
-      double calmMean = (entry.value.first[1] ?? 1).toDouble();
-      double helpingMean = (entry.value.first[2] ?? 1).toDouble();
-
-      if(entry.value.first[0] != null) {
-        graphList.add(SyncGraphData(weekData, goodMean, calmMean, helpingMean));
-      }
-    }
-
-    return graphList;
-  }
- */

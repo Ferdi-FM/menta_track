@@ -353,6 +353,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Wähle eine Akzentfarbe",
     ),
     "settings_darkMode": MessageLookupByLibrary.simpleMessage("Dark Mode"),
+    "settings_eveningNotification": MessageLookupByLibrary.simpleMessage(
+      "Zeitpunkt Abends",
+    ),
+    "settings_morningNotification": MessageLookupByLibrary.simpleMessage(
+      "Zeitpunkt Morgens",
+    ),
     "settings_name": MessageLookupByLibrary.simpleMessage("Dein Name"),
     "settings_notifications": m31,
     "settings_theme": MessageLookupByLibrary.simpleMessage("Thema"),

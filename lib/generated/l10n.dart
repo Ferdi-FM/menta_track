@@ -525,6 +525,26 @@ class S {
     );
   }
 
+  /// `Notification-Time in the morning`
+  String get settings_morningNotification {
+    return Intl.message(
+      'Notification-Time in the morning',
+      name: 'settings_morningNotification',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Notification-Time in the evening`
+  String get settings_eveningNotification {
+    return Intl.message(
+      'Notification-Time in the evening',
+      name: 'settings_eveningNotification',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `This is the main page.`
   String get mainPageDescription {
     return Intl.message(

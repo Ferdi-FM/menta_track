@@ -3,11 +3,13 @@ import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:menta_track/Pages/settings.dart';
+import 'package:menta_track/Pages/week_plan_view.dart';
 import 'package:menta_track/fl_chart_graph.dart';
 import 'package:menta_track/helper_utilities.dart';
 import '../database_helper.dart';
 import '../generated/l10n.dart';
 import '../gif_progress_widget.dart';
+import '../main.dart';
 import '../reward_pop_up.dart';
 import '../termin.dart';
 
@@ -206,17 +208,47 @@ class WeekOverviewState extends State<WeekOverview> {
         true
     );
     if(result == "confirmed"){
-      backToPage();
+      leavePage();
     }
   }
 
-  void backToPage(){ //Um keinen context in async zu haben
-    Navigator.of(context).pop();
+
+  void leavePage(){
+    if(widget.fromNotification){ //Andere Pageroute, wenn von Notification, wird wahrscheinlich entfernt
+      MyApp.navigatorKey.currentState?.pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => WeekPlanView(
+                weekKey: widget.weekKey),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              const curve = Curves.easeInOut;
+
+              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              var offsetAnimation = animation.drive(tween);
+
+              return SlideTransition(
+                position: offsetAnimation,
+                child: child,
+              );
+            },
+          )
+      );
+    } else {
+      Navigator.pop(context);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return  PopScope(
+        canPop: false, // Ermöglicht das Verlassen der Seite
+        onPopInvokedWithResult: (bool didPop, result) {
+      if (!didPop) {
+        leavePage();
+      }
+    },
+    child: Scaffold(
       //appBar: AppBar(
       //  title: Text(Utilities().convertWeekkeyToDisplayPeriodString(widget.weekKey)),
       //  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -394,6 +426,7 @@ class WeekOverviewState extends State<WeekOverview> {
           buildConfettiWidgets(),
         ],
       )
+    )
     );
   }
 }

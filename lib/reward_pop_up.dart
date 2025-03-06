@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -61,7 +62,9 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
   @override
   void initState() {
     super.initState();
+    ///Lädt das Bild-Thema
     _loadTheme();
+    ///Lädt die Fortschrittsanzeige
     getProgressForGif();
 
     //Animation zum öffnen
@@ -73,7 +76,6 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
       parent: _controller,
       curve: Curves.easeOutBack,
     );
-
     //Animation für den Confirm Button
     _buttonController = AnimationController(
       vsync: this,
@@ -94,14 +96,19 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
 
   void _loadTheme() async {
     SettingData data = await SettingsPageState().getSettings();
+    illustrationImage = await ThemeHelper().getRewardImage();
+    String alertSound = await ThemeHelper().getSound();
     _theme = data.theme;
     _showOnlyOnMainPage = data.themeOnlyOnMainPage;
-    if(mounted) illustrationImage = await ThemeHelper().getRewardImage();
+    final player = AudioPlayer();
+    player.play(AssetSource(alertSound));
+
     setState(() {
       _theme;
       _showOnlyOnMainPage;
       illustrationImage;
     });
+
   }
 
   void getProgressForGif() async {
@@ -248,6 +255,7 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
                       width: double.infinity,  // Make the container take the full width
                       child: ElevatedButton(
                         onPressed: () => {
+                          //TODO: Sound abspielen!
                           HapticFeedback.lightImpact(),
                           _buttonAnimation(),
                         },

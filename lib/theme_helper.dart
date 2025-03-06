@@ -152,6 +152,31 @@ class ThemeHelper {
     );
   }
 
+  Future<String> getSound() async{
+    final prefs = await SharedPreferences.getInstance();
+    String soundKey = prefs.getString("soundAlert") ?? "";
+    //DropdownMenuItem(value: "standard", child: Text("Standard")),
+    //                       DropdownMenuItem(value: "bell", child: Text("Bell")),
+    //                       DropdownMenuItem(value: "classicGame", child: Text("GameSound")),
+    //                       DropdownMenuItem(value: "longer", child: Text("Longer")),
+    //                       DropdownMenuItem(value: "level", child: Text("Level Completed")),
+
+    switch(soundKey){
+      case "bell":
+        return "soundAlerts/happy-bell.wav";
+      case "classicGame":
+        return "soundAlerts/classic-game.mp3";
+      case "longer":
+        return "soundAlerts/collect.mp3";
+      case "level":
+        return "soundAlerts/level-complete.wav";
+      case"standard":
+        return "soundAlerts/glockenspiel.mp3";
+      default:
+        return "soundAlerts/glockenspiel.mp3";
+    }
+  }
+
 }
 
 /*Alternative: Future<Widget> getMainPageImage(String path) async {

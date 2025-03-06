@@ -1,16 +1,21 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:menta_track/notification_helper.dart';
+import 'package:menta_track/theme_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:audioplayers/audioplayers.dart';
 import '../generated/l10n.dart';
 import '../main.dart';
 
 class SettingData {
   final String name;
   final String theme;
+  final String accentColor;
   final bool isDarkMode;
   final bool themeOnlyOnMainPage;
 
-  SettingData(this.name, this.theme, this.isDarkMode, this.themeOnlyOnMainPage);
+  SettingData(this.name, this.theme, this.isDarkMode, this.themeOnlyOnMainPage, this.accentColor);
 }
 
 class SettingsPage extends StatefulWidget {
@@ -25,8 +30,12 @@ class SettingsPageState extends State<SettingsPage> {
   String _theme = "nothing";
   String _chosenAccentColor = "blue";
   bool _themeOnlyOnMainPage = false;
+  String _rewardSound = "standard";
   bool _settingsChanged = false;
+  TimeOfDay morningTime = TimeOfDay(hour: 07, minute: 00);
+  TimeOfDay eveningTime = TimeOfDay(hour: 22, minute: 00);
   List<int> _notificationIntervals = [15];
+  bool _notificationsChanged = false; //damit nicht jedesmal alles neu geplant wird
   final TextEditingController _nameController = TextEditingController();
 
 
@@ -38,13 +47,14 @@ class SettingsPageState extends State<SettingsPage> {
 
   Future<SettingData> getSettings() async{
     final prefs = await SharedPreferences.getInstance();
+    String alertSound = await ThemeHelper().getSound();
     bool isDarkMode = prefs.getBool("darkMode") ?? false;
     bool themeOnlyOnMainPage = prefs.getBool("themeOnlyOnMainPage") ?? false;
     String theme = prefs.getString("theme") ?? "nothing";
-    //List<int> notificationIntervals = prefs.getStringList("notificationIntervals")?.map(int.parse).toList() ?? [15];
+    String accentColor = prefs.getString("chosenAccentColor") ?? "blue";
+    //List<int> notificationIntervals = prefs.getStringList("notificationIntervals")?.map(int.parse).toList() ?? [15]; //TODO: Aktivieren
     String name = prefs.getString("userName") ?? "";
-
-    return SettingData(name, theme, isDarkMode, themeOnlyOnMainPage);
+    return SettingData(name, theme, isDarkMode, themeOnlyOnMainPage, accentColor);
   }
 
   void _loadSettings() async {
@@ -56,6 +66,11 @@ class SettingsPageState extends State<SettingsPage> {
       _notificationIntervals = prefs.getStringList("notificationIntervals")?.map(int.parse).toList() ?? [15];
       _nameController.text = prefs.getString("userName") ?? "";
       _chosenAccentColor = prefs.getString("chosenAccentColor") ?? "blue";
+      _rewardSound = prefs.getString("soundAlert") ?? "standard";
+      int morningMinutes = prefs.getInt("morningTime") ?? 07*60;
+      int eveningMinutes = prefs.getInt("eveningTime") ?? 22*60;
+      morningTime = TimeOfDay(hour: morningMinutes  ~/ 60, minute:  morningMinutes  % 60) ;
+      eveningTime = TimeOfDay(hour: eveningMinutes  ~/ 60, minute:  eveningMinutes  % 60) ;
     });
   }
 
@@ -97,11 +112,47 @@ class SettingsPageState extends State<SettingsPage> {
   Future<void> setAccentColor(String  value) async{
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("chosenAccentColor", value);
-    //TODO: Wenn als gut empfunden => in SharedPref speichern
+    _settingsChanged = true;
     setState(() {
          MyApp.of(context).changeColor(value);
         _chosenAccentColor = value;
     });
+  }
+
+  void _saveSound(String value) async{
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("soundAlert", value);
+    _settingsChanged = true;
+    final player = AudioPlayer();
+    String audioAsset = await ThemeHelper().getSound();
+    player.play(AssetSource(audioAsset));
+    setState(() {
+        _rewardSound = value;
+    });
+
+  }
+
+  Future<void> saveNotificationTime(BuildContext context, bool isMorning) async {
+    final prefs = await SharedPreferences.getInstance();
+    TimeOfDay initialTime = isMorning ? morningTime : eveningTime;
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+    if (picked != null) {
+      setState(() {
+        if (isMorning) {
+          morningTime = picked;
+        } else {
+          eveningTime = picked;
+        }
+      });
+
+      int minutes = picked.hour * 60 + picked.minute;
+      await prefs.setInt(isMorning ? "morningTime" : "eveningTime", minutes);
+      _settingsChanged = true;
+      _notificationsChanged = true;
+    }
   }
 
   void _saveNotificationIntervals() async {
@@ -110,6 +161,7 @@ class SettingsPageState extends State<SettingsPage> {
     setState(() {
       _settingsChanged = true;
     });
+    _notificationsChanged = true;
   }
 
   void _addNotification() {
@@ -140,6 +192,7 @@ class SettingsPageState extends State<SettingsPage> {
         onPopInvokedWithResult: (bool didPop, result) {
           if (!didPop) {
             Navigator.pop(context, _settingsChanged);
+            if(_notificationsChanged) NotificationHelper().loadAllNotifications(true);
           }
         },
       child: Scaffold(
@@ -148,7 +201,8 @@ class SettingsPageState extends State<SettingsPage> {
             leading: IconButton(
               icon:  Icon(Icons.arrow_back),
               onPressed: () => {
-                Navigator.pop(context, _settingsChanged)
+                Navigator.pop(context, _settingsChanged),
+                if(_notificationsChanged) NotificationHelper().loadAllNotifications(true),
               },
             ),
         ),
@@ -210,9 +264,6 @@ class SettingsPageState extends State<SettingsPage> {
                       setThemeCheckbox(_themeOnlyOnMainPage);
                     }),
                 ),
-                //ListTile(
-                //  title: const Text("Farben", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
-                //),
                 ListTile(
                   title: Text(S.of(context).settings_chooseAccent),
                   trailing: Row(
@@ -254,9 +305,67 @@ class SettingsPageState extends State<SettingsPage> {
                     ],
                   ),
                 ),
+                ListTile(
+                  title: Text("Reward Sounds"),
+                  trailing: DropdownButton<String>(
+                    value: _rewardSound,
+                    onChanged: (value) {
+                      if (value != null) {
+                        _saveSound(value);
+                      }
+                    },
+                    items: [
+                      DropdownMenuItem(value: "standard", child: Text("Standard")),
+                      DropdownMenuItem(value: "bell", child: Text("Bell")),
+                      DropdownMenuItem(value: "classicGame", child: Text("GameSound")),
+                      DropdownMenuItem(value: "longer", child: Text("Longer")),
+                      DropdownMenuItem(value: "level", child: Text("Level Completed")),
+                    ],
+                  ),
+                ),
                 SizedBox(height: 20),
                 ListTile(
-                  title:  Text(S.of(context).settings_notifications(1), style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
+                  title: Text(S.of(context).settings_notifications(1),style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
+                ),
+                ListTile(
+                  title: Text(S.of(context).settings_morningNotification),
+                  trailing: SizedBox(
+                    width: 40,
+                    child: Stack(
+                        children: [
+                          Positioned(
+                            right: -12,
+                            child:TextButton(
+                              onPressed: () => saveNotificationTime(context, true),
+                              child: Text(morningTime.format(context), textAlign: TextAlign.right,),
+                            ),
+                          )
+                        ]
+                    ),
+                  ),
+                ),
+                ListTile(
+                  title: Text(S.of(context).settings_eveningNotification),
+                  trailing: SizedBox(
+                    width: 60,
+                    child: Stack(
+                        children: [
+                          Positioned(
+                            right: -12,
+                            child:TextButton(
+                              onPressed: () => saveNotificationTime(context, false),
+                              child: Text(eveningTime.format(context), textAlign: TextAlign.right,),
+                            ),
+                          )
+                        ]
+                    ),
+                  ),
+                ),
+                ListTile(
+                  minTileHeight: 10,
+                ),
+                ListTile(
+                  title:  Text("Notifications vor Terminen", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
                   subtitle: Column(
                     children: [
                       SizedBox(height: 15,),
@@ -315,6 +424,8 @@ class SettingsPageState extends State<SettingsPage> {
       )
     );
   }
+
+
 
 
 }

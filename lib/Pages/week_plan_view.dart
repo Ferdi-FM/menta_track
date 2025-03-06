@@ -41,6 +41,7 @@ class MyHomePageState extends State<WeekPlanView>{
     calendarStart = DateTime.parse(weekKey);
     calendarHeaders = [];
 
+
     for(int i = 0; i < 7;i++){
       DateTime date = calendarStart.add(Duration(days: i));
       String displayDate = DateFormat("dd.MM.yy").format(date);
@@ -64,9 +65,19 @@ class MyHomePageState extends State<WeekPlanView>{
        if(!t.answered && DateTime.now().isAfter(endTime)){
          color = Colors.grey;
        }
+       int overlapPos = 0;
        ///Checkt nach Überschneidungen und macht den überlappenden Termin zu ca 25% Transparent
        if(foundOvrelaps.contains(t.terminName)){
-         color = color.withAlpha(60);
+         //color = color.withAlpha(60);
+         //TODO: was wenn sich mehr als 2 Überschneiden?
+         //print(foundOvrelaps);
+         //overlapPos = 1;
+         //for(String s in foundOvrelaps){
+         //  if(s == t.terminName){
+         //    overlapPos++;
+         //  }
+         //}
+         overlapPos = 2;
        } else {
          DateTimeRange range = DateTimeRange(start: t.timeBegin, end: t.timeEnd);
          for (Termin t2 in weekAppointments) {
@@ -78,13 +89,14 @@ class MyHomePageState extends State<WeekPlanView>{
            if (overlaps && t2.terminName != t.terminName && !foundOvrelaps.contains(t2.terminName)&& !foundOvrelaps.contains(t.terminName)) {
              foundOvrelaps.add(t2.terminName);
              foundOvrelaps.add(t.terminName);
+             overlapPos = 1;
             // color = Colors.grey.shade600;
 
            }
          }
        }
 
-       _addObject(title, startTime, endTime, color);
+       _addObject(title, startTime, endTime, color, overlapPos);
      }
   }
 
@@ -137,7 +149,7 @@ class MyHomePageState extends State<WeekPlanView>{
   }
 
   //erzeugt Event im Kalender
-  void _addObject(String title, DateTime startTime, DateTime endTime, Color? color) { //
+  void _addObject(String title, DateTime startTime, DateTime endTime, Color? color, int numberofOverlaps) { //
     Map<String, int> convertedDate = convertToCalendarFormat(calendarStart, startTime);
     int day = convertedDate["Days"]!;
     int hour = convertedDate["Hours"]!;
@@ -153,6 +165,7 @@ class MyHomePageState extends State<WeekPlanView>{
               hour: hour,
               minutes: minutes),
           minutesDuration: duration,
+          numOfOverlaps: numberofOverlaps,
           daysDuration: 1,
           child:
           GestureDetector(
@@ -194,12 +207,12 @@ class MyHomePageState extends State<WeekPlanView>{
                   Positioned(
                       top: 1,
                       left: 5,
-                      child: Text(DateFormat("HH:mm").format(startTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic, fontSize: duration < 46 ? 5 : 7),), //Ursprünglich 7 : 9
+                      child: Text(DateFormat("HH:mm").format(startTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic, fontSize: duration < 46 ? 4 : 6),), //Ursprünglich 7 : 9
                   ),
                   Positioned(
                     bottom: 1,
                     left: 5,
-                    child: Text(DateFormat("HH:mm").format(endTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic,  fontSize: duration < 46 ? 5 : 7),), //${DateFormat("HH:mm").format(startTime)} -
+                    child: Text(DateFormat("HH:mm").format(endTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic,  fontSize: duration < 46 ? 4 : 6),), //${DateFormat("HH:mm").format(startTime)} -
                   ),
                   //Positioned(
                   //  top: 2,
@@ -221,19 +234,25 @@ class MyHomePageState extends State<WeekPlanView>{
                   //),
                   // Stroked text as border.
                   Container(
+                    decoration:BoxDecoration(
+                      color: Colors.transparent
+                    ),
                     alignment: Alignment.center,
                     margin: EdgeInsets.only(left: 10, right: 10, bottom: duration < 46 ? 5: 10, top: duration < 46 ? 5: 10), //Ursprünglich 8 : 12
-                      child: Text(
-                        title,
-                        style: TextStyle(
-                          fontSize: 10, //Ursprünglich 11
-                          color: Colors.black,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints.expand(),
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 10, //Ursprünglich 11
+                            color: Colors.black,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       )
-
+                  )
                       /*FittedBox(
                         fit: BoxFit.fitWidth,
                         child: Text(
@@ -247,8 +266,6 @@ class MyHomePageState extends State<WeekPlanView>{
                           overflow: TextOverflow.ellipsis,
                         ),
                       )*/
-
-                  ),
                 ],
               )
           ),

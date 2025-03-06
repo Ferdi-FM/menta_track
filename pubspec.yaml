@@ -52,6 +52,7 @@ dependencies:
   gif_view: ^1.0.0
   flutter_launcher_icons: ^0.14.3
   syncfusion_flutter_charts: ^28.2.6
+  audioplayers: ^6.2.0
 
 dev_dependencies:
   flutter_test:
@@ -79,6 +80,7 @@ flutter:
     - assets/images/
     - assets/images/mascot/
     - assets/images/illustrations/
+    - assets/soundAlerts/
     - lib/l10n/
   fonts:
     - family: Comfortaa

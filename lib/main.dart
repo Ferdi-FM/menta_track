@@ -18,7 +18,7 @@ import 'Pages/barcode_scanner_simple.dart';
 import 'generated/l10n.dart';
 
 //TODO: - Aufräumen
-//TODO: - Date Localisation für dayOverView/weekOverview anpassen
+//TODO: - Date Lokalisation für dayOverView/weekOverview anpassen
 
 void main() {
   runApp(const MyApp());
@@ -149,21 +149,21 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
   }
 
   ///Plant die Notifications für alle Termine in der Übergebenen Woche. Checkt in den jeweiligen Funktionen erst ob sie schon geplant wurden (Muss noch getestet werden)
-  void initializeNotifications(String weekKey) async {
-    notificationHelper.startListeningNotificationEvents();
-
-    List<Termin> weekAppointments = await databaseHelper.getWeeklyPlan(weekKey);
-    ///Notification mit allen Terminen in der Früh
-    await notificationHelper.scheduleBeginNotification(weekAppointments, weekKey);
-
-    ///Notification für die einzelnen Termine in der Woche
-    for(Termin termin in weekAppointments) {
-      notificationHelper.scheduleNewTerminNotification(termin, weekKey);
-    }
-
-    ///Notification mit der Tagesübersicht und Wochenübersicht
-    await notificationHelper.scheduleEndNotification(weekKey);
-  }
+  //void initializeNotifications(String weekKey) async {
+  //  notificationHelper.startListeningNotificationEvents();
+//
+  //  List<Termin> weekAppointments = await databaseHelper.getWeeklyPlan(weekKey);
+  //  ///Notification mit allen Terminen in der Früh
+  //  await notificationHelper.scheduleBeginNotification(weekAppointments, weekKey);
+//
+  //  ///Notification für die einzelnen Termine in der Woche
+  //  for(Termin termin in weekAppointments) {
+  //    notificationHelper.scheduleNewTerminNotification(termin, weekKey);
+  //  }
+//
+  //  ///Notification mit der Tagesübersicht und Wochenübersicht
+  //  await notificationHelper.scheduleEndNotification(weekKey);
+  //}
 
   ///prüft die Datenbank auf Einträge, lädt sie in die Listenansicht und plant Notifications (TO_DO?: Datenbankeintrag mit „Notificationssheduled“ zur WeeklyPlans-Table hinzufügen, damit keine tatsächlichen Benachrichtigungen geprüft werden müssen, der Nachteil ist, dass es nur indirekt überprüft wird)
   void checkDatabase() async {
@@ -184,22 +184,22 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       String title1 = "${weekPlan["startOfWeekString"]} - ${weekPlan["endOfWeekString"]}";
       WeekTileData data = WeekTileData(icon: Icons.date_range, title: title1, weekKey: weekKey);
       addEntry(data);
+      DatabaseHelper().updateActivities(weekKey); //Checkt den Wochendurchschnitt für die Anzeige auf der Übersichtsseite
 
       ///Checkt ob die gesamte Woche in der Vergangenheit oder mehr als 2Wochen in der Zukunftliegt
-      if(DateTime.parse(weekKey).difference(DateTime.now()).isNegative){
-        print("Week already passed");
-      } else if(DateTime.parse(weekKey).difference(DateTime.now()) > Duration(days: 14)){
-        print("Week more than two weeks in the future");
-      }else {
-        initializeNotifications(weekKey);
-      }
+      //if(DateTime.parse(weekKey).difference(DateTime.now()).isNegative){
+      //  print("Week already passed");
+      //} else if(DateTime.parse(weekKey).difference(DateTime.now()) > Duration(days: 14)){
+      //  print("Week more than two weeks in the future");
+      //}else {
+      //  initializeNotifications(weekKey);
+      //}
 
-      DatabaseHelper().updateActivities(weekKey); //Checkt den Wochendurchschnitt für die Anzeige auf der Übersichtsseite
     }
     //String testKey = weekPlans[0]["weekKey"];
     //await notificationHelper.scheduleTestNotification(testKey); //Testing
-    //notificationHelper.startListeningNotificationEvents(); //TODO: Aktivieren
-    //notificationHelper.loadAllNotifications(false); //TODO: Aktivieren
+    notificationHelper.startListeningNotificationEvents(); //TODO: Aktivieren testen
+    notificationHelper.loadAllNotifications(false); //TODO: Aktivieren testen
   }
 
   ///Fügt der Liste einen Eintrag hinzu
@@ -207,6 +207,11 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     setState(() {
       if (!items.contains(data)) {
         items.add(data);
+        items.sort((a, b) {
+          DateTime dateA = DateTime.parse(a.weekKey);
+          DateTime dateB = DateTime.parse(b.weekKey);
+          return dateA.compareTo(dateB);
+        });
       }
     });
   }
@@ -224,9 +229,13 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
     SettingData data = await SettingsPageState().getSettings();
     bool isDarkMode = data.isDarkMode;
     String name = data.name;
+    String accentColor = data.accentColor;
+
     setState(() { //Unschön, aber muss vor themeHelper geladen werden, damit textfarbe je nach darkmode richtig geladen wird
       MyApp.of(context).changeTheme(isDarkMode ? ThemeMode.dark : ThemeMode.light);
+      MyApp.of(context).changeColor(accentColor);
     });
+
     Widget image = SizedBox();
     if(mounted) image = await ThemeHelper().getIllustrationImage("MainPage");
     setState(() {
@@ -234,7 +243,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
       themeIllustration = image;
       name;
     });
-    //notificationHelper.loadAllNotifications(true); //TODO: Aktivieren
+    //notificationHelper.loadAllNotifications(true); //TODO: Aktivieren? Oder lieber direkt in Settings?
   }
 
   Future<void> openSettings() async {
@@ -494,7 +503,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver {
              List<WeekTileData> weekLists = await ImportJson().loadDummyDataForQr(result);
              for (WeekTileData data in weekLists) {
                //data.toString();
-               addEntry(data);
+              addEntry(data);
              }
          }
          //ImportJson().loadDummyDataForQr(CreateDummyJsonForTesting().toCompressedIntList());

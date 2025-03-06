@@ -10,6 +10,7 @@ import 'package:menta_track/main.dart';
 import 'package:menta_track/Pages/question_page.dart';
 import 'package:menta_track/termin.dart';
 import 'package:menta_track/Pages/week_plan_view.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'generated/l10n.dart';
 
 //Edited ExampleCode & Dokumentation von https://pub.dev/packages/awesome_notifications/example
@@ -203,12 +204,14 @@ class NotificationHelper{
     List<Map<String,dynamic>> plansList = await DatabaseHelper().getAllWeekPlans();
     for(var plan in plansList){
       String weekKey = plan["weekKey"];
-      List<Termin> terminList = await DatabaseHelper().getWeeklyPlan(weekKey);
-      scheduleBeginNotification(terminList, weekKey);
-      for(Termin termin in terminList){
-        scheduleNewTerminNotification(termin, weekKey);
+      if(DateTime.parse(weekKey).difference(DateTime.now()).isNegative){
+        print("Week already passed");
+      } else if(DateTime.parse(weekKey).difference(DateTime.now()) > Duration(days: 14)){
+        print("Week more than two weeks in the future");
+      }else {
+        loadNewNotifications(weekKey);
       }
-      scheduleEndNotification(weekKey);
+
     }
   }
 
@@ -219,9 +222,7 @@ class NotificationHelper{
         scheduleNewTerminNotification(termin, weekKey);
       }
       scheduleEndNotification(weekKey);
-
   }
-
 
   ///Plant die erste Benachrichtigung am Tag
   Future<void> scheduleBeginNotification(List<Termin> termine, String weekKey) async {
@@ -230,8 +231,12 @@ class NotificationHelper{
     if (!isAllowed) isAllowed = await displayNotificationRationale();
     if (!isAllowed) return;
 
+    final pref = await SharedPreferences.getInstance();
+    int timeMorningInMinuts = pref.getInt("morningTime") ?? 7*60;
+    TimeOfDay morningTime =  TimeOfDay(hour: timeMorningInMinuts  ~/ 60, minute:  timeMorningInMinuts  % 60) ;
 
-    DateTime firstWeekDayMorning = DateTime.parse(weekKey).add(Duration(hours: 7)); //benachrichtigung um 7Uhr morgens, hängt von Implementation von Einstellungen ab
+
+    DateTime firstWeekDayMorning = DateTime.parse(weekKey).add(Duration(hours: morningTime.hour, minutes: morningTime.minute)); //benachrichtigung um 7Uhr morgens, hängt von Implementation von Einstellungen ab
     //Ich benutze hier nicht die getDayTermine() funktion aus database_helper, weil ich eh für jeden Wochentag die Termine brauche und so nur einmal die Datenbank auslesen muss, wird evtl noch geändert
     for(int i = 0; i < 7;i++){
       List<Termin> termineForThisDay = [];
@@ -276,7 +281,11 @@ class NotificationHelper{
     if (!isAllowed) isAllowed = await displayNotificationRationale();
     if (!isAllowed) return;
 
-    DateTime firstWeekDayEvening = DateTime.parse(weekKey).add(Duration(hours: 22)); //benachrichtigung um 22Uhr Abends/Nachts kann theoretscih durch Einstellungen geändert werden, wenn diese Implementiert werden
+    final pref = await SharedPreferences.getInstance();
+    int timeEveningInMinutes = pref.getInt("eveningTime") ?? 22*60;
+    TimeOfDay eveningTime =  TimeOfDay(hour: timeEveningInMinutes  ~/ 60, minute:  timeEveningInMinutes  % 60) ;
+
+    DateTime firstWeekDayEvening = DateTime.parse(weekKey).add(Duration(hours: eveningTime.hour,minutes: eveningTime.minute)); //benachrichtigung um 22Uhr Abends/Nachts kann theoretscih durch Einstellungen geändert werden, wenn diese Implementiert werden
     for(int i = 0; i < 7;i++){
       DateTime currentDay = firstWeekDayEvening.add(Duration(days: i));
       String title = S.current.noti_dayEnd_title(currentDay);
@@ -297,12 +306,13 @@ class NotificationHelper{
           payLoad: {
             "weekKey": weekKey,
             "weekDayKey": DateFormat("dd.MM.yy").format(currentDay), //DayOverView braucht ("dd.MM.yy") format
-            "siteToOpen": "DayOverview" //Muss in DayOverView aus der Datenbank laden um aktuelle Daten zu erhalten
+            "siteToOpen": "DayOverView"
           });
 
       ///Plant die Benachrichtigung für die Wochenübersicht
       if(i == 6){
-        DateTime lastDuration = currentDay.add(Duration(hours: 1)); //Zeigt Wochenübersicht eine Stunde nach der Tages
+        DateTime lastDuration = currentDay.add(Duration(hours: 1));
+        print("Endweek Notification: ${lastDuration}"); //Zeigt Wochenübersicht eine Stunde nach der letzen Tages
         String lastTitle = S.current.noti_weekEnd_title;
         String lastMsg = S.current.noti_weekEnd_message;
 
@@ -315,7 +325,7 @@ class NotificationHelper{
             repeatNotif: false,
             payLoad: {
               "weekKey": weekKey,
-              "siteToOpen": "WeekOverview"
+              "siteToOpen": "WeekOverView"
             });
       }
     }
@@ -327,31 +337,38 @@ class NotificationHelper{
     if (!isAllowed) isAllowed = await displayNotificationRationale();
     if (!isAllowed) return;
 
-    /*Implementation der Benachrichtigungen TODO: Aktivieren und testen
+    ///Implementation der Benachrichtigungen TODO: Aktivieren
     SharedPreferences pref = await SharedPreferences.getInstance();
     List<int> notificationTimeList = pref.getStringList("notificationIntervals")?.map(int.parse).toList() ?? [15];
-    int numberOfNotifications = notificationTimeList.length+2
+    //int numberOfNotifications = notificationTimeList.length+2;
     List<DateTime> times = [];
     List<int> hashcodes = [];
 
+    ///Benachrichtigungen aus den Einstellungen
     for(int k in notificationTimeList){
-      times.add(termin.timeBegin.subtract(Duration(minutes: k))); //Benachrichtigung 15 Minuten vor Termin (evtl variabel anpassbar machen)
+      times.add(termin.timeBegin.subtract(Duration(minutes: k))); //Benachrichtigung variabel anpassbar
       hashcodes.add(termin.timeBegin.subtract(Duration(minutes: k)).hashCode);
     }
+    ///Benachrichtigung zum Zeitpunkt
     times.add((termin.timeBegin));
     hashcodes.add(termin.timeBegin.hashCode);
+    ///Benachrichtigung nach dem Termin
     times.add(termin.timeEnd.add(Duration(minutes: 10)));
     hashcodes.add(termin.timeBegin.add(Duration(minutes: 10)).hashCode);
 
-    List<String messages = []
+    List<String> messages = [];
+    ///Benachrichtigungen aus den Einstellungen
     for(int i = 0; i < notificationTimeList.length; i++){
-       messages.add(S.current.noti_termin_messageBefore(termin.terminName, notificationTimeList[i])
+       messages.add(S.current.noti_termin_messageBefore(termin.terminName, notificationTimeList[i]));
     }
-    messages.add(S.current.noti_termin_messageAt(termin.terminName));
-    messages.add(S.current.noti_termin_messageAfter(termin.terminName));
-    */
 
-    List<DateTime> times = [
+    ///Benachrichtigung zum Zeitpunkt
+    messages.add(S.current.noti_termin_messageAt(termin.terminName));
+    ///Benachrichtigung nach dem Termin
+    messages.add(S.current.noti_termin_messageAfter(termin.terminName));
+
+
+    /*List<DateTime> times = [
       (termin.timeBegin.subtract(Duration(minutes: 15))), //Benachrichtigung 15 Minuten vor Termin (evtl variabel anpassbar machen)
       (termin.timeBegin),                                 //Benachrichtigung zum Zeitpunkt
       (termin.timeEnd.add(Duration(minutes: 10))),        //Benachrichtigung 10 Minuten nach Termin (evtl zu 15 Minuten nach Terminanfang setzen
@@ -366,10 +383,10 @@ class NotificationHelper{
       S.current.noti_termin_messageBefore(termin.terminName, 15),
       S.current.noti_termin_messageAt(termin.terminName),
       S.current.noti_termin_messageAfter(termin.terminName)
-    ];
+    ];*/
 
-    for(int i = 0; i < 3;i++){ //numberOfNotifications   i < notificationTimeList.length+2
-        await myNotifyScheduleInHours(
+    for(int i = 0; i < notificationTimeList.length+2;i++){ //numberOfNotifications   i < notificationTimeList.length+2
+      await myNotifyScheduleInHours(
             hashCode: hashcodes[i],
             title: termin.terminName,
             msg: messages[i],
@@ -379,12 +396,12 @@ class NotificationHelper{
               "weekKey": weekKey,
               "timeBegin": termin.timeBegin.toIso8601String(),
               "terminName": termin.terminName,
-              "siteToOpen": i == 0 ? "WeekPlanView" : "QuestionPage"  //Nur wenn Termin gestartet oder vorbei ist wird zur QuestionPage geleitet //TODO: i == notificationTimeList.lenth || i == notificationTimeList.lenth+1
+              "siteToOpen": i >= notificationTimeList.length ?"QuestionPage" : "WeekPlanView"   //Nur wenn Termin gestartet oder vorbei ist wird zur QuestionPage geleitet
             });
       }
   }
 
-  ///TESTING
+  ///Für Studie
   Future<void> scheduleTestNotification(String weekKey) async {
     ///Check ob Permissions gegeben wurden
     bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
@@ -521,14 +538,14 @@ Future<void> myNotifyScheduleInHours({
   NotificationLayout? layout,
   bool repeatNotif = false,
 }) async {
-  //Checkt ob eine Notification eh schon in der Vergangenheit liegt
+  ///Checkt ob eine Notification schon in der Vergangenheit liegt
   if(DateTime.now().isAfter(triggerDateTime)){ //Scheinbar checkt Awesome_Notification selbst ob eine Benachrichtigung in der vergangenheit liegt, Ich weiß jedoch nicht wo
-    print("Already too late for $triggerDateTime");
+    //print("Already too late for $triggerDateTime");
     return;
   }
-  //Checkt ob die Notification mehr als eine Woche entfernt wäre. Checke, weil für jeden Termin 3 Benachrichtigungen + 2 für den Tag + 1 für die Woche generiert wird, wobei schnell sehr viele zusammenkommen können
+  ///Checkt ob die Notification mehr als eine Woche entfernt wäre. Checke, weil für jeden Termin 3 Benachrichtigungen + 2 für den Tag + 1 für die Woche generiert wird, wobei schnell sehr viele zusammenkommen können
   if (triggerDateTime.isAfter(DateTime.now().add(Duration(days: 14)))) {
-    print("more than a two weeks in the future $triggerDateTime");
+    //print("more than a two weeks in the future $triggerDateTime");
     return;
   }
 

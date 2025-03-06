@@ -68,16 +68,18 @@ class DatabaseHelper {
     List<Map<String,dynamic>> maps = await db.query(
       "Termine",
       columns: [
-        "SUM(goodQuestion) / COUNT(*) AS goodMean",
-        "SUM(calmQuestion) / COUNT(*) AS calmMean",
-        "SUM(helpQuestion) / COUNT(*) AS helpMean"
+        "(SUM(goodQuestion) * 1.0) / COUNT(*) AS goodMean",
+        "(SUM(calmQuestion) * 1.0) / COUNT(*) AS calmMean",
+        "(SUM(helpQuestion) * 1.0) / COUNT(*) AS helpMean"
       ],
       where: "answered = 1 AND weekKey = ?",
       whereArgs: [weekKey],
     );
-      var goodMean = maps[0]["goodMean"] ?? -1; // Standardwert -1, wenn null
-      var calmMean = maps[0]["calmMean"] ?? -1;
-      var helpMean = maps[0]["helpMean"] ?? -1;
+      double goodMean = maps[0]["goodMean"] ?? -1.0; // Standardwert -1, wenn null
+      double calmMean = maps[0]["calmMean"] ?? -1.0;
+      double helpMean = maps[0]["helpMean"] ?? -1.0;
+
+     print("IN UPDATEACTIVITIES: \n $goodMean \n $calmMean \n $helpMean");
 
     Map<String, dynamic> updatedValues = {
       "goodMean": goodMean,

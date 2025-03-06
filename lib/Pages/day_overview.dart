@@ -41,6 +41,7 @@ class DayOverviewState extends State<DayOverviewPage> {
   int tasksDoneInt = 0;
   int tasksMissed = 0;
   bool loaded = false;
+  bool tooEarly = false;
   String name = "";
 
   double startFrame = 0;
@@ -54,6 +55,8 @@ class DayOverviewState extends State<DayOverviewPage> {
     getTermineForDay();
     _controllerCenter = ConfettiController(duration: const Duration(seconds: 2));
     _controllerConstant = ConfettiController(duration: const Duration(seconds: 40));
+    tooEarly = DateTime.now().isBefore(DateFormat("dd.MM.yy").parse(widget.weekDayKey));
+    print(tooEarly);
     super.initState();
   }
 
@@ -221,12 +224,8 @@ class DayOverviewState extends State<DayOverviewPage> {
       //(){Navigator.of(context).pop();}
     );
     if(result == "confirmed"){
-      backToPage();
+      leavePage();
     }
-  }
-
-  void backToPage(){
-    Navigator.of(context).pop();
   }
 
   Widget getText() {
@@ -317,185 +316,201 @@ class DayOverviewState extends State<DayOverviewPage> {
     return SizedBox();
   }
 
+  void leavePage(){
+    if(widget.fromNotification){ //Andere Pageroute, wenn von Notification, wird wahrscheinlich entfernt
+      MyApp.navigatorKey.currentState?.pushReplacement(
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) => WeekPlanView(
+                weekKey: widget.weekKey),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              const curve = Curves.easeInOut;
+
+              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              var offsetAnimation = animation.drive(tween);
+
+              return SlideTransition(
+                position: offsetAnimation,
+                child: child,
+              );
+            },
+          )
+      );
+    } else {
+      Navigator.pop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.weekDayKey),
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            if(widget.fromNotification){ //Andere Pageroute, wenn von Notification, wird wahrscheinlich entfernt
-              MyApp.navigatorKey.currentState?.pushReplacement(
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => WeekPlanView(
-                        weekKey: widget.weekKey),
-                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                      const begin = Offset(1.0, 0.0);
-                      const end = Offset.zero;
-                      const curve = Curves.easeInOut;
-
-                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                      var offsetAnimation = animation.drive(tween);
-
-                      return SlideTransition(
-                        position: offsetAnimation,
-                        child: child,
-                      );
-                    },
-                  )
-              );
-            } else {
-              Navigator.pop(context);
-            }
-          },
-        ),
-      ),
-      body:  Stack(
-        children: [
-          ShaderMask(
-            shaderCallback: (Rect bounds) {
-              return LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
-              stops: [0.0, 0.1, 0.9, 1.0],
-              ).createShader(bounds);
-            },
-            blendMode: BlendMode.dstIn,
-            child: SingleChildScrollView(
-              // ignore: avoid_unnecessary_containers
-              child: loaded ? Container(
-                child: Padding(
-                  padding: EdgeInsets.all(25),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      //SizedBox(height: MediaQuery.of(context).size.height*0.07,), //TODO: Falls Appbar entfernt wird
-                      SizedBox(height: MediaQuery.of(context).size.height*0.03,),
-                      loaded ? getText() : SizedBox(width: MediaQuery.of(context).size.width,),
-                      SizedBox(height: 20,),
-                      if (!noFavorites) Material(//zuerst favoriteAnswers.isNotEmpty, durch es ist aber immer mindestens ["","",""] was als voll gezählt wird
-                          elevation: 10,
-                          color: Theme.of(context).scaffoldBackgroundColor,
-                          borderRadius: BorderRadius.circular(15),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(15),
-                              border: Border.fromBorderSide(BorderSide(width: 0.5, color: Colors.black)),
-                            ),
-                            padding: EdgeInsets.all(15),
-                            child: Column(
-                              children: [
-                                FittedBox(
-                                  child: Text(S.current.special_activities, textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
-                                ),
-                                for (int i = 0; i < 3; i++) ...{ //favoriteComments.length
-                                  Utilities().favoriteItems(i, favoriteAnswers, context),
-                                },
-                              ],
-                            ),
-                          ),
-                        ),
-                      SizedBox(height: 20),
-                      if (endFrame != 0 && tasksMissed == 0)
-                        GifProgressWidget(
-                          progress: endFrame,
-                          startFrame: overAllTasksThisDay != 0 ? startFrame : 0,
-                          finished: () => {},
-                          termineForThisDay: overAllTasksThisDay,
-                          forRewardPage: false,
-                        ),
-                      SizedBox(
-                        height: 40,
-                      ),
-                      (overAllTasksThisDay == 0|| tasksDoneInt == 0)
-                          ? SizedBox()
-                          : Text(
-                        S.of(context).daily_Values,
-                        style: TextStyle(
-                          color: Theme.of(context).primaryColor.withAlpha(200),
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      (overAllTasksThisDay == 0|| tasksDoneInt == 0)
-                          ? SizedBox()
-                          : SizedBox(
-                        height: 30,
-                      ),
-                      (overAllTasksThisDay == 0|| tasksDoneInt == 0)
-                          ? SizedBox()
-                          : AspectRatio(
-                        aspectRatio: 1.3,
-                        child: RadarChart(
-                          RadarChartData(
-                            dataSets: showingDataSets(),
-                            radarBackgroundColor: Colors.transparent,
-                            borderData: FlBorderData(show: false),
-                            radarBorderData: const BorderSide(color: Colors.transparent),
-                            titlePositionPercentageOffset: 0.1,
-                            titleTextStyle: TextStyle(color: Colors.black, fontSize: 14),
-                            getTitle: (index, angle) {
-                              switch (index) {
-                                /// case 0 ist oben, case 1 ist unten links, case 2 ist unten rechts
-                                ///aber radar
-                                case 0: //Wie gut hast du dich gefühlt
-                                  return RadarChartTitle(
-                                    text: "${S.of(context).legend_Msg0}\n ${radarEntries[0].value.toString().substring(0, 3)}/7",
-                                  );
-                                case 1: //Wie ruhig warst du
-                                  return RadarChartTitle(
-                                    text: "${radarEntries[1].value.toString().substring(0, 3)}/7 \n Wie sehr hat\nes geholfen",
-                                    angle: 0);
-                                case 2: //Wie sehr hat es geholfen?
-                                  return RadarChartTitle(
-                                      text: "${radarEntries[2].value.toString().substring(0, 3)}/7 \n Wie Ruhig\nwarst du",
-                                      angle: 0);
-                                default:
-                                  return RadarChartTitle(text: "");
-                              }},
-                            tickCount: 1,
-                            ticksTextStyle: const TextStyle(color: Colors.transparent, fontSize: 10),
-                            tickBorderData: const BorderSide(color: Colors.transparent),
-                            gridBorderData: BorderSide(color: Colors.orange, width: 2),
-                          ),
-                          duration: const Duration(milliseconds: 400),
-                        ),
-                      ),
-                      SizedBox(
-                        height: 36,
-                      ),
-                      widget.fromNotification
-                          ? ActionSlider.standard(
-                        child: Text(S.current.understood, key: GlobalKey(debugLabel: "actKey")),
-                        action: (controller) async {
-                          controller.loading();
-                          await Future.delayed(const Duration(seconds: 1));
-                          controller.success();
-                          controller.reset();
-                          openRewardPopUp();},
-                      )
-                          : ElevatedButton(
-                          style: ElevatedButton.styleFrom(minimumSize: Size(200, 50),),
-                          onPressed: Navigator.of(context).pop,
-                          child: Text(S.current.back)),
-                      SizedBox(
-                        height: 20,
-                      )
-                    ],
-                  ),
-                ),
-              ) : Center(child: CircularProgressIndicator()),
+    return PopScope(
+        canPop: false, // Ermöglicht das Verlassen der Seite
+        onPopInvokedWithResult: (bool didPop, result) {
+          if (!didPop) {
+            leavePage();
+          }
+        },
+        child:  Scaffold(
+          appBar: AppBar(
+            title: Text(widget.weekDayKey),
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                leavePage();
+              },
             ),
           ),
-          buildConfettiWidgets(),
-        ],
-      ),
+          body:  Stack(
+            children: [
+              ShaderMask(
+                shaderCallback: (Rect bounds) {
+                  return LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.transparent, Colors.black, Colors.black, Colors.transparent],
+                    stops: [0.0, 0.1, 0.9, 1.0],
+                  ).createShader(bounds);
+                },
+                blendMode: BlendMode.dstIn,
+                child: SingleChildScrollView(
+                  // ignore: avoid_unnecessary_containers
+                  child: loaded ? Container(
+                    child: Padding(
+                      padding: EdgeInsets.all(25),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          //SizedBox(height: MediaQuery.of(context).size.height*0.07,), //TODO: Falls Appbar entfernt wird
+                          SizedBox(height: MediaQuery.of(context).size.height*0.03,),
+                          loaded ? getText() : SizedBox(width: MediaQuery.of(context).size.width,),
+                          SizedBox(height: 20,),
+                          if (!noFavorites) Material(//zuerst favoriteAnswers.isNotEmpty, durch es ist aber immer mindestens ["","",""] was als voll gezählt wird
+                            elevation: 10,
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                            borderRadius: BorderRadius.circular(15),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15),
+                                border: Border.fromBorderSide(BorderSide(width: 0.5, color: Colors.black)),
+                              ),
+                              padding: EdgeInsets.all(15),
+                              child: Column(
+                                children: [
+                                  FittedBox(
+                                    child: Text(S.current.special_activities, textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                                  ),
+                                  for (int i = 0; i < 3; i++) ...{ //favoriteComments.length
+                                    Utilities().favoriteItems(i, favoriteAnswers, context),
+                                  },
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 20),
+                          if (endFrame != 0 && tasksMissed == 0 && !tooEarly)
+                            GifProgressWidget(
+                              progress: endFrame,
+                              startFrame: overAllTasksThisDay != 0 ? startFrame : 0,
+                              finished: () => {},
+                              termineForThisDay: overAllTasksThisDay,
+                              forRewardPage: false,
+                            ),
+                          SizedBox(
+                            height: 40,
+                          ),
+                          (overAllTasksThisDay == 0|| tasksDoneInt == 0)
+                              ? SizedBox()
+                              : Text(
+                            S.of(context).daily_Values,
+                            style: TextStyle(
+                              color: Theme.of(context).primaryColor.withAlpha(200),
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          (overAllTasksThisDay == 0|| tasksDoneInt == 0)
+                              ? SizedBox()
+                              : SizedBox(
+                            height: 30,
+                          ),
+                          (overAllTasksThisDay == 0|| tasksDoneInt == 0)
+                              ? SizedBox()
+                              : AspectRatio(
+                            aspectRatio: 1.3,
+                            child: RadarChart(
+                              RadarChartData(
+                                dataSets: showingDataSets(),
+                                radarBackgroundColor: Colors.transparent,
+                                borderData: FlBorderData(show: false),
+                                radarBorderData: const BorderSide(color: Colors.transparent),
+                                titlePositionPercentageOffset: 0.1,
+                                titleTextStyle: TextStyle(color: Colors.black, fontSize: 14),
+                                getTitle: (index, angle) {
+                                  switch (index) {
+                                  /// case 0 ist oben, case 1 ist unten links, case 2 ist unten rechts
+                                  ///aber radar
+                                    case 0: //Wie gut hast du dich gefühlt
+                                      return RadarChartTitle(
+                                        text: "${S.of(context).legend_Msg0}\n ${radarEntries[0].value.toString().substring(0, 3)}/7",
+                                      );
+                                    case 1: //Wie ruhig warst du
+                                      return RadarChartTitle(
+                                          text: "${radarEntries[1].value.toString().substring(0, 3)}/7 \n Wie sehr hat\nes geholfen",
+                                          angle: 0);
+                                    case 2: //Wie sehr hat es geholfen?
+                                      return RadarChartTitle(
+                                          text: "${radarEntries[2].value.toString().substring(0, 3)}/7 \n Wie Ruhig\nwarst du",
+                                          angle: 0);
+                                    default:
+                                      return RadarChartTitle(text: "");
+                                  }},
+                                tickCount: 1,
+                                ticksTextStyle: const TextStyle(color: Colors.transparent, fontSize: 10),
+                                tickBorderData: const BorderSide(color: Colors.transparent),
+                                gridBorderData: BorderSide(color: Colors.orange, width: 2),
+                              ),
+                              duration: const Duration(milliseconds: 400),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 36,
+                          ),
+                          widget.fromNotification
+                              ? ActionSlider.standard(
+                            child: Text(S.current.understood, key: GlobalKey(debugLabel: "actKey")),
+                            action: (controller) async {
+                              controller.loading();
+                              await Future.delayed(const Duration(seconds: 1));
+                              controller.success();
+                              controller.reset();
+                              openRewardPopUp();},
+                          )
+                              : ElevatedButton(
+                              style: ElevatedButton.styleFrom(minimumSize: Size(200, 50),),
+                              onPressed: Navigator.of(context).pop,
+                              child: Text(S.current.back)),
+                          SizedBox(
+                            height: 20,
+                          )
+                        ],
+                      ),
+                    ),
+                  ) : Center(child: CircularProgressIndicator()),
+                ),
+              ),
+              buildConfettiWidgets(),
+            ],
+          ),
+        )
+
     );
+
+
+     ;
   }
 
 

@@ -112,6 +112,8 @@
   "settings_darkMode": "Dark Mode",
   "settings_chooseAccent": "Choose an accent color",
   "settings_notifications": "{count, plural, =0{Notification} other{Notifications}}",
+  "settings_morningNotification": "Notification-Time in the morning",
+  "settings_eveningNotification": "Notification-Time in the evening",
 
 
   "@HelpMessages": {

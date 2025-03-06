@@ -112,6 +112,8 @@
   "settings_darkMode": "Dark Mode",
   "settings_chooseAccent": "Wähle eine Akzentfarbe",
   "settings_notifications": "{count, plural, =0{Benachrichtigung} other{Benachrichtigungen}}",
+  "settings_morningNotification": "Zeitpunkt Morgens",
+  "settings_eveningNotification": "Zeitpunkt Abends",
 
 
   "@HelpMessages": {
