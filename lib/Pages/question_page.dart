@@ -18,7 +18,7 @@ class QuestionPage extends StatefulWidget{
     super.key,
     required this.weekKey,
     required this.timeBegin,
-    required this.terminName,});
+    required this.terminName});
 
   @override
   QuestionPageState createState() => QuestionPageState();

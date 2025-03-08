@@ -9,12 +9,14 @@ import 'termin.dart';
 class DatabaseHelper {
   static Database? _database;
 
+  ///Getter für Datenbank
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await initDatabase();
     return _database!;
   }
 
+  ///Erstellt die Datenbank
   Future<Database> initDatabase() async {
     String path = await getDatabasesPath();
     return openDatabase(
@@ -61,41 +63,7 @@ class DatabaseHelper {
     );
   }
 
-
-
-  Future<void> updateActivities(String weekKey)async {
-    final db = await database;
-    List<Map<String,dynamic>> maps = await db.query(
-      "Termine",
-      columns: [
-        "(SUM(goodQuestion) * 1.0) / COUNT(*) AS goodMean",
-        "(SUM(calmQuestion) * 1.0) / COUNT(*) AS calmMean",
-        "(SUM(helpQuestion) * 1.0) / COUNT(*) AS helpMean"
-      ],
-      where: "answered = 1 AND weekKey = ?",
-      whereArgs: [weekKey],
-    );
-      double goodMean = maps[0]["goodMean"] ?? -1.0; // Standardwert -1, wenn null
-      double calmMean = maps[0]["calmMean"] ?? -1.0;
-      double helpMean = maps[0]["helpMean"] ?? -1.0;
-
-     print("IN UPDATEACTIVITIES: \n $goodMean \n $calmMean \n $helpMean");
-
-    Map<String, dynamic> updatedValues = {
-      "goodMean": goodMean,
-      "calmMean": calmMean,
-      "helpingMean": helpMean,
-    };
-
-    await db.update(
-      "WeeklyPlans",
-      updatedValues,
-      where: "weekKey = ?",
-      whereArgs: [weekKey],
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
+  ///Speichert einen neuen Termin in der Datenbank
   Future<void> insertWeeklyPlan(String weekKey, List<Termin> terminItems) async {
     final db = await database;
 
@@ -129,44 +97,16 @@ class DatabaseHelper {
     }
   }
 
-  Future<void> saveHelpingActivities(String activity, String category, bool doneTask) async {
-   if(category == "good" || category == "calm" || category == "help"){//Check ob es eine der drei richtigen kategorien ist
-     final db = await database;
-     bool doesAlreadyExist = false;
-     final List<Map<String, dynamic>> result = await db.query(
-       "savedActivities",
-       where: "category = ?",
-       whereArgs: [category],
-     );
-     for (var row in result) {
-       String databaseActivity = row["activity"].toLowerCase().trim();
-       String newActivity = activity.toLowerCase().trim();
+  ///Funktionen für alle Termine
 
-       double similarity = databaseActivity.similarityTo(newActivity); // Wert zwischen 0 und 1
-
-       if (similarity > 0.8) {
-         doesAlreadyExist = true;
-         break;
-       }
-     }
-
-     if(!doesAlreadyExist){
-       await db.insert(
-           "savedActivities",
-           {
-             "activity": activity,
-             "category": category,
-             "doneTask": doneTask ? 1 : 0,
-           });
-     }
-   }
-  }
-
-  Future<List<Map<String, dynamic>>> getHelpingActivity() async{
+  ///Gibt alle Termine in einer Liste zurück
+  Future<List<Termin>> getAllTermine() async {
     final db = await database;
-    return await db.query("savedActivities"); //Alternativ könnte man eine query mit WHERE question1 = 6 OR question2 = 6 OR question3 = 6 durch die "Termine"-Table laufen lassen
+    List<Termin> termine = mapToTerminList(await db.query("Termine"));
+    return termine;
   }
 
+  ///Gibt die Anzahl an allen Terminen zurück
   Future<int> getAllTermineCount(bool answered, bool tillNow) async {
     final db = await database;
 
@@ -177,13 +117,9 @@ class DatabaseHelper {
     return count;
   }
 
-  Future<List<Termin>> getAllTermine() async {
-    final db = await database;
-    List<Termin> termine = mapToTerminList(await db.query("Termine"));
-    return termine;
-  }
+  ///Funktionen für Termine in einer Woche
 
-  //Gibt eine Liste mit allen Terminen in einer woche "weekKey" aus der Datenbank zurück. WeekKey braucht format "yyyy-MM-dd"
+  ///Gibt eine Liste mit allen Terminen in einer woche "weekKey" aus der Datenbank zurück. WeekKey braucht format "yyyy-MM-dd"
   Future<List<Termin>> getWeeklyPlan(String weekKey) async {
    final db = await database;
    final List<Map<String, dynamic>> maps = await db.query( //Holt alle Termine, die den spezifizierten weekKey verwenden
@@ -194,6 +130,7 @@ class DatabaseHelper {
     return mapToTerminList(maps); // Konvertiert die Liste an Maps in Termin-Objekte und gibt diese zurück
   }
 
+  ///Gibt die Anzahl aller Termine in einer woche zurück. WeekKey braucht format "yyyy-MM-dd"
   Future<int> getWeekTermineCount(String weekKey) async {
     final db = await database;
     int count = Sqflite.firstIntValue(await db.rawQuery(
@@ -203,6 +140,19 @@ class DatabaseHelper {
     return count;
   }
 
+  ///Gibt die Anzahl aller un/beantworteter Termine in einer woche zurück. WeekKey braucht format "yyyy-MM-dd"
+  Future<int> getWeekTermineCountAnswered(String weekKey, bool answered) async {
+    final db = await database;
+    int count = Sqflite.firstIntValue(await db.rawQuery(
+      "SELECT COUNT(*) FROM Termine WHERE weekKey = ? AND answered = ?",
+      [weekKey, answered ? 1: 0],
+    )) ?? 0;
+    return count;
+  }
+
+  ///Funktionen für Termine an einem Tag
+
+  ///Gibt die Anzahl aller Termine in einer woche zurück. weekDayKey braucht format "dd.MM.yy" oder "yyyy-MM-dd"
   Future<int> getDayTermineCount(String weekDayKey) async {
     final db = await database;
     DateTime date = DateFormat('dd.MM.yy').parse(weekDayKey);
@@ -215,6 +165,158 @@ class DatabaseHelper {
     return count;
   }
 
+  ///Gibt eine Liste aller un/beantworteter Termine in einer woche zurück. weekDayKey braucht format "dd.MM.yy" oder "yyyy-MM-dd"
+  Future<List<Termin>> getDayTermineAnswered(String weekDayKey, bool answered) async { //EVTL. DateTime anstelle weekDayKey
+    final db = await database;
+    String checkedFormatDateString = Utilities().checkDateFormat(weekDayKey);  //Extra check ob weekDayKey richtiges Format hat
+    final List<Map<String, dynamic>> terminMap = await db.query(
+      "Termine",
+      where: "timeBegin LIKE ? AND answered = ?",
+      whereArgs: ["$checkedFormatDateString%", answered ? 1 : 0],
+    );
+
+    return mapToTerminList(terminMap);
+  }
+
+  ///Gibt eine Liste aller Termine in einer woche zurück. weekDayKey braucht format "dd.MM.yy" oder "yyyy-MM-dd"
+  Future<List<Termin>> getDayTermine(String weekDayKey) async {
+    final db = await database;
+    String formattedDate = Utilities().checkDateFormat(weekDayKey); //Nötig? Checkt ob weekDayKey "dd.MM.yy" ist und wandelt es in "yyyy-MM-dd" um, damit es mit SQLite date-funktionen funktioniert
+    final List<Map<String, dynamic>> terminMap = await db.query(
+      "Termine",
+      where: "timeBegin LIKE ?",
+      whereArgs: ["$formattedDate%"],
+    );
+    return mapToTerminList(terminMap);
+  }
+
+  //Theoretische dynamische Funktion die jede Variation an Tagesterminen zurückgeben kann (alle, unbeantwortet, beantwortet) TODO: reine spielerei, eigentlich nicht notwendig
+  //Future<List<Termin>> getDayTerminDynamic(String weekDayKey, bool? answered) async{
+  //  final db = await database;
+  //  String checkedFormatDateString = Utilities().checkDateFormat(weekDayKey); // Überprüfung, ob der Key korrekt ist
+  //
+  //  String query = "SELECT COUNT(*) FROM Termine WHERE timeBegin LIKE ?";
+  //  List<dynamic> whereArgs = ["$checkedFormatDateString%"];
+  //  if (answered != null) {
+  //    query += " AND answered = ?";
+  //    whereArgs.add(answered ? 1 : 0); // 1 für true, 0 für false
+  //  }
+  //
+  //  return mapToTerminList(await db.rawQuery(query, whereArgs));
+  //}
+  ///Einzelne Termin Funktionen
+
+  ///Gibt einen einzelnen bestimmten Termin zurück, der über weekKey, timeBegin und terminName identifiziert wird (sollte keine überschneidungen geben)
+  Future<Termin?> getSpecificTermin(String weekKey, String timeBegin, String terminName) async {
+    Database db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+        "Termine",
+        where: "weekKey = ? AND timeBegin = ? AND terminName = ?" ,
+        whereArgs: [weekKey, timeBegin, terminName],
+        limit: 1
+    );
+    if(maps.length == 1){
+      return mapToTerminList(maps).first;
+    } else {
+      return null;
+    }
+  }
+
+  ///Allgemeines
+
+  ///Updated einen Termineintrag in der Datenbank
+  Future<void> updateEntry(String weekKey, String timeBegin, String terminName, Map<String, dynamic> updatedValues) async {
+    final db = await database;
+
+    await db.update(
+      "Termine",
+      updatedValues,
+      where: "weekKey = ? AND timeBegin = ? AND terminName = ?",
+      whereArgs: [weekKey, timeBegin, terminName],
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  ///Speichert eine neue sehr gut bewertete Aktivität und checkt ob sie schon ähnlich existiert
+  Future<void> saveHelpingActivities(String activity, String category, bool doneTask) async {
+    if(category == "good" || category == "calm" || category == "help"){//Check ob es eine der drei richtigen kategorien ist
+      final db = await database;
+      bool doesAlreadyExist = false;
+      final List<Map<String, dynamic>> result = await db.query(
+        "savedActivities",
+        where: "category = ?",
+        whereArgs: [category],
+      );
+      for (var row in result) {
+        String databaseActivity = row["activity"].toLowerCase().trim();
+        String newActivity = activity.toLowerCase().trim();
+
+        double similarity = databaseActivity.similarityTo(newActivity); // Wert zwischen 0 und 1
+        if (similarity > 0.8) {
+          doesAlreadyExist = true;
+          break;
+        }
+      }
+
+      if(!doesAlreadyExist){
+        await db.insert(
+            "savedActivities",
+            {
+              "activity": activity,
+              "category": category,
+              "doneTask": doneTask ? 1 : 0,
+            });
+      }
+    }
+  }
+
+  ///Holt die Map an von der savedActivities-Table
+  Future<List<Map<String, dynamic>>> getHelpingActivity() async{
+    final db = await database;
+    return await db.query("savedActivities"); //Alternativ könnte man eine query mit WHERE question1 = 6 OR question2 = 6 OR question3 = 6 durch die "Termine"-Table laufen lassen
+  }
+
+  ///Updated den Durchschnittswert in der WeeklyPlans-Table
+  Future<void> updateActivities(String weekKey)async {
+    final db = await database;
+    List<Map<String,dynamic>> maps = await db.query(
+      "Termine",
+      columns: [
+        "(SUM(goodQuestion) * 1.0) / COUNT(*) AS goodMean",
+        "(SUM(calmQuestion) * 1.0) / COUNT(*) AS calmMean",
+        "(SUM(helpQuestion) * 1.0) / COUNT(*) AS helpMean"
+      ],
+      where: "answered = 1 AND weekKey = ?",
+      whereArgs: [weekKey],
+    );
+    double goodMean = maps[0]["goodMean"] ?? -1.0; // Standardwert -1, wenn null
+    double calmMean = maps[0]["calmMean"] ?? -1.0;
+    double helpMean = maps[0]["helpMean"] ?? -1.0;
+
+    //print("IN UPDATEACTIVITIES: \n $goodMean \n $calmMean \n $helpMean");
+
+    Map<String, dynamic> updatedValues = {
+      "goodMean": goodMean,
+      "calmMean": calmMean,
+      "helpingMean": helpMean,
+    };
+
+    await db.update(
+      "WeeklyPlans",
+      updatedValues,
+      where: "weekKey = ?",
+      whereArgs: [weekKey],
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  ///Gibt eine Map mit allen Einträgen in WeeklyPlans zurück
+  Future<List<Map<String, dynamic>>> getAllWeekPlans() async {
+    final db = await database;
+    return await db.query("WeeklyPlans");
+  }
+
+  ///Wandelt eine map  aus der Termine-Table in eine Liste mit Termin-Elementen um
   List<Termin> mapToTerminList(List<Map<String, dynamic>> maps){
     return List.generate(maps.length, (i) {
       return Termin(
@@ -231,90 +333,12 @@ class DatabaseHelper {
     });
   }
 
-  //Gibt eine Liste mit allen weekKeys in der Datenbank zurück
-  Future<List<Map<String, dynamic>>> getAllWeekPlans() async {
-    final db = await database;
-    return await db.query("WeeklyPlans");
-  }
-
-  //Theoretische dynamische Funktion die jede Variation an Tagesterminen zurückgeben kann (alle, unbeantwortet, beantwortet) TODO: reine spielerei, eigentlich nicht notwendig
-  Future<List<Termin>> getDayTerminDynamic(String weekDayKey, bool? answered) async{
-    final db = await database;
-    String checkedFormatDateString = Utilities().checkDateFormat(weekDayKey); // Überprüfung, ob der Key korrekt ist
-
-    String query = "SELECT COUNT(*) FROM Termine WHERE timeBegin LIKE ?";
-    List<dynamic> whereArgs = ["$checkedFormatDateString%"];
-    if (answered != null) {
-      query += " AND answered = ?";
-      whereArgs.add(answered ? 1 : 0); // 1 für true, 0 für false
-    }
-
-    return mapToTerminList(await db.rawQuery(query, whereArgs));
-  }
-
-  Future<List<Termin>> getDayTermineAnswered(String weekDayKey, bool answered) async { //EVTL. DateTime anstelle weekDayKey
-    final db = await database;
-    String checkedFormatDateString = Utilities().checkDateFormat(weekDayKey);  //Extra check ob weekDayKey richtiges Format hat
-    final List<Map<String, dynamic>> terminMap = await db.query(
-      "Termine",
-      where: "timeBegin LIKE ? AND answered = ?",
-      whereArgs: ["$checkedFormatDateString%", answered ? 1 : 0],
-    );
-
-    return mapToTerminList(terminMap);
-  }
-
-  //Braucht weekDayKey als mit DateTime kompatiblen String oder "dd.MM.yy" String
-  Future<List<Termin>> getDayTermine(String weekDayKey) async {
-    final db = await database;
-    //DateTime date = DateFormat('dd.MM.yy').parse(weekDayKey);
-    //String formattedDate =DateFormat('yyyy-MM-dd').format(date);
-    String formattedDate = Utilities().checkDateFormat(weekDayKey); //Nötig? Checkt ob weekDayKey "dd.MM.yy" ist und wandelt es in "yyyy-MM-dd" um, damit es mit SQLite date-funktionen funktioniert
-
-    final List<Map<String, dynamic>> terminMap = await db.query(
-      "Termine",
-      where: "timeBegin LIKE ?",
-      whereArgs: ["$formattedDate%"],
-    );
-
-    return mapToTerminList(terminMap);
-  }
-
-  ///Gibt einen einzelnen bestimmten Termin zurück, der über weekKey, timeBegin und terminName identifiziert wird (sollte keine überschneidungen geben)
-  Future<Termin?> getSpecificTermin(String weekKey, String timeBegin, String terminName) async {
-    Database db = await database;
-    final List<Map<String, dynamic>> maps = await db.query(
-      "Termine",
-      where: "weekKey = ? AND timeBegin = ? AND terminName = ?" ,
-      whereArgs: [weekKey, timeBegin, terminName],
-      limit: 1
-    );
-    if(maps.length == 1){
-      return mapToTerminList(maps).first;
-    } else {
-      return null;
-    }
-  }
-
-  ///Updated einen Termineintrag in der Datenbank
-  Future<void> updateEntry(String weekKey, String timeBegin, String terminName, Map<String, dynamic> updatedValues) async {
-    final db = await database;
-
-    await db.update(
-      "Termine",
-      updatedValues,
-      where: "weekKey = ? AND timeBegin = ? AND terminName = ?",
-      whereArgs: [weekKey, timeBegin, terminName],
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
-  //löscht eine Woche weekKey aus der Datenbank
+  ///löscht eine Woche weekKey aus WeeklyPlans-Table und entsprechende Termine aus Termine-Table aus der Datenbank
   Future<void> dropTable(String weekKey) async {
     Database db = await database;
 
-    await db.execute("DELETE FROM WeeklyPlans WHERE weekKey = ?", [weekKey]); //einträge Müssen aus der Liste der Wochen
-    await db.execute("DELETE FROM Termine WHERE weekKey = ?", [weekKey]);     //und aus der Liste der Termine entfernt werden.
+    await db.execute("DELETE FROM WeeklyPlans WHERE weekKey = ?", [weekKey]);
+    await db.execute("DELETE FROM Termine WHERE weekKey = ?", [weekKey]);
   }
 }
 

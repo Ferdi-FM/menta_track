@@ -10,7 +10,6 @@ import '../not_answered_tile.dart';
 import '../theme_helper.dart';
 
 class NotAnsweredPage extends StatefulWidget {
-
   const NotAnsweredPage({super.key,});
 
   @override
@@ -35,7 +34,7 @@ class NotAnsweredState extends State<NotAnsweredPage> {
     Database db = await DatabaseHelper().database;
     final List<Map<String, dynamic>> maps = await db.query(
         "Termine",
-        where: "answered = ? AND (datetime(timeBegin) < datetime(CURRENT_DATE))",
+        where: "answered = ? AND (datetime(timeBegin) < datetime(CURRENT_TIMESTAMP))",
         whereArgs: [0]
     );
     for (Map<String, dynamic> map in maps) {
@@ -54,7 +53,7 @@ class NotAnsweredState extends State<NotAnsweredPage> {
   dynamic openItem(NotAnsweredData data, var ev) async {
     Offset pos = ev.globalPosition;
 
-    return await MyApp.navigatorKey.currentState?.push(
+    return await navigatorKey.currentState?.push(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
               QuestionPage(
@@ -126,7 +125,7 @@ class NotAnsweredState extends State<NotAnsweredPage> {
                     ).createShader(bounds);
                   },
                   blendMode: BlendMode.dstIn,
-                  child: ListView.builder(
+                  child: itemsNotAnswered.isNotEmpty ? ListView.builder(
                     itemCount: itemsNotAnswered.length,
                     itemBuilder: (context, index) {
                       return NotAnsweredTile(
@@ -145,7 +144,10 @@ class NotAnsweredState extends State<NotAnsweredPage> {
                         },
                       );
                     },
-                  ),
+                  ): Container(
+                      padding: EdgeInsets.all(40),
+                      child: Text("Gerade gibts nichts zu beantworten :)"),
+                    ),
                 ),
               ),
             ],

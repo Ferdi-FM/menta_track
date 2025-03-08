@@ -118,9 +118,9 @@ class DayOverviewState extends State<DayOverviewPage> {
             helpingTasks = "$helpingTasks • ${t.terminName} $negative\n";
             //databaseHelper.saveHelpingActivities(t.terminName, "help");
           }
-          meanQuestion1 = meanQuestion1 + (t.goodMean + 1); //wie gut  , +1 weil skala bei 0 beginnt
-          meanQuestion2 = meanQuestion2 + (t.calmMean + 1); //wie ruhig
-          meanQuestion3 = meanQuestion3 + (t.helpMean + 1); //wie gut getan
+          meanQuestion1 = meanQuestion1 + (t.goodMean); //wie gut  , +1 weil skala bei 0 beginnt
+          meanQuestion2 = meanQuestion2 + (t.calmMean); //wie ruhig
+          meanQuestion3 = meanQuestion3 + (t.helpMean); //wie gut getan
         } else {
           if(DateTime.now().isAfter(t.timeEnd)){
             tasksMissed++;
@@ -129,15 +129,16 @@ class DayOverviewState extends State<DayOverviewPage> {
       }
       radarEntries = [
         //wie gut ging es dir
-        RadarEntry(value: meanQuestion1 / tasksDoneInt),
+        RadarEntry(value: meanQuestion1 / tasksDoneInt +1),
         //wie gut hat es getan
-        RadarEntry(value: meanQuestion3 / tasksDoneInt),
+        RadarEntry(value: meanQuestion3 / tasksDoneInt +1),
         //wie ruhig warst du
-        RadarEntry(value: meanQuestion2 / tasksDoneInt),
-
-
+        RadarEntry(value: meanQuestion2 / tasksDoneInt +1),
 
       ];
+      print("goodMean: ${meanQuestion1 / tasksDoneInt +1}");
+      print("helpMean: ${meanQuestion3 / tasksDoneInt +1}");
+      print("calmMean: ${ meanQuestion2 / tasksDoneInt +1}");
       favoriteAnswers = [favoriteTasks.trimRight(), calmTasks.trimRight(), helpingTasks.trimRight()]; //.trimRight() entfernt letztes \n, if(favoriteTasks != "") favoriteAnswers.add(...) geht nicht, da die Tasks den Comments zugeordnet werden müssen, wenn nur calmTaks da wären, würden diese sonst den favoriteComment zugeordnet werden
       //Und schaut ob sie leer sind, damit kein leeres Material angezeigt wird
       if (favoriteTasks == "" && calmTasks == "" && helpingTasks == "") noFavorites = true;
@@ -242,7 +243,7 @@ class DayOverviewState extends State<DayOverviewPage> {
             TextSpan(
               text: local.taskCompletedOn(DateFormat("dd.MM.yy").format(DateTime.now()) == widget.weekDayKey ? local.today : "${S.of(context).am} ${widget.weekDayKey}"
               ),
-              style: TextStyle(fontSize: 22),
+              style: TextStyle(fontSize: 25),
             ),
             TextSpan(
               text: "$tasksDoneInt",
@@ -250,7 +251,7 @@ class DayOverviewState extends State<DayOverviewPage> {
             ),
             TextSpan(
               text: local.tasksCompleted(tasksDoneInt),
-              style: TextStyle(fontSize: 22),
+              style: TextStyle(fontSize: 25),
             ),
             TextSpan(
               text: "\n\n${Utilities().getRandomisedEncouragement(widget.fromNotification, name)}",
@@ -318,7 +319,7 @@ class DayOverviewState extends State<DayOverviewPage> {
 
   void leavePage(){
     if(widget.fromNotification){ //Andere Pageroute, wenn von Notification, wird wahrscheinlich entfernt
-      MyApp.navigatorKey.currentState?.pushReplacement(
+      navigatorKey.currentState?.pushReplacement(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) => WeekPlanView(
                 weekKey: widget.weekKey),
@@ -399,7 +400,7 @@ class DayOverviewState extends State<DayOverviewPage> {
                               child: Column(
                                 children: [
                                   FittedBox(
-                                    child: Text(S.current.special_activities, textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                                    child: Text("${S.current.special_activities}\n", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
                                   ),
                                   for (int i = 0; i < 3; i++) ...{ //favoriteComments.length
                                     Utilities().favoriteItems(i, favoriteAnswers, context),
@@ -439,41 +440,44 @@ class DayOverviewState extends State<DayOverviewPage> {
                           ),
                           (overAllTasksThisDay == 0|| tasksDoneInt == 0)
                               ? SizedBox()
-                              : AspectRatio(
-                            aspectRatio: 1.3,
-                            child: RadarChart(
-                              RadarChartData(
-                                dataSets: showingDataSets(),
-                                radarBackgroundColor: Colors.transparent,
-                                borderData: FlBorderData(show: false),
-                                radarBorderData: const BorderSide(color: Colors.transparent),
-                                titlePositionPercentageOffset: 0.1,
-                                titleTextStyle: TextStyle(color: Colors.black, fontSize: 14),
-                                getTitle: (index, angle) {
-                                  switch (index) {
-                                  /// case 0 ist oben, case 1 ist unten links, case 2 ist unten rechts
-                                  ///aber radar
-                                    case 0: //Wie gut hast du dich gefühlt
-                                      return RadarChartTitle(
-                                        text: "${S.of(context).legend_Msg0}\n ${radarEntries[0].value.toString().substring(0, 3)}/7",
-                                      );
-                                    case 1: //Wie ruhig warst du
-                                      return RadarChartTitle(
-                                          text: "${radarEntries[1].value.toString().substring(0, 3)}/7 \n Wie sehr hat\nes geholfen",
-                                          angle: 0);
-                                    case 2: //Wie sehr hat es geholfen?
-                                      return RadarChartTitle(
-                                          text: "${radarEntries[2].value.toString().substring(0, 3)}/7 \n Wie Ruhig\nwarst du",
-                                          angle: 0);
-                                    default:
-                                      return RadarChartTitle(text: "");
-                                  }},
-                                tickCount: 1,
-                                ticksTextStyle: const TextStyle(color: Colors.transparent, fontSize: 10),
-                                tickBorderData: const BorderSide(color: Colors.transparent),
-                                gridBorderData: BorderSide(color: Colors.orange, width: 2),
+                              : Padding(
+                            padding: EdgeInsets.all(10),
+                            child:AspectRatio(
+                              aspectRatio: 1.3,
+                              child: RadarChart(
+                                RadarChartData(
+                                  dataSets: showingDataSets(),
+                                  radarBackgroundColor: Colors.transparent,
+                                  borderData: FlBorderData(show: false),
+                                  radarBorderData: const BorderSide(color: Colors.transparent),
+                                  titlePositionPercentageOffset: 0.1,
+                                  titleTextStyle: TextStyle(fontSize: 14),
+                                  getTitle: (index, angle) {
+                                    switch (index) {
+                                    /// case 0 ist oben, case 1 ist unten links, case 2 ist unten rechts
+                                    ///aber radar
+                                      case 0: //Wie gut hast du dich gefühlt
+                                        return RadarChartTitle(
+                                          text: "${S.of(context).legend_Msg0}\n ${radarEntries[0].value.toString().substring(0, 3)}/7",
+                                        );
+                                      case 1: //Wie ruhig warst du
+                                        return RadarChartTitle(
+                                            text: "${radarEntries[1].value.toString().substring(0, 3)}/7 \n ${S.of(context).legend_Msg2_clip}",
+                                            angle: 0);
+                                      case 2: //Wie sehr hat es geholfen?
+                                        return RadarChartTitle(
+                                            text: "${radarEntries[2].value.toString().substring(0, 3)}/7 \n ${S.of(context).legend_Msg1_clip}",
+                                            angle: 0);
+                                      default:
+                                        return RadarChartTitle(text: "");
+                                    }
+                                  },
+                                  ticksTextStyle: TextStyle(color: Colors.transparent, fontSize: 10),
+                                  tickBorderData: const BorderSide(color: Colors.transparent),
+                                  gridBorderData: BorderSide(color: Colors.orange, width: 2),
+                                ),
+                                duration: const Duration(milliseconds: 400),
                               ),
-                              duration: const Duration(milliseconds: 400),
                             ),
                           ),
                           SizedBox(
@@ -508,9 +512,6 @@ class DayOverviewState extends State<DayOverviewPage> {
         )
 
     );
-
-
-     ;
   }
 
 
@@ -520,7 +521,7 @@ class DayOverviewState extends State<DayOverviewPage> {
         dataEntries: radarEntries,
         fillColor: Colors.lightBlueAccent.withValues(alpha: 0.4),
         borderColor: Colors.blue.withValues(alpha: 0.7),
-        borderWidth: 3,
+        borderWidth: 2,
       ),
       RadarDataSet( //Legt die grö0e des Graphen immer auf 7 fest
           dataEntries: [

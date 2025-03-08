@@ -19,6 +19,11 @@
   "back": "zurück",
   "accept": "Accept",
   "understood": "Verstanden!",
+  "save": "Speichern",
+  "activities": "Aktivitäten",
+  "open_singular": "Offen",
+  "done": "Geschafft! \uD83C\uDFC6",
+  "not_yet_single": "Noch nicht soweit \uD83D\uDE09",
 
   "displayADateWithYear": "{date}",
   "@displayADateWithYear" : {
@@ -114,30 +119,34 @@
   "settings_notifications": "{count, plural, =0{Benachrichtigung} other{Benachrichtigungen}}",
   "settings_morningNotification": "Zeitpunkt Morgens",
   "settings_eveningNotification": "Zeitpunkt Abends",
+  "settings_notificationsForTasks": "Benachrichtigungen vor Terminen",
 
 
   "@HelpMessages": {
   },
-  "mainPageDescription": "Dies ist die Startseite",
+  "firstStartUp_Message1": "Du hast die App gerade zum ersten mal geöffnet.\uD83D\uDC4D \n\n Sehr Cool, dass du diese App verwendest \uD83D\uDE0A \n\n Du kannst die App in den Einstellungen ein wenig anpassen wenn du Lust hast. \nTippe dazu auf die drei Strich in der oberen rechten Ecke und dann auf Einstellungen\n\n",
+  "firstStartUp_Message2": "Falls du mehr Infos zu einer Seite willst findest du in dem Menü auch einen Hilfe-Button \uFE0F",
+
+  "mainPageDescription": "Das ist die Startseite",
   "mainPageInstructions": "Hier findest du alle deine gespeicherten Wochenpläne.",
-  "mainPageQrScanner": "Wenn du auf die Schaltfläche unten rechts tippst, öffnet sich ein QR-Scanner. Nutze ihn, um einen QR-Code von deinem Therapeuten zu scannen.",
-  "mainPageTapOnPlan": "Tippe auf einen Plan, um ihn zu öffnen :)",
+  "mainPageQrScanner": "Wenn du auf die Schaltfläche unten rechts tippst, öffnet sich ein QR-Scanner. Nutze ihn um einen QR-Code von deinem Therapeuten zu scannen.",
+  "mainPageTapOnPlan": "Tippe auf einen Plan, um ihn zu öffnen \uD83D\uDE0A",
   "mainPageDeleteWeek": "Um eine Woche zu löschen, halte das 'Mülleimer'-Symbol gedrückt.",
   "mainPageSwipeOrButton": "Wische nach links/rechts oder nutze eine Schaltfläche im unteren Menü, um die Seiten zu wechseln.",
 
-  "unansweredActivities": "Auf dieser Seite findest du Aktivitäten, zu denen du noch kein Feedback gegeben hast ;)",
+  "unansweredActivities": "Auf dieser Seite findest du Aktivitäten, zu denen du noch kein Feedback gegeben hast \uD83D\uDE0A",
 
-  "weekPlanDescription": "Dies ist dein Wochenplan",
-  "weekPlanInstructions": "Hier siehst du alle Aktivitäten, die für diese Woche geplant sind :)",
+  "weekPlanDescription": "Das ist dein Wochenplan",
+  "weekPlanInstructions": "Hier siehst du alle Aktivitäten, die für diese Woche geplant sind \uD83D\uDE0A",
   "weekPlanGrayActivities": "• Graue Aktivitäten bedeuten, dass die Zeit dafür noch nicht gekommen ist.",
   "weekPlanGreenActivities": "• Grüne Aktivitäten bedeuten, dass du bereits Feedback gegeben hast.",
-  "weekPlanActivitiesWithExclamation": "• Aktivitäten mit einem Ausrufezeichen können noch bewertet werden 😊",
+  "weekPlanActivitiesWithExclamation": "• Aktivitäten mit einem Ausrufezeichen können noch bewertet werden",
   "weekPlanTapForDayView": "Tippe auf die Kopfzeile, um eine Tagesübersicht zu öffnen.",
   "weekPlanTapForWeekView": "Tippe auf die Schaltfläche unten rechts, um die Wochenübersicht zu öffnen.",
 
-  "activitySummaryDescription": "Dies ist deine übersicht über alle Wochen",
+  "activitySummaryDescription": "Das ist deine übersicht über alle Wochen",
   "activitySummaryGraphDescription": "Die Grafik zeigt deine Durchschnittswerte für jede Woche.",
-  "activitySummaryGoodFeedback": "Die Liste unten merkt sich Aktivitäten, die du besonders gut bewertet hast.",
+  "activitySummaryGoodFeedback": "Die Liste unten merkt sich Aktivitäten, die du besonders gut bewertet hast. \nWenn es dir gut getan hat etwas nicht zu tun wird der Eintrag dabei Orange markiert \uD83D\uDE09",
   "generalHelp": "Allgemeine Hilfe",
 
 
@@ -217,7 +226,7 @@
   "tasksPendingFeedback": "\n\n(Wenn du Lust hast, kannst du noch Feedback zu {count, plural, =1{einem Termin} other{{count} Terminen}} auf der 'Offen'-Seite geben 😊)",
   "noAppointmentsOn": "Du hattest {date} keine Termine geplant gehabt.",
   "hopeYouHadAGoodDay": "Ich hoffe, du hast und hattest trotzdem einen schönen Tag {count, plural, zero{} other{, {name}}} 😊",
-  "tasksNotAnsweredOn": "Du hast {date} {count, plural, =1{deinen Termin} other{{count} Termine}} noch nicht beantwortet.",
+  "tasksNotAnsweredOn": "Du hast\n{date}\n {count, plural, =1{deinen Termin} other{{count} Termine}}\nnoch nicht beantwortet.",
   "checkPendingFeedback": "Schau auf der Startseite unter \"Offen\" oder in der \"Wochenübersicht\" nach, um Feedback zu einer Aktivität zu geben 👍",
   "dayNotYetArrived": "Der Tag ist noch nicht gekommen 😉 Trotzdem schön, dass du schon mal hier reinschaust {name} :)",
   "unexpectedCaseFound": "Glückwunsch!!! 🎉 Du hast einen Fall gefunden, an den ich nicht gedacht habe! Gut gemacht! 😊 Falls möglich, sag deinem Therapeuten oder Entwickler der App, welche Kombination zu diesem Fall geführt hat.",
@@ -250,12 +259,12 @@
     }
   },
   "noti_start_message": "Heute stehen folgende Termine an 🙂 \n",
-  "noti_noTasks_message":"Heute stehen keine Termine an, also lehn dich zurück und Entspann ein bisschen \uD83D\uDE42",
+  "noti_noTasks_message":"Heute stehen keine Termine an,\nalso lehn dich zurück und entspann ein bisschen \uD83D\uDE42",
 
   "@Termin": {  },
-  "noti_termin_messageBefore": "{terminName} steht in {count} Minuten an. Du schaffst das!🤞",
-  "noti_termin_messageAt": "Es ist soweit für {terminName}! Viel Erfolg!🤞",
-  "noti_termin_messageAfter": "{terminName} ist vorbei. Ich hoffe es hat geklappt und dir geholfen 😊\nBitte klicke auf mich und nimm dir eine Minute und reflektiere den Termin\nEgal ob geschaft oder nicht, das reflektieren darüber ist schon eine tolle Leistung 🤘",
+  "noti_termin_messageBefore": "{terminName} steht in {count} Minuten an. \n Du schaffst das!🤞",
+  "noti_termin_messageAt": "Es ist soweit für {terminName}!\n Viel Erfolg!🤞",
+  "noti_termin_messageAfter": "{terminName} ist vorbei.\n Ich hoffe es hat geklappt und dir geholfen 😊\nBitte klicke auf mich, nimm dir eine Minute\nund reflektiere den Termin\nEgal ob geschaft oder nicht,\ndas reflektieren darüber ist schon eine\ntolle Leistung 🤘",
 
 
   "@End": {  },

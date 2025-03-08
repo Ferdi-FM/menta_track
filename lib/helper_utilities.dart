@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:menta_track/Pages/settings.dart';
 import 'package:menta_track/create_dummy_json_for_testing.dart';
 import 'package:menta_track/generated/l10n.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -62,13 +63,84 @@ class Utilities{
     switch (whichSite) {
       case "MainPage":
         mainText = TextSpan(children: [
-          TextSpan(text: "${localizations.mainPageDescription}\n"),
-          TextSpan(text: "${localizations.mainPageInstructions}\n"),
-          TextSpan(text: localizations.mainPageQrScanner),
-          TextSpan(text: "\n${localizations.mainPageTapOnPlan}"),
-          TextSpan(text: localizations.mainPageDeleteWeek),
-          TextSpan(text: localizations.mainPageSwipeOrButton)
-        ], style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color));
+          WidgetSpan(
+              child: Padding(
+                padding: EdgeInsets.all(10),
+                child: Column(
+                  children: [
+                    Text(localizations.mainPageDescription, textAlign: TextAlign.center),
+                    Text(localizations.mainPageInstructions, textAlign: TextAlign.center),
+                    Text(localizations.mainPageQrScanner, textAlign: TextAlign.center),
+                    Text(localizations.mainPageTapOnPlan, textAlign: TextAlign.center),
+                    SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Icon(Icons.event_available, size: 30),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            "Zeigt dir, dass du alle Aktivitäten in einer Woche bewertet hast",
+                            overflow: TextOverflow.visible,
+                            textAlign: TextAlign.left,
+                            softWrap: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Icon(Icons.free_cancellation, size: 30),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            "Zeigt dir, dass noch Aktivitäten bewertet werden können",
+                            overflow: TextOverflow.visible,
+                            textAlign: TextAlign.left,
+                            softWrap: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Icon(Icons.today, size: 30),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            "Zeigt dir, die aktuelle Woche",
+                            overflow: TextOverflow.visible,
+                            textAlign: TextAlign.left,
+                            softWrap: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Icon(Icons.lock_clock, size: 30),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            "Zeigt dir, dass die Woche noch nicht gekommen ist",
+                            overflow: TextOverflow.visible,
+                            textAlign: TextAlign.left,
+                            softWrap: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 6),
+
+                    Text(localizations.mainPageDeleteWeek, textAlign: TextAlign.center),
+                    Text(localizations.mainPageSwipeOrButton, textAlign: TextAlign.center)
+                  ],
+                ),
+              )
+          )
+        ]);
         break;
       case "Offen":
         mainText = TextSpan(
@@ -88,11 +160,11 @@ class Utilities{
                     children: [
                       Text(localizations.weekPlanDescription, textAlign: TextAlign.center),
                       Text(localizations.weekPlanInstructions, textAlign: TextAlign.center),
-                      Text(localizations.weekPlanGrayActivities),
-                      Text(localizations.weekPlanGreenActivities),
-                      Text(localizations.weekPlanActivitiesWithExclamation),
-                      Text(localizations.weekPlanTapForDayView),
-                      Text(localizations.weekPlanTapForWeekView),
+                      Text("\n${localizations.weekPlanGrayActivities}"),
+                      Text("${localizations.weekPlanGreenActivities}"),
+                      Text("${localizations.weekPlanActivitiesWithExclamation}\n"),
+                      Text(localizations.weekPlanTapForDayView, textAlign: TextAlign.center),
+                      Text(localizations.weekPlanTapForWeekView, textAlign: TextAlign.center),
                     ],
                   ),
                 ),
@@ -111,7 +183,7 @@ class Utilities{
                     children: [
                       Text(localizations.activitySummaryDescription, textAlign: TextAlign.center),
                       Text(localizations.activitySummaryGraphDescription, textAlign: TextAlign.center),
-                      Text(localizations.activitySummaryGoodFeedback),
+                      Text(localizations.activitySummaryGoodFeedback, textAlign: TextAlign.center),
                     ],
                   ),
                 ),
@@ -119,8 +191,28 @@ class Utilities{
             ],
             style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color));
         break;
+      case "MainPageFirst":
+        mainText = TextSpan(
+            children: [
+              WidgetSpan(
+                child: Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(S.current.firstStartUp_Message1, textAlign: TextAlign.center),
+                      Text(S.current.firstStartUp_Message2, textAlign: TextAlign.center),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          style: TextStyle(fontSize: 10)
+        );
+        break;
       default:
         mainText = TextSpan(text: localizations.generalHelp);
+
         break;
     }
 
@@ -138,10 +230,29 @@ class Utilities{
                   Text(localizations.help, style: Theme.of(context).textTheme.headlineLarge),
                   const SizedBox(height: 16),
                   Expanded(
-                    child: SingleChildScrollView(
-                      child: RichText(
-                        text: mainText,
-                        textAlign: TextAlign.center,
+                    child: ShaderMask(
+                      shaderCallback: (Rect bounds) {
+                        return LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black,
+                            Colors.black,
+                            Colors.transparent
+                          ],
+                          stops: [0.0, 0.03, 0.9, 1.0],
+                        ).createShader(bounds);
+                      },
+                      blendMode: BlendMode.dstIn,
+                      child: Scrollbar(
+                          thumbVisibility: true,
+                          child: SingleChildScrollView(
+                            child: RichText(
+                              text: mainText,
+                              textAlign: TextAlign.center,
+                            ),
+                        )
                       ),
                     ),
                   ),
@@ -149,7 +260,7 @@ class Utilities{
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: TextButton(
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => Navigator.pop(context, "confirmed"),
                       child: const Text("OK"),
                     ),
                   ),
@@ -161,6 +272,49 @@ class Utilities{
       },
     );
   }
+
+  // Funktion, die den QR-Code in einem Dialog anzeigt
+  /*void showNameSetter(BuildContext context) {
+    final TextEditingController nameController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Speicher deinen Namen"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+                Text("Du kannst einen Namen festlegen, der in der App benutzt wird. Falls du das nicht willst lass das Feld einfach frei :)"),
+                TextField(
+                controller: nameController,
+                decoration: InputDecoration(hintText: S.of(context).settings_name),
+                onChanged: (value){
+                  nameController.text = value;
+                }
+              )
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: Text(S.current.questionPage_save),
+              onPressed: () {
+                SettingsPageState().saveName(nameController.text);
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text(S.current.cancel),
+              onPressed: () {
+                SettingsPageState().saveName("");
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }*/
 
 
   // Funktion, die den QR-Code in einem Dialog anzeigt

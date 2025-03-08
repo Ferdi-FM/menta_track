@@ -61,7 +61,12 @@ class ScrollableWeekGraphState extends State<ScrollableWeekGraph> {
       double helpingMean = (weekPlan["helpingMean"] ?? -1).toDouble();
 
       if(weekPlan["goodMean"] != -1 && weekPlan["goodMean"] != -1 && weekPlan["goodMean"] != -1) {
-        graphList.add(SyncGraphData(weekData, goodMean+1, calmMean+1, helpingMean+1)); //Da Datebank Werte 0-6 enthält, aber Werte 1-7 darstellen sollen
+        graphList.add(SyncGraphData(
+            weekData,
+            double.parse((goodMean + 1).toStringAsFixed(1)), //Double mit einer Nachkommastelle für bessere lesbarkeit
+            double.parse((calmMean + 1).toStringAsFixed(1)),
+            double.parse((helpingMean + 1).toStringAsFixed(1))
+        )); //Da Datebank Werte 0-6 enthält, aber Werte 1-7 darstellen sollen
       }
     }
     return graphList;

@@ -140,6 +140,36 @@ class S {
     return Intl.message('Understood', name: 'understood', desc: '', args: []);
   }
 
+  /// `Save`
+  String get save {
+    return Intl.message('Save', name: 'save', desc: '', args: []);
+  }
+
+  /// `Activities`
+  String get activities {
+    return Intl.message('Activities', name: 'activities', desc: '', args: []);
+  }
+
+  /// `Open`
+  String get open_singular {
+    return Intl.message('Open', name: 'open_singular', desc: '', args: []);
+  }
+
+  /// `Success! 🏆`
+  String get done {
+    return Intl.message('Success! 🏆', name: 'done', desc: '', args: []);
+  }
+
+  /// `Not here yet 😉`
+  String get not_yet_single {
+    return Intl.message(
+      'Not here yet 😉',
+      name: 'not_yet_single',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `{date}`
   String displayADateWithYear(DateTime date) {
     final DateFormat dateDateFormat = DateFormat(
@@ -540,6 +570,36 @@ class S {
     return Intl.message(
       'Notification-Time in the evening',
       name: 'settings_eveningNotification',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Notifications before Activities`
+  String get settings_notificationsForTasks {
+    return Intl.message(
+      'Notifications before Activities',
+      name: 'settings_notificationsForTasks',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Du hast die App gerade zum ersten mal geöffnet. \nCool, dass du diese App verwendest :) \n Du kannst alles in den Einstellungen ein wenig anpassen wenn du Lust hast. \nTippe dazu auf die drei Strich in der oberen rechten Ecke und dann auf Einstellungen\n\n`
+  String get firstStartUp_Message1 {
+    return Intl.message(
+      'Du hast die App gerade zum ersten mal geöffnet. \nCool, dass du diese App verwendest :) \n Du kannst alles in den Einstellungen ein wenig anpassen wenn du Lust hast. \nTippe dazu auf die drei Strich in der oberen rechten Ecke und dann auf Einstellungen\n\n',
+      name: 'firstStartUp_Message1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Falls du mehr Infos zu einer Seite willst findest du in dem Menü auch einen Hilfe-Button`
+  String get firstStartUp_Message2 {
+    return Intl.message(
+      'Falls du mehr Infos zu einer Seite willst findest du in dem Menü auch einen Hilfe-Button',
+      name: 'firstStartUp_Message2',
       desc: '',
       args: [],
     );

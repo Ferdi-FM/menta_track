@@ -115,7 +115,7 @@ class ImportJson {
         String endOfWeekString = DateFormat("dd.MM.yyyy").format(endOfWeek);
         String title1 = "$startOfWeekString - $endOfWeekString";
 
-        WeekTileData data = WeekTileData(icon: Icons.new_releases, title: title1, weekKey: firstWeekDay);
+        WeekTileData data = WeekTileData(icon: Icon(Icons.new_releases), title: title1, weekKey: firstWeekDay, subTitle: "Aktivitäten: ${termine.length}");
         if (existingPlan.isEmpty) {
           weekAppointmentList.add(data);
           NotificationHelper().loadNewNotifications(firstWeekDay);

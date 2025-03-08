@@ -1,18 +1,22 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:menta_track/week_tile_data.dart';
+import 'package:sqflite/sqflite.dart';
 import 'Pages/week_plan_view.dart';
+import 'database_helper.dart';
 import 'generated/l10n.dart';
 import 'main.dart';
 
 class WeekTile extends StatefulWidget {
   final VoidCallback onDeleteTap;
+  final VoidCallback onTap;
   final WeekTileData item;
 
   const WeekTile({
     required this.item,
     required this.onDeleteTap,
     super.key,
+    required this.onTap,
   });
 
   @override
@@ -23,6 +27,7 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
   late AnimationController _animationController;
   late Animation<Color?> _colorAnimation;
   bool pressedLongEnough = false;
+  Color? iconColor;
 
   Future<bool?> _showDeleteDialog(String title) async {
     return showDialog<bool>(
@@ -58,27 +63,58 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
     );
   }
 
-  void openItem(String weekKey) async{
-    //String correctedKey = Utilities().convertDisplayDateStringToWeekkey(weekKey);
-    MyApp.navigatorKey.currentState?.push(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => WeekPlanView(
-              weekKey: weekKey),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(1.0, 0.0);
-            const end = Offset.zero;
-            const curve = Curves.easeInOut;
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-            var offsetAnimation = animation.drive(tween);
+  Future<WeekTileData> getWeekTileData(String weekKey, String title) async {
+    final db = await DatabaseHelper().database;
+    int allT = await DatabaseHelper().getWeekTermineCount(weekKey);
+    int ansT = await DatabaseHelper().getWeekTermineCountAnswered(weekKey, true);
+    String query = "SELECT COUNT(*) FROM Termine WHERE weekKey = ? AND answered = ? AND (datetime(timeBegin) < datetime(CURRENT_DATE))";
+    int ansTTillNow = Sqflite.firstIntValue(await db.rawQuery(query, [weekKey,0])) ?? 0;
+    String subtitle ="";
+    DateTime weekKeyDateTime = DateTime.parse(weekKey);
+    WeekTileData data;
 
-            return SlideTransition(
-              position: offsetAnimation,
-              child: child,
-            );
-          },
-        )
-    );
+    subtitle = "Aktivitäten: $allT   Offen: $ansTTillNow";
+    if (DateTime.now().isAfter(weekKeyDateTime) && DateTime.now().isBefore(weekKeyDateTime.add(Duration(days: 6)))) {
+      data = WeekTileData(icon: Icon(Icons.today), title: title, weekKey: weekKey, subTitle: subtitle);
+    } else if (DateTime.now().isBefore(weekKeyDateTime)) {
+      subtitle = "Noch nicht soweit 😉";
+      data = WeekTileData(icon: Icon(Icons.lock_clock), title: title, weekKey: weekKey, subTitle: subtitle);
+    } else if (allT == ansT) {
+      subtitle = "Geschafft! 🏆";
+      data = WeekTileData(icon: Icon(Icons.event_available, color: Colors.green), title: title, weekKey: weekKey, subTitle: subtitle);
+    } else {
+      data = WeekTileData(icon: Icon(Icons.free_cancellation), title: title, weekKey: weekKey, subTitle: subtitle);
+    }
+
+    return data;
   }
+
+  //void openItem(String weekKey) async{
+  //  //String correctedKey = Utilities().convertDisplayDateStringToWeekkey(weekKey);
+  //  var result = await navigatorKey.currentState?.push(
+  //      PageRouteBuilder(
+  //        pageBuilder: (context, animation, secondaryAnimation) => WeekPlanView(
+  //            weekKey: weekKey),
+  //        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+  //          const begin = Offset(1.0, 0.0);
+  //          const end = Offset.zero;
+  //          const curve = Curves.easeInOut;
+  //          var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+  //          var offsetAnimation = animation.drive(tween);
+//
+  //          return SlideTransition(
+  //            position: offsetAnimation,
+  //            child: child,
+  //          );
+  //        },
+  //      )
+  //  );
+  //  if(result != null){
+  //    if(result == "updated"){
+  //      print("UPDATED");
+  //    }
+  //  }
+  //}
 
   @override
   void initState() {
@@ -114,7 +150,8 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
           elevation: 10,
           child: GestureDetector(
             onTapUp: (ev){
-              openItem(widget.item.weekKey);
+              widget.onTap();
+              //openItem(widget.item.weekKey);
             },
             child: Container(//color: _colorAnimation.value
                 decoration: BoxDecoration( //rechte seite
@@ -129,7 +166,7 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
                   ),
                   child: ListTile(
                     minTileHeight: 72,
-                    leading: Icon(widget.item.icon),
+                    leading: Icon(widget.item.icon.icon, color: widget.item.icon.color),
                     title: FittedBox(
                       fit: BoxFit.contain,
                       child: Text(
@@ -137,6 +174,7 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16,),
                       ) ,
                     ),
+                    subtitle: Text(widget.item.subTitle),
                     trailing: GestureDetector(
                       child: Icon(Icons.delete),
                       onTap: () => _animationController.reset(),

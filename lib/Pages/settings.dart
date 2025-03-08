@@ -1,6 +1,4 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:menta_track/notification_helper.dart';
 import 'package:menta_track/theme_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,7 +35,8 @@ class SettingsPageState extends State<SettingsPage> {
   List<int> _notificationIntervals = [15];
   bool _notificationsChanged = false; //damit nicht jedesmal alles neu geplant wird
   final TextEditingController _nameController = TextEditingController();
-
+  final player = AudioPlayer();
+  String audioAsset = "";
 
   @override
   void initState() {
@@ -47,18 +46,18 @@ class SettingsPageState extends State<SettingsPage> {
 
   Future<SettingData> getSettings() async{
     final prefs = await SharedPreferences.getInstance();
-    String alertSound = await ThemeHelper().getSound();
     bool isDarkMode = prefs.getBool("darkMode") ?? false;
     bool themeOnlyOnMainPage = prefs.getBool("themeOnlyOnMainPage") ?? false;
     String theme = prefs.getString("theme") ?? "nothing";
     String accentColor = prefs.getString("chosenAccentColor") ?? "blue";
-    //List<int> notificationIntervals = prefs.getStringList("notificationIntervals")?.map(int.parse).toList() ?? [15]; //TODO: Aktivieren
+    //List<int> notificationIntervals = prefs.getStringList("notificationIntervals")?.map(int.parse).toList() ?? [15];
     String name = prefs.getString("userName") ?? "";
     return SettingData(name, theme, isDarkMode, themeOnlyOnMainPage, accentColor);
   }
 
   void _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    audioAsset = await ThemeHelper().getSound(); //Lädt hier da sonst audio verzögerung hat
     setState(() {
       isDarkMode = prefs.getBool("darkMode") ?? false;
       _theme = prefs.getString("theme") ?? "nothing";
@@ -123,8 +122,7 @@ class SettingsPageState extends State<SettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("soundAlert", value);
     _settingsChanged = true;
-    final player = AudioPlayer();
-    String audioAsset = await ThemeHelper().getSound();
+
     player.play(AssetSource(audioAsset));
     setState(() {
         _rewardSound = value;
@@ -173,8 +171,10 @@ class SettingsPageState extends State<SettingsPage> {
 
   void _removeNotification(int index) {
     setState(() {
-      _notificationIntervals.removeAt(index);
-      _saveNotificationIntervals();
+      if(_notificationIntervals.length > 1){
+        _notificationIntervals.removeAt(index);
+        _saveNotificationIntervals();
+      }
     });
   }
 
@@ -308,24 +308,24 @@ class SettingsPageState extends State<SettingsPage> {
                 ListTile(
                   title: Text("Reward Sounds"),
                   trailing: DropdownButton<String>(
-                    value: _rewardSound,
-                    onChanged: (value) {
-                      if (value != null) {
-                        _saveSound(value);
-                      }
-                    },
-                    items: [
-                      DropdownMenuItem(value: "standard", child: Text("Standard")),
-                      DropdownMenuItem(value: "bell", child: Text("Bell")),
-                      DropdownMenuItem(value: "classicGame", child: Text("GameSound")),
-                      DropdownMenuItem(value: "longer", child: Text("Longer")),
-                      DropdownMenuItem(value: "level", child: Text("Level Completed")),
-                    ],
+                      value: _rewardSound,
+                      onChanged: (value) {
+                        if (value != null) {
+                          _saveSound(value);
+                        }
+                      },
+                      items: [
+                        DropdownMenuItem(value: "standard", child: Text("Standard")),
+                        DropdownMenuItem(value: "bell", child: Text("Bell")),
+                        DropdownMenuItem(value: "classicGame", child: Text("GameSound")),
+                        DropdownMenuItem(value: "longer", child: Text("Longer")),
+                        DropdownMenuItem(value: "level", child: Text("Level End")),
+                      ],
+                    ),
                   ),
-                ),
                 SizedBox(height: 20),
                 ListTile(
-                  title: Text(S.of(context).settings_notifications(1),style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
+                  title: Text(S.current.settings_notifications(1),style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
                 ),
                 ListTile(
                   title: Text(S.of(context).settings_morningNotification),
@@ -365,7 +365,7 @@ class SettingsPageState extends State<SettingsPage> {
                   minTileHeight: 10,
                 ),
                 ListTile(
-                  title:  Text("Notifications vor Terminen", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
+                  title:  Text(S.current.settings_notificationsForTasks, style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
                   subtitle: Column(
                     children: [
                       SizedBox(height: 15,),
@@ -374,38 +374,48 @@ class SettingsPageState extends State<SettingsPage> {
                         physics:  NeverScrollableScrollPhysics(),
                         itemCount: _notificationIntervals.length,
                         itemBuilder: (context, index) {
-                          return Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text("${S.of(context).settings_notifications(index)} ${index + 1}:"),
-                                        Text("    ${_notificationIntervals[index]}min",textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),)
-                                      ],
-                                    ),
-                                    Slider(
-                                      value: _notificationIntervals[index].toDouble(),
-                                      min: 5,
-                                      max: 120,
-                                      divisions: 23,
-                                      label: "${_notificationIntervals[index]} min",
-                                      onChanged: (value) => _updateNotificationInterval(index, value),
-                                    ),
-                                  ],
+                          return Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(15),
+                              border: Border.fromBorderSide(BorderSide(width: 1, color: _chosenAccentColor == "blue" ? Colors.lightBlue : Colors.orange)),
+                            ),
+                            padding: EdgeInsets.only(top: 10, left: 10, right: 10, bottom: 0),
+                            margin: EdgeInsets.symmetric(vertical: 5,horizontal: 0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      FittedBox(
+                                        child: Row(
+                                          children: [
+                                            Text("${S.of(context).settings_notifications(0)} ${index + 1}:", style: TextStyle(fontWeight: FontWeight.bold),),
+                                            Text("    ${_notificationIntervals[index]}min",textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),)
+                                          ],
+                                        ),
+                                      ),
+                                      Slider(
+                                        value: _notificationIntervals[index].toDouble(),
+                                        min: 5,
+                                        max: 120,
+                                        divisions: 23,
+                                        label: "${_notificationIntervals[index]} min",
+                                        onChanged: (value) => _updateNotificationInterval(index, value),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              Align(
-                                alignment: Alignment.center ,
-                                child:IconButton(
-                                  icon: Icon(Icons.remove_circle),
-                                  onPressed: () => _removeNotification(index),
-                                ) ,
-                              ),
-                            ],
+                                Align(
+                                  alignment: Alignment.centerRight ,
+                                  child:IconButton(
+                                    icon:_notificationIntervals.length > 1 ? Icon(Icons.remove_circle) : SizedBox(), //Immer mindestens eine Benachrichtigung
+                                    onPressed: () => _removeNotification(index),
+                                  ) ,
+                                ),
+                              ],
+                            ),
                           );
                         },
                       ),

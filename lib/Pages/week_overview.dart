@@ -215,7 +215,7 @@ class WeekOverviewState extends State<WeekOverview> {
 
   void leavePage(){
     if(widget.fromNotification){ //Andere Pageroute, wenn von Notification, wird wahrscheinlich entfernt
-      MyApp.navigatorKey.currentState?.pushReplacement(
+      navigatorKey.currentState?.pushReplacement(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) => WeekPlanView(
                 weekKey: widget.weekKey),

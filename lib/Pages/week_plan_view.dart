@@ -9,38 +9,69 @@ import 'package:time_planner/time_planner.dart';
 import '../generated/l10n.dart';
 import '../main.dart';
 import 'day_overview.dart';
+import 'main_page.dart';
 
 //Example-Code von: https://pub.dev/packages/time_planner/example
 
 class WeekPlanView extends StatefulWidget {
+  final String weekKey;
+
   const WeekPlanView({
     super.key,
     required this.weekKey,
   });
 
-  final String weekKey;
-
   @override
   MyHomePageState createState() => MyHomePageState();
 }
 
-class MyHomePageState extends State<WeekPlanView>{
+class MyHomePageState extends State<WeekPlanView> with RouteAware{
   DateTime calendarStart = DateTime(0);
   List<TimePlannerTitle> calendarHeaders = [];
   List<TimePlannerTask> tasks = [];
+  bool updated = false;
+  int rememberAnsweredTasks = 0;
 
   @override
   void initState() {
     setUpCalendar(widget.weekKey);
     super.initState();
+  }
 
+  ///Falls eine Benachrichtigung geöffnet wird, wenn man bereits auf der WeekPlanView-Seite ist, wird so beim zurückkehren die Seite geupdated
+  @override
+  Future<void> didPopNext() async {
+    ///Checkt ob sich die Anzahl an beantworteten Tasks verändert hat und wenn ja updated den Kalender
+    int c = await DatabaseHelper().getWeekTermineCountAnswered(widget.weekKey, true);
+    if(rememberAnsweredTasks != c){
+      print("Diffrent: $rememberAnsweredTasks | $c");
+      updated = true;
+      setState(() {
+        tasks.clear();
+        rememberAnsweredTasks = 0;
+        setUpCalendar(widget.weekKey);
+      });
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    if (ModalRoute.of(context)?.isCurrent == true) {
+      routeObserver.subscribe(this, ModalRoute.of(context) as PageRoute);
+    }
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
   }
 
   void setUpCalendar(String weekKey) async{
     DatabaseHelper databaseHelper = DatabaseHelper();
     calendarStart = DateTime.parse(weekKey);
     calendarHeaders = [];
-
 
     for(int i = 0; i < 7;i++){
       DateTime date = calendarStart.add(Duration(days: i));
@@ -102,7 +133,7 @@ class MyHomePageState extends State<WeekPlanView>{
 
   void clickOnCalendarHeader(String dateString){
     String weekDayKey = dateString;
-    MyApp.navigatorKey.currentState?.push(MaterialPageRoute(
+    navigatorKey.currentState?.push(MaterialPageRoute(
       builder: (context) => DayOverviewPage(
         weekKey: widget.weekKey,
         weekDayKey: weekDayKey,
@@ -120,7 +151,6 @@ class MyHomePageState extends State<WeekPlanView>{
 
 
   String getWeekdayName(DateTime dateTime) {
-    print(S.current.monday);
     List<String> weekdays = [
       S.current.monday,
       S.current.tuesday,
@@ -155,6 +185,7 @@ class MyHomePageState extends State<WeekPlanView>{
     int hour = convertedDate["Hours"]!;
     int minutes = convertedDate["Minutes"]!;
     int duration = endTime.difference(startTime).inMinutes;
+    rememberAnsweredTasks += 1; //Merkt sich, wieviele Taks geantwortet wurden
 
     setState(() {
       tasks.add(
@@ -172,7 +203,7 @@ class MyHomePageState extends State<WeekPlanView>{
               behavior: HitTestBehavior.translucent,
               onTapDown: (event) async {
                 Offset pos = event.globalPosition;
-                final result = await MyApp.navigatorKey.currentState?.push(
+                final result = await navigatorKey.currentState?.push(
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) => QuestionPage(
                           weekKey: widget.weekKey,
@@ -192,6 +223,7 @@ class MyHomePageState extends State<WeekPlanView>{
                     )
                 );
                 if(result != null){
+                  updated = true;
                   updateCalendar();
                 }
               },
@@ -294,62 +326,76 @@ class MyHomePageState extends State<WeekPlanView>{
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: FittedBox(
-          child: Text(Utilities().convertWeekkeyToDisplayPeriodString(widget.weekKey)),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-            onPressed: () => {Navigator.pop(context)},
-            icon: Icon(Icons.arrow_back)),
-        actions: [
-          Utilities().getHelpBurgerMenu(context, "WeekPlanView")
-        ],
-        ),
-      body: LayoutBuilder(builder: (context, constraints){
-          bool isPortrait = constraints.maxWidth < 600;
-          return Container(
-            decoration: BoxDecoration(color: Theme.of(context).appBarTheme.backgroundColor),
-            child: Container(
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20)),
-                  color: Theme.of(context).scaffoldBackgroundColor
-              ),
-              child: Padding(
-                padding: EdgeInsets.only(left: 0, right: 0),
-                child: TimePlanner( //evtl auf 24/7 ändern
-                  startHour: 0,
-                  endHour: 23,
-                  use24HourFormat: true,
-                  setTimeOnAxis: true,
-                  currentTimeAnimation: true,
-                  style: TimePlannerStyle(
-                    cellHeight: 50,
-                    cellWidth:  isPortrait ? 115 : ((MediaQuery.of(context).size.width - 60)/7).toInt(), //leider nur wenn neu gebuildet wird
-                    showScrollBar: true,
-                    borderRadius: BorderRadius.all(Radius.circular(5)),
-                    interstitialEvenColor: MyApp.of(context).themeMode == ThemeMode.light ? Colors.grey[50] : Colors.blueGrey.shade400,
-                    interstitialOddColor: MyApp.of(context).themeMode == ThemeMode.light ? Colors.grey[200] : Colors.blueGrey.shade500,
+    return PopScope(
+        canPop: true,
+        onPopInvokedWithResult: (bool didPop, result) {
+          if (!didPop) {
+            String updateMainPage = updated ? "updated" : "";
+            navigatorKey.currentState?.pop(updateMainPage);
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: FittedBox(
+              child: Text(Utilities().convertWeekkeyToDisplayPeriodString(widget.weekKey)),
+            ),
+            centerTitle: true,
+            leading: IconButton(
+                onPressed: () {
+                  String updateMainPage = updated ? "updated" : "";
+                  navigatorKey.currentState?.pop(updateMainPage);
+                },
+                icon: Icon(Icons.arrow_back)),
+            actions: [
+              Utilities().getHelpBurgerMenu(context, "WeekPlanView")
+            ],
+          ),
+          body: LayoutBuilder(builder: (context, constraints){
+            bool isPortrait = constraints.maxWidth < 600;
+            return Container(
+              decoration: BoxDecoration(color: Theme.of(context).appBarTheme.backgroundColor),
+              child: Container(
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20)),
+                    color: Theme.of(context).scaffoldBackgroundColor
+                ),
+                child: Padding(
+                  padding: EdgeInsets.only(left: 0, right: 0),
+                  child: TimePlanner( //evtl auf 24/7 ändern
+                    startHour: 0,
+                    endHour: 23,
+                    use24HourFormat: true,
+                    setTimeOnAxis: true,
+                    currentTimeAnimation: true,
+                    style: TimePlannerStyle(
+                      cellHeight: 50,
+                      cellWidth:  isPortrait ? 115 : ((MediaQuery.of(context).size.width - 60)/7).toInt(), //leider nur wenn neu gebuildet wird
+                      showScrollBar: true,
+                      borderRadius: BorderRadius.all(Radius.circular(5)),
+                      interstitialEvenColor: MyApp.of(context).themeMode == ThemeMode.light ? Colors.grey[50] : Colors.blueGrey.shade400,
+                      interstitialOddColor: MyApp.of(context).themeMode == ThemeMode.light ? Colors.grey[200] : Colors.blueGrey.shade500,
+                    ),
+                    headers: calendarHeaders,
+                    tasks: tasks,
                   ),
-                  headers: calendarHeaders,
-                  tasks: tasks,
                 ),
               ),
-            ),
-          );
-      }),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          MyApp.navigatorKey.currentState?.push(MaterialPageRoute(
-            builder: (context) =>
-                WeekOverview(
-                    weekKey: widget.weekKey,
-                    fromNotification: false,),
-          ));
-        },
-        child: const Icon(Icons.summarize_rounded),
-      ),
+            );
+          }),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              navigatorKey.currentState?.push(MaterialPageRoute(
+                builder: (context) =>
+                    WeekOverview(
+                      weekKey: widget.weekKey,
+                      fromNotification: false,),
+              ));
+            },
+            child: const Icon(Icons.summarize_rounded),
+          ),
+        )
     );
+
+      ;
   }
 }

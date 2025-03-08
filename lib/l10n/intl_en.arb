@@ -19,6 +19,11 @@
   "back": "Back",
   "accept": "Accept",
   "understood": "Understood",
+  "save": "Save",
+  "activities": "Activities",
+  "open_singular": "Open",
+  "done": "Success! \uD83C\uDFC6",
+  "not_yet_single": "Not here yet \uD83D\uDE09",
 
   "displayADateWithYear": "{date}",
   "@displayADateWithYear" : {
@@ -114,10 +119,15 @@
   "settings_notifications": "{count, plural, =0{Notification} other{Notifications}}",
   "settings_morningNotification": "Notification-Time in the morning",
   "settings_eveningNotification": "Notification-Time in the evening",
+  "settings_notificationsForTasks": "Notifications before Activities",
 
 
   "@HelpMessages": {
   },
+  "firstStartUp_Message1": "Du hast die App gerade zum ersten mal geöffnet. \nCool, dass du diese App verwendest :) \n Du kannst alles in den Einstellungen ein wenig anpassen wenn du Lust hast. \nTippe dazu auf die drei Strich in der oberen rechten Ecke und dann auf Einstellungen\n\n",
+  "firstStartUp_Message2": "Falls du mehr Infos zu einer Seite willst findest du in dem Menü auch einen Hilfe-Button",
+
+
   "mainPageDescription": "This is the main page.",
   "mainPageInstructions": "Here you can find all your saved weekly plans.",
   "mainPageQrScanner": "Tapping the button on the bottom-right opens the QR scanner.",

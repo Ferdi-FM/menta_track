@@ -11,6 +11,7 @@ import 'package:menta_track/Pages/question_page.dart';
 import 'package:menta_track/termin.dart';
 import 'package:menta_track/Pages/week_plan_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'Pages/main_page.dart';
 import 'generated/l10n.dart';
 
 //Edited ExampleCode & Dokumentation von https://pub.dev/packages/awesome_notifications/example
@@ -85,7 +86,7 @@ class NotificationHelper{
     switch(siteToOpen){
       case "WeekPlanView":
         if(weekKey != null){
-          MyApp.navigatorKey.currentState?.push(MaterialPageRoute(
+          navigatorKey.currentState?.push(MaterialPageRoute(
             builder: (context) => WeekPlanView(
                 weekKey: weekKey),
           ));
@@ -93,17 +94,18 @@ class NotificationHelper{
         return;
       case "QuestionPage":
         if (weekKey != null && timeBegin != null && terminName != null) {
-          MyApp.navigatorKey.currentState?.push(MaterialPageRoute(
+          navigatorKey.currentState?.push(MaterialPageRoute(
             builder: (context) => QuestionPage(
               weekKey: weekKey,
               timeBegin: timeBegin,
-              terminName: terminName),
+              terminName: terminName,
+            ),
           ));
         }
         return;
       case "DayOverView":
         if(weekKey != null && weekDayKey != null){
-          MyApp.navigatorKey.currentState?.push(MaterialPageRoute(
+          navigatorKey.currentState?.push(MaterialPageRoute(
             builder: (context) => DayOverviewPage(
                 weekKey: weekKey, //standard DateTime ("yyyy-MM-dd")
                 weekDayKey: weekDayKey, //Format("dd.MM.yy")
@@ -113,7 +115,7 @@ class NotificationHelper{
         return;
       case "WeekOverView":
         if(weekKey != null) {
-          MyApp.navigatorKey.currentState?.push(MaterialPageRoute(
+          navigatorKey.currentState?.push(MaterialPageRoute(
             builder: (context) =>
                 WeekOverview(
                     weekKey: weekKey,
@@ -123,7 +125,7 @@ class NotificationHelper{
         return;
       case "MainPage":
         if(weekKey != null) {
-          MyApp.navigatorKey.currentState?.push(MaterialPageRoute(
+          navigatorKey.currentState?.push(MaterialPageRoute(
             builder: (context) =>
                 MainPage(),
           ));
@@ -142,7 +144,7 @@ class NotificationHelper{
   //Alert für Zustimmung zu Notifiactions
   Future<bool> displayNotificationRationale() async {
     bool userAuthorized = false;
-    BuildContext context = MyApp.navigatorKey.currentContext!;
+    BuildContext context = navigatorKey.currentContext!;
     await showDialog(
         context: context,
         builder: (BuildContext ctx) {
@@ -204,21 +206,24 @@ class NotificationHelper{
     List<Map<String,dynamic>> plansList = await DatabaseHelper().getAllWeekPlans();
     for(var plan in plansList){
       String weekKey = plan["weekKey"];
-      if(DateTime.parse(weekKey).difference(DateTime.now()).isNegative){
+      if(DateTime.parse(weekKey).add(Duration(days: 7)).difference(DateTime.now()).isNegative){
         print("Week already passed");
-      } else if(DateTime.parse(weekKey).difference(DateTime.now()) > Duration(days: 14)){
-        print("Week more than two weeks in the future");
+      } else if(DateTime.parse(weekKey).difference(DateTime.now()) > Duration(days: 10)){
+        print("Week more than ten days in the future");
       }else {
+        print("Loading Notifications for $weekKey");
         loadNewNotifications(weekKey);
-      }
 
+      }
     }
+
   }
 
   Future<void> loadNewNotifications(String weekKey)async {
       List<Termin> terminList = await DatabaseHelper().getWeeklyPlan(weekKey);
       scheduleBeginNotification(terminList, weekKey);
       for(Termin termin in terminList){
+
         scheduleNewTerminNotification(termin, weekKey);
       }
       scheduleEndNotification(weekKey);
@@ -311,8 +316,7 @@ class NotificationHelper{
 
       ///Plant die Benachrichtigung für die Wochenübersicht
       if(i == 6){
-        DateTime lastDuration = currentDay.add(Duration(hours: 1));
-        print("Endweek Notification: ${lastDuration}"); //Zeigt Wochenübersicht eine Stunde nach der letzen Tages
+        DateTime lastDuration = currentDay.add(Duration(hours: 1)); //Zeigt Wochenübersicht eine Stunde nach der letzen Tages
         String lastTitle = S.current.noti_weekEnd_title;
         String lastMsg = S.current.noti_weekEnd_message;
 
@@ -411,7 +415,7 @@ class NotificationHelper{
     DateTime testTime = DateTime.now().add(Duration(seconds: 2)); //benachrichtigung um 22Uhr Abends/Nachts
     DateTime testTerminTime = DateTime.parse(weekKey).add(Duration(hours: 22));
     List<Termin> testTerminList = await DatabaseHelper().getWeeklyPlan(weekKey);
-    Termin testTermin = testTerminList[0];
+    Termin testTermin = testTerminList[3];
     List<Termin> testDayTerminList = await DatabaseHelper().getDayTermine(DateFormat("dd.MM.yy").format(testTermin.timeBegin));
 
     ///Termin-Notification
@@ -445,7 +449,7 @@ class NotificationHelper{
             "weekKey": weekKey,
             "timeBegin": testTermin.timeBegin.toIso8601String(),
             "terminName": testTermin.terminName,
-            "siteToOpen": i == 2 ? "WeekPlanView" : "QuestionPage" //Nur wenn Termin vorbei ist wird zur QuestionPage geleitet
+            "siteToOpen": i == 0 ? "WeekPlanView" : "QuestionPage" //Nur wenn Termin vorbei ist wird zur QuestionPage geleitet
           });
     }
 
@@ -516,18 +520,26 @@ class NotificationHelper{
         });
   }
 }
-
+List<int> scheduledNotificationsHashs = [];
 //Checkt ob schon eine Benachrichtigung geplant ist
 Future<bool> isNotificationScheduled(int hashCode) async {
   List<NotificationModel> scheduledNotifications = await AwesomeNotifications().listScheduledNotifications();
-  //for(NotificationModel n in scheduledNotifications){
-  //   //print("Hash already scheduled  ${n.content?.id} ");
+  //if(scheduledNotificationsHashs.isEmpty){
+  //  for(NotificationModel n in scheduledNotifications){
+  //    if(n.content?.id != null){
+  //      scheduledNotificationsHashs.add(n.content?.id ?? -1);
+  //    }
+  //  }
+  //  print(scheduledNotificationsHashs);
   //}
+  //print("$hashCode: ${scheduledNotificationsHashs.contains(hashCode)} ");
   //Evtl eigenes Array mit hashcodes, anstelle jede einzelne Notification durchzugehen?
+  //return scheduledNotificationsHashs.contains(hashCode); // Leider nicht schneller;
   return scheduledNotifications.any((notification) =>
     notification.content?.id == hashCode);
 }
 
+int scheduledCounter = 0;
 //Erstellt die eigentliche Notification
 Future<void> myNotifyScheduleInHours({
   required int hashCode,
@@ -544,7 +556,7 @@ Future<void> myNotifyScheduleInHours({
     return;
   }
   ///Checkt ob die Notification mehr als eine Woche entfernt wäre. Checke, weil für jeden Termin 3 Benachrichtigungen + 2 für den Tag + 1 für die Woche generiert wird, wobei schnell sehr viele zusammenkommen können
-  if (triggerDateTime.isAfter(DateTime.now().add(Duration(days: 14)))) {
+  if (triggerDateTime.isAfter(DateTime.now().add(Duration(days: 8)))) {
     //print("more than a two weeks in the future $triggerDateTime");
     return;
   }
@@ -572,4 +584,8 @@ Future<void> myNotifyScheduleInHours({
       ),
     );
   }
+  //else {
+  //  scheduledCounter++;
+  //  print("$scheduledCounter were already scheduled");
+  //}
 }
