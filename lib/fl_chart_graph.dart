@@ -1,7 +1,8 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-
 import 'generated/l10n.dart';
+
+///Erzeugt den Graph für die Wochenübersicht
 
 class FlChartGraph extends StatelessWidget {
 
@@ -22,19 +23,19 @@ class FlChartGraph extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LineChart(
-      isShowingMainData ? sampleData(true) : sampleData(false),
+      isShowingMainData ? data(true) : data(false),
       duration: const Duration(milliseconds: 250),
     );
   }
 
-
-  LineChartData sampleData(bool version1){
+  ///Erzeugt
+  LineChartData data(bool version){
     return LineChartData(
-      lineTouchData: lineTouchData1,
+      lineTouchData: lineTouchData,
       gridData: gridData,
-      titlesData: titlesData1,
+      titlesData: titlesData,
       borderData: borderData,
-      lineBarsData: version1 ? lineBarsData(true, true) : lineBarsData(true, false),
+      lineBarsData: version ? lineBarsData(true, true) : lineBarsData(true, false),
       minX: 0,
       maxX: 6,
       maxY: 7,
@@ -42,7 +43,7 @@ class FlChartGraph extends StatelessWidget {
     );
   }
 
-  LineTouchData get lineTouchData1 => LineTouchData(
+  LineTouchData get lineTouchData => LineTouchData(
     handleBuiltInTouches: true,
     touchTooltipData: LineTouchTooltipData(
       getTooltipColor: (touchedSpot) =>
@@ -50,12 +51,8 @@ class FlChartGraph extends StatelessWidget {
     ),
   );
 
-  LineTouchData get lineTouchData2 => const LineTouchData(
-    enabled: false,
-  );
 
-
-  FlTitlesData get titlesData1 => FlTitlesData(
+  FlTitlesData get titlesData => FlTitlesData(
     bottomTitles: AxisTitles(
       sideTitles: bottomTitles,
     ),
@@ -78,6 +75,7 @@ class FlChartGraph extends StatelessWidget {
     return l;
   }
 
+  ///y-Achse
   Widget leftTitleWidgets(double value, TitleMeta meta) {
     const style = TextStyle(
       fontWeight: FontWeight.bold,
@@ -111,6 +109,7 @@ class FlChartGraph extends StatelessWidget {
     );
   }
 
+  ///y-Achse
   SideTitles leftTitles() => SideTitles(
     getTitlesWidget: leftTitleWidgets,
     showTitles: true,
@@ -118,6 +117,7 @@ class FlChartGraph extends StatelessWidget {
     reservedSize: 40,
   );
 
+  ///x-Achse
   Widget bottomTitleWidgets(double value, TitleMeta meta) {
     const style = TextStyle(
       fontWeight: FontWeight.bold,
@@ -167,6 +167,15 @@ class FlChartGraph extends StatelessWidget {
     );
   }
 
+  ///x-Achse
+  SideTitles get bottomTitles => SideTitles(
+    showTitles: true,
+    reservedSize: 32,
+    interval: 1,
+    getTitlesWidget: bottomTitleWidgets,
+  );
+
+  ///Erzeugt die einzelnen Punkte im Graphen für jeweils eine Frage
   LineChartBarData lineChartBarData(List<double> meanList, int index, bool dotData, bool isCurved) {
     List<FlSpot> spots = [];
     for (int i = 0; i < 7; i++) { //i = jeder Tag der Woche, also jeweils x für FLSpot
@@ -176,9 +185,7 @@ class FlChartGraph extends StatelessWidget {
         spots.add(FlSpot(tableXIndex,  meanDouble)); //meanList[i] ist der Durchschnitt des Wochentags i, also i = 0 = Montag, i = 1 = Dienstag, etc.
       }
     }
-    //spots.add(FlSpot(6, index+3)); Test letzter Wochentag
-
-    Color c = index == 0 ? Colors.lightBlueAccent : index == 1 ? Colors.lightGreen : index == 2 ? Colors.purple : Colors.black87;
+    Color c = index == 0 ? Colors.green : index == 1 ? Colors.orange : index == 2 ? Colors.blue : Colors.black87;
 
     return LineChartBarData(
       isCurved: isCurved,
@@ -191,15 +198,10 @@ class FlChartGraph extends StatelessWidget {
     );
   }
 
-  SideTitles get bottomTitles => SideTitles(
-    showTitles: true,
-    reservedSize: 32,
-    interval: 1,
-    getTitlesWidget: bottomTitleWidgets,
-  );
-
+  ///Einstellungen für das Grid
   FlGridData get gridData => const FlGridData(show: true);
 
+  ///Border um Graphen
   FlBorderData get borderData => FlBorderData(
     show: true,
     border: Border(

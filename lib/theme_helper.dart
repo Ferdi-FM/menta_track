@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:menta_track/database_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'Pages/settings.dart';
 import 'generated/l10n.dart';
+
+///Klasse für alles was mit dem Thema zu tun hat
 
 class ThemeHelper {
   ThemeHelper();
 
+  ///Gibt das Bild für das Belohnung-PopUp zurück
   Future<Widget> getRewardImage() async {
   SharedPreferences pref = await SharedPreferences.getInstance();
     String? theme = pref.getString("theme") ?? "illustration";
@@ -37,6 +39,7 @@ class ThemeHelper {
     return image;
   }
 
+  ///Gibt das Bild für die Startseiten zurück
   Future<Widget> getIllustrationImage(String page) async {
     SettingData data = await SettingsPageState().getSettings();
     int unansweredCount = await DatabaseHelper().getAllTermineCount(false,true);
@@ -46,7 +49,6 @@ class ThemeHelper {
     String path = "";
     String title = "";
     String message = "";
-
 
     switch (page) {
       case "MainPage":
@@ -59,7 +61,7 @@ class ThemeHelper {
           case "mascot":
             path = "assets/images/mascot/Mascot Wochenplan Transparent v2.png";
             break;
-          case "illustratv2": //TODO: Implement
+          case "illustratv2": //TODO: Implement / Kann einfach um neue bilder erweitert werden
             break;
         }
         break;
@@ -86,10 +88,10 @@ class ThemeHelper {
       default:
         path = "";
     }
-
     return path.isNotEmpty ? generateElement(path, title, message) : SizedBox(height: 10, width: 10,);
   }
 
+  ///Erzeugt das gesamte Theme-Widget für die Startseiten
   LayoutBuilder generateElement(String path, String title, String message) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -152,66 +154,24 @@ class ThemeHelper {
     );
   }
 
+  ///Holt das Sound-Asset basierend auf den Settings
   Future<String> getSound() async{
     final prefs = await SharedPreferences.getInstance();
     String soundKey = prefs.getString("soundAlert") ?? "";
-    //DropdownMenuItem(value: "standard", child: Text("Standard")),
-    //                       DropdownMenuItem(value: "bell", child: Text("Bell")),
-    //                       DropdownMenuItem(value: "classicGame", child: Text("GameSound")),
-    //                       DropdownMenuItem(value: "longer", child: Text("Longer")),
-    //                       DropdownMenuItem(value: "level", child: Text("Level Completed")),
 
     switch(soundKey){
-      case "bell":
-        return "soundAlerts/happy-bell.wav";
+      case "level-up":
+        return "soundAlerts/level-up-4.mp3"; // Sound Effect by Universfield from Pixabay "https://pixabay.com/sound-effects/level-up-4-243762/"
       case "classicGame":
-        return "soundAlerts/classic-game.mp3";
+        return "soundAlerts/classic-game.mp3"; //Sound Effect by floraphonic from Pixabay "https://pixabay.com/sound-effects/classic-game-action-positive-5-224402/"
       case "longer":
-        return "soundAlerts/collect.mp3";
+        return "soundAlerts/collect.mp3"; //Sound Effect by freesound_community from Pixabay "https://pixabay.com/de/sound-effects/collect-5930/"
       case "level":
-        return "soundAlerts/level-complete.wav";
+        return "soundAlerts/level-complete.wav"; //https://mixkit.co/free-sound-effects/discover/
       case"standard":
-        return "soundAlerts/glockenspiel.mp3";
+        return "soundAlerts/glockenspiel.mp3"; //Sound Effect by freesound_community from Pixabay "https://pixabay.com/sound-effects/short-success-sound-glockenspiel-treasure-video-game-6346/"
       default:
-        return "soundAlerts/glockenspiel.mp3";
+        return "soundAlerts/glockenspiel.mp3";  //Sound Effect by freesound_community from Pixabay "https://pixabay.com/sound-effects/short-success-sound-glockenspiel-treasure-video-game-6346/"
     }
   }
-
 }
-
-/*Alternative: Future<Widget> getMainPageImage(String path) async {
-    SharedPreferences pref = await SharedPreferences.getInstance();
-    String? theme = pref.getString("theme") ?? "illustration";
-
-
-    String title = "Startseite";
-    String message = "Hier findest du eine Auflistung all deiner Wochenpläne ${Emojis.smile_smiling_face}";
-    switch (theme) {
-      case "illustration":
-        return generateElement("assets/images/illustrations/flat-design illustration.png", title, message);
-      case "mascot":
-        return generateElement( "assets/images/mascot/Mascot Wochenplan Transparent v2.png", title, message);
-      case "nothing":
-        return SizedBox(height: 0);
-      default:
-        return SizedBox();
-    }
-  }
-
-  Future<Widget> getOpenImage() async {
-    SharedPreferences pref = await SharedPreferences.getInstance();
-    String? theme = pref.getString("theme") ?? "illustration";
-
-    String title = "Offen";
-    String message = "Hier findest du offene Einträge";
-    switch (theme) {
-      case "illustration":
-        return generateElement("assets/images/illustrations/flat-design illustration 2.png", title, message);
-      case "mascot":
-        return generateElement( "assets/images/mascot/Mascot Wochenplan Transparent v2.png", title, message);
-      case "nothing":
-        return SizedBox(height: 0);
-      default:
-        return SizedBox();
-    }
-  }*/

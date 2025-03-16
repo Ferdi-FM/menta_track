@@ -3,18 +3,18 @@ import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:menta_track/Pages/settings.dart';
-import 'package:menta_track/Pages/week_plan_view.dart';
 import 'package:menta_track/fl_chart_graph.dart';
 import 'package:menta_track/helper_utilities.dart';
 import '../database_helper.dart';
 import '../generated/l10n.dart';
 import '../gif_progress_widget.dart';
-import '../main.dart';
 import '../reward_pop_up.dart';
 import '../termin.dart';
 
+///Wochenübersichts-Seite
+
 class WeekOverview extends StatefulWidget {
-  final String weekKey;
+  final String weekKey; //weekKey als "yyyy-MM-dd" format
   final bool fromNotification;
 
   const WeekOverview({
@@ -28,16 +28,16 @@ class WeekOverview extends StatefulWidget {
 }
 
 class WeekOverviewState extends State<WeekOverview> {
-  DatabaseHelper databaseHelper = DatabaseHelper();
   late ConfettiController _controllerCenter;
   List<List<double>> meanLists = [[], [], []];
   List<String> favoriteAnswers = [];
   String name = "";
   int overallAnswered = 0;
   int totalTasks = 0;
+  int totalTasksTillNow = 0;
   bool favoritesInThisWeek = false;
   bool isShowingMainData = true;
-  bool isListAvailabe = false;
+  bool isListAvailable = false;
   
   @override
   void initState() {
@@ -52,11 +52,11 @@ class WeekOverviewState extends State<WeekOverview> {
     super.dispose();
   }
 
-  //weekKey als "yyyy-MM-dd" format
+  ///Lädt die Daten für jeden Tag der Woche und fügt sie zusammen
   void getTermineForWeek() async{
     DateTime firstDay = DateTime.parse(widget.weekKey);
-    List<Termin> wholeWeekTerminNumber = await DatabaseHelper().getWeeklyPlan(widget.weekKey);
-    totalTasks = wholeWeekTerminNumber.length;
+    totalTasks = await DatabaseHelper().getWeekTermineCount(widget.weekKey,false);
+    totalTasksTillNow = await DatabaseHelper().getWeekTermineCount(widget.weekKey, true);
     String favoriteTasks = "";
     String calmTasks = "";
     String helpingTasks = "";
@@ -67,15 +67,6 @@ class WeekOverviewState extends State<WeekOverview> {
       String weekDayKey = DateFormat("yyyy-MM-dd").format(firstDay.add(Duration(days: i, hours: 1)));
       List<Termin> termine = await DatabaseHelper().getDayTermineAnswered(weekDayKey,true);
       int answeredCounter = termine.length;
-
-      //Alternative Idee
-      /*Database db = DatabaseHelper().database;
-      final List<Map<String, dynamic>> terminMap = await db.query(
-        "Termine",
-        where: "timeBegin LIKE ? AND answered AND (question1 = ? OR question2 = ? OR question3 = ?)",
-        whereArgs: ["$weekDayKey%", 1 , 6 , 6 , 6],
-      );
-      List<Termin> termine = DatabaseHelper().mapToTerminList(terminMap);*/
 
       double goodMean = 0;
       double calmMean = 0;
@@ -119,36 +110,11 @@ class WeekOverviewState extends State<WeekOverview> {
     setState(() {
       favoriteAnswers = [favoriteTasks.trimRight(), calmTasks.trimRight(), helpingTasks.trimRight()];
       if(favoriteTasks != "" || calmTasks != "" || helpingTasks != "") favoritesInThisWeek = true;
-      //doneTasksPercent = overallAnswered/totalTasks*100;
-      isListAvailabe = true;
+      isListAvailable = true;
     });
   }
 
-  /*Widget favoriteItems(int i) {
-    List<String> favoriteComments = [
-      "Am besten ging es dir hier ${Emojis.smile_grinning_face_with_smiling_eyes}:",
-      "Hier warst du am ruhigsten ${Emojis.smile_relieved_face}:",
-      "Am meisten geholfen hat dir ${Emojis.body_flexed_biceps}:"];
-
-    if(favoriteAnswers.isNotEmpty){
-      if(favoriteAnswers[i] != ""){
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FittedBox(
-              child: Text(favoriteComments[i],textAlign: TextAlign.left, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),),
-            ),
-            Padding(
-                padding: EdgeInsets.only(left: 20,top: 2, bottom: 2),
-                child: Text(favoriteAnswers[i],style: TextStyle(fontSize: 15, fontWeight: FontWeight.w100),textAlign: TextAlign.left,)
-            )
-          ],
-        );
-      }
-    }
-    return SizedBox(height: 0,);
-  }*/
-
+  ///Erstellt die Confetti-Widgets
   Widget buildConfettiWidgets() {
     if (!widget.fromNotification) {
       return SizedBox(); // Wenn eine der Bedingungen nicht erfüllt ist, kein Confetti anzeigen
@@ -178,6 +144,7 @@ class WeekOverviewState extends State<WeekOverview> {
     );
   }
 
+  ///Erstellt die Legende für den Graph
   Widget createDescription(String text, Color color){
     return Row(
         spacing: 15,
@@ -200,6 +167,7 @@ class WeekOverviewState extends State<WeekOverview> {
     );
   }
 
+  ///Öffnet Belohnungs-PopUp
   void openRewardPopUp() async{
     String? result = await RewardPopUp().show(
         context,
@@ -212,31 +180,47 @@ class WeekOverviewState extends State<WeekOverview> {
     }
   }
 
-
+  ///Verlässt seite ohne probleme mit context in async
   void leavePage(){
-    if(widget.fromNotification){ //Andere Pageroute, wenn von Notification, wird wahrscheinlich entfernt
-      navigatorKey.currentState?.pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => WeekPlanView(
-                weekKey: widget.weekKey),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              const begin = Offset(1.0, 0.0);
-              const end = Offset.zero;
-              const curve = Curves.easeInOut;
+    Navigator.pop(context);
+  }
 
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-              var offsetAnimation = animation.drive(tween);
-
-              return SlideTransition(
-                position: offsetAnimation,
-                child: child,
-              );
-            },
-          )
+  Widget getText() {
+    if(DateTime.now().isBefore(DateTime.parse(widget.weekKey))){
+      return RichText(
+        text: TextSpan(
+          children: [
+            TextSpan(text: S.of(context).weekOverView_tooEarly, style: TextStyle(fontSize: 24))
+          ],
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        textAlign: TextAlign.center,
       );
-    } else {
-      Navigator.pop(context);
     }
+    return overallAnswered > 0 ? RichText(
+      text: TextSpan(
+          style: TextStyle(
+            fontSize: 24,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
+          ),
+          children:  [
+            TextSpan(text: S.current.weekOverView_summary),
+            TextSpan(text: "$overallAnswered\n", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26)),
+            TextSpan(text: S.current.weekOverView_summary_part2(overallAnswered)),
+            TextSpan(text: Utilities().getRandomisedEncouragement(widget.fromNotification, name), style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+            TextSpan(text: S.current.weekOverView_leftAnswers(totalTasksTillNow-overallAnswered),style: TextStyle(fontSize: 16)),
+            TextSpan(text: S.current.weekOverView_scroll, style: TextStyle(fontSize: 14))]
+      ),
+      textAlign: TextAlign.center,
+    ) : RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(text: S.of(context).weekOverView_noAnswers, style: TextStyle(fontSize: 24))
+        ],
+        style: Theme.of(context).textTheme.bodyMedium,
+      ),
+      textAlign: TextAlign.center,
+    );
   }
 
   @override
@@ -249,17 +233,7 @@ class WeekOverviewState extends State<WeekOverview> {
       }
     },
     child: Scaffold(
-      //appBar: AppBar(
-      //  title: Text(Utilities().convertWeekkeyToDisplayPeriodString(widget.weekKey)),
-      //  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      //  leading: IconButton(
-      //    icon: Icon(Icons.arrow_back),
-      //    onPressed: () {
-      //      Navigator.of(context).pop(); // Zurück zur vorherigen Seite
-      //    },
-      //  ),
-      //),
-      body: !isListAvailabe ? Center(child: CircularProgressIndicator()) : Stack(
+      body: !isListAvailable ? Center(child: CircularProgressIndicator()) : Stack(
         children: [ShaderMask(
           shaderCallback: (Rect bounds) {
           return LinearGradient(
@@ -278,7 +252,7 @@ class WeekOverviewState extends State<WeekOverview> {
                     SizedBox(height: 16,),
                     FittedBox(
                       child: Text(
-                        Utilities().convertWeekkeyToDisplayPeriodString(widget.weekKey),
+                        Utilities().convertWeekKeyToDisplayPeriodString(widget.weekKey),
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -286,42 +260,10 @@ class WeekOverviewState extends State<WeekOverview> {
                       ),
                     ),
                     SizedBox(height: 16),
-                    overallAnswered > 0 ? RichText(
-                      text: TextSpan(
-                          style: TextStyle(
-                            fontSize: 24,
-                            color: Theme.of(context).textTheme.bodyMedium?.color,
-                          ),
-                          children:  [
-                            TextSpan(text: S.current.weekOverView_summary),
-                            TextSpan(text: "$overallAnswered\n", style: TextStyle(fontWeight: FontWeight.bold)),
-                            TextSpan(text: S.current.weekOverView_summary_part2(overallAnswered, Utilities().getRandomisedEncouragement(widget.fromNotification, name))),
-                            TextSpan(text: S.current.weekOverView_leftAnswers(totalTasks-overallAnswered),style: TextStyle(fontSize: 16)),
-                            TextSpan(text: S.current.weekOverView_scroll, style: TextStyle(fontSize: 16))
-
-                            //TextSpan(text: "Du hast diese Woche \n"),
-                            //TextSpan(text: "  \n", style: TextStyle(fontSize: 5)),//Lücke,Spacing
-                            //TextSpan(text: "$overallAnswered \n", style: TextStyle(fontSize: 30,fontWeight: FontWeight.bold)),
-                            //TextSpan(text: "  \n", style: TextStyle(fontSize: 5)), //Lücke,Spacing
-                            //TextSpan(text: "Termine bewältigt\n\n"),
-                            //TextSpan(text:  Utilities().getRandomisedEncouragement(context,widget.fromNotification, name), style: TextStyle(fontWeight: FontWeight.bold),),
-                            //if(totalTasks-overallAnswered > 0) TextSpan(text: "\n \n Wenn du Lust hast kannst du noch Feedback zu ${totalTasks-overallAnswered} Aktivitäten geben", style: TextStyle(fontSize: 16)),
-                            //TextSpan(text: S.of(context).weekOverView_scroll, style: TextStyle(fontSize: 16))
-                          ]
-                      ),
-                      textAlign: TextAlign.center,
-                    ) : RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(text: S.of(context).weekOverView_noAnswers, style: TextStyle(fontSize: 24))
-                        ],
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                    getText(),
                     //if(overallAnswered > 0) Text("\n \n Scroll weiter um mehr Infos zu bekommen ;)"),
                     SizedBox(height: 20,),
-                    Column(
+                    Column( //TODO!: In Material?!!
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if(favoritesInThisWeek)
@@ -333,20 +275,26 @@ class WeekOverviewState extends State<WeekOverview> {
                               textAlign: TextAlign.center,
                           ),
                         ),
-                        SizedBox(height: 10,),
-                        for(int i = 0; i < 3; i++)...{ //favoriteComments.length
-                          Utilities().favoriteItems(i, favoriteAnswers, context),
-                        },
+                        SizedBox(height: 0,),
+                        Padding(
+                          padding: EdgeInsets.all(15),
+                          child: Column(
+                            children: [
+                              for(int i = 0; i < 3; i++)...{ //favoriteComments.length
+                                Utilities().favoriteItems(i, favoriteAnswers, context),
+                              },
+                            ],
+                          ),
+                        )
                       ],
                     ),
-                    SizedBox(height: 20,),
+                    SizedBox(height: 20),
                     if(overallAnswered != 0)GifProgressWidget(
                       progress: overallAnswered/totalTasks,
                       startFrame: 0,
                       finished: () => {},
                       forRewardPage: false,
                     ),
-
                     SizedBox(height: 20,),
                     if(overallAnswered != 0)Column( //Evtl. mit sync_graph austaushen, mag aber den Style recht gerne
                       children: [
@@ -360,9 +308,9 @@ class WeekOverviewState extends State<WeekOverview> {
                         SizedBox(
                           height: 16,
                         ),
-                        createDescription(S.of(context).legend_Msg0, Colors.lightBlueAccent),
-                        createDescription(S.of(context).legend_Msg1, Colors.lightGreen),
-                        createDescription(S.of(context).legend_Msg2, Colors.purple),
+                        createDescription(S.of(context).legend_Msg0, Colors.green),
+                        createDescription(S.of(context).legend_Msg1, Colors.orange),
+                        createDescription(S.of(context).legend_Msg2, Colors.blue),
                         SizedBox(
                           height: 12,
                         ),
@@ -376,7 +324,7 @@ class WeekOverviewState extends State<WeekOverview> {
                                   width: MediaQuery.of(context).size.width*0.9,
                                   child: Padding(
                                     padding: EdgeInsets.only(right: 26, left: 0),
-                                    child: isListAvailabe
+                                    child: isListAvailable
                                         ? FlChartGraph(isShowingMainData: isShowingMainData, meanList: meanLists, weekKey: widget.weekKey, context: context,)
                                         : SizedBox.shrink(),
                                   ),
@@ -430,36 +378,4 @@ class WeekOverviewState extends State<WeekOverview> {
     );
   }
 }
-
-/* Direkte implementation des GIFS
-            Material(
-                elevation: 10,
-                color: Theme.of(context).scaffoldBackgroundColor,
-                borderRadius: BorderRadius.circular(15),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    border: Border.fromBorderSide(BorderSide(width: 0.5, color: Colors.black)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.all(15),
-                        child:  Text("Dein Progress diese Woche ${Emojis.smile_partying_face}", textAlign: TextAlign.start,),
-                      ),
-                      if(overallAnswered != 0)GifProgressWidget(
-                        progress: overallAnswered/totalTasks,
-                        startFrame: 0,
-                        finished: () => {},
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(15),
-                        child:  Text("Kommentar zu Progress?", textAlign: TextAlign.start,),
-                      ),
-                    ],
-                  ),
-                )
-            ),*/
-
 

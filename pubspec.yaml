@@ -53,6 +53,7 @@ dependencies:
   flutter_launcher_icons: ^0.14.3
   syncfusion_flutter_charts: ^28.2.6
   audioplayers: ^6.2.0
+  auto_size_text: ^3.0.0
 
 dev_dependencies:
   flutter_test:

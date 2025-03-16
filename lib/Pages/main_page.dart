@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
 import 'package:menta_track/Pages/settings.dart';
-import 'package:menta_track/Pages/week_plan_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
-
 import '../database_helper.dart';
 import '../generated/l10n.dart';
 import '../helper_utilities.dart';
@@ -17,6 +15,12 @@ import '../week_tile_data.dart';
 import 'activity_summary.dart';
 import 'barcode_scanner_simple.dart';
 import 'not_answered_page.dart';
+
+//TODO: RANDOMISIERTE ANTWORTEN VERBESSERN
+
+//TODO STUDY: Erste Benachrichtigung 1 min nach schließen des Hilfe-Dialogs
+//TODO STUDY: Zweite Benachrichtigung 30 sek nach zurückkehren von Settings
+///Startseite der Anwendung mit PageView
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -32,8 +36,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
   final GlobalKey<NotAnsweredState> _notAnsweredKey = GlobalKey<NotAnsweredState>();
   Widget themeIllustration = SizedBox();
   int selectedIndex = 1;
-  int remeberAnsweredTasks = 0;
+  int rememberAnsweredTasks = 0;
+  int rememberTotalTasks = 0;
+  int openTasks = 0;
   List<WeekTileData> items = [];
+
+
 
   @override
   void initState() {
@@ -42,12 +50,15 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
     loadDatabaseAndNotifications();
   }
 
+  ///Checkt, ob auf die Startseite zurückgekehrt wurde und ob es Änderungen in der Datenbank gab
   @override
   void didPopNext() {
-    updateItems();
+    checkForChange();
+    //updateItems();
     super.didPopNext();
   }
 
+  ///Subscribed zu dem Routeobserver
   @override
   void didChangeDependencies() {
     if (ModalRoute.of(context)?.isCurrent == true) {
@@ -60,12 +71,13 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
   void loadDatabaseAndNotifications()  {
     checkForFirstStart();
     updateItems();
-    ///Falls die Liste neu geladen werden muss soll nicht noch aufwendig nach benachrichtigungen geschaut werden
-    notificationHelper.startListeningNotificationEvents(); //TODO: Aktivieren testen
-    notificationHelper.loadAllNotifications(false); //TODO: Aktivieren testen
+    ///Nur beim start sollen benachrichtigungen gecheckt/geladen werden
+    notificationHelper.startListeningNotificationEvents();
+    notificationHelper.loadAllNotifications(false);
 
   }
 
+  ///Lädt die Liste neu
   Future<void> updateItems() async {
     items.clear();
     Database db = await databaseHelper.database;
@@ -82,64 +94,30 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
     for (var weekPlan in weekPlans) {
       String weekKey = weekPlan["weekKey"];
       String title = "${weekPlan["startOfWeekString"]} - ${weekPlan["endOfWeekString"]}";
-      WeekTileData data = await getWeekTileData(weekKey, title);
+      WeekTileData data = await WeekTileState().getWeekTileData(weekKey, title); //Genriert Daten für die Tiles
 
       addEntry(data);
     }
-    ///Sortiert die Wochen, sodass die neueste oben angezeigt wird
+
+    ///Sortiert die Wochen, sodass die aktuellste oben angezeigt wird
     items.sort((a, b) {
       DateTime dateA = DateTime.parse(a.weekKey);
       DateTime dateB = DateTime.parse(b.weekKey);
       return dateB.compareTo(dateA);
     });
-    remeberAnsweredTasks = await databaseHelper.getAllTermineCount(true,true);
+    rememberAnsweredTasks = await databaseHelper.getAllTermineCount(true,true);
+    rememberTotalTasks = await databaseHelper.getAllTermineCountUnconditional();
+    openTasks = await DatabaseHelper().getAllTermineCount(false, true);
     //String testKey = weekPlans[2]["weekKey"];
     //await notificationHelper.scheduleTestNotification(testKey); //Testing
   }
 
-  ///Erzeugt ein WeekTile je nach wann es ist und wie viel Feedback gegeben wurde
-  //TODO: verschieben in WekkTile? Gute Idee? WeekTileData nur weekKey und title?
-  Future<WeekTileData> getWeekTileData(String weekKey, String title) async {
-    final db = await databaseHelper.database;
-    int allWeekTasks = await databaseHelper.getWeekTermineCount(weekKey);
-    ///Query sucht nach allen bis jetzt noch nicht beantworteten Terminen in der Woche
-    String query = "SELECT COUNT(*) FROM Termine WHERE weekKey = ? AND answered = ? AND (datetime(timeBegin) < datetime(CURRENT_TIMESTAMP))";
-    int unAnsweredWeekTasks = Sqflite.firstIntValue(await db.rawQuery(query, [weekKey,0])) ?? 0;
-    int answeredWeekTasks = Sqflite.firstIntValue(await db.rawQuery(query, [weekKey,1])) ?? 0;
-
-    WeekTileData data;
-    DateTime weekKeyDateTime = DateTime.parse(weekKey);
-    String subtitle = "${S.current.activities}: $allWeekTasks  ${S.current.open_singular}: $unAnsweredWeekTasks";
-
-    ///aktuelle Woche
-    if (DateTime.now().isAfter(weekKeyDateTime) && DateTime.now().isBefore(weekKeyDateTime.add(Duration(days: 6)))) {
-      data = WeekTileData(icon: Icon(Icons.today), title: title, weekKey: weekKey, subTitle: subtitle);
-    }
-    ///Liegt in der Zukunft
-    else if (DateTime.now().isBefore(weekKeyDateTime)) {
-      subtitle = S.current.not_yet_single;
-      data = WeekTileData(icon: Icon(Icons.lock_clock), title: title, weekKey: weekKey, subTitle: subtitle);
-    }
-    ///Alles beantwortet
-    else if (allWeekTasks == answeredWeekTasks) {
-      subtitle = S.current.done;
-      data = WeekTileData(icon: Icon(Icons.event_available, color: Colors.green), title: title, weekKey: weekKey, subTitle: subtitle);
-    }
-    ///alles andere
-    else {
-      if(unAnsweredWeekTasks == 0){
-        subtitle ="nichts offen, super! 👍";
-      }
-      data = WeekTileData(icon: Icon(Icons.free_cancellation), title: title, weekKey: weekKey, subTitle: subtitle);
-    }
-    return data;
-  }
-
+  ///Checkt ob es Änderungen in der Datenbank gab
   Future<void> checkForChange() async {
-    int newRemember = await databaseHelper.getAllTermineCount(true,true);
-    if(remeberAnsweredTasks != newRemember){
+    int newRememberAnsweredTasks = await databaseHelper.getAllTermineCount(true,true);
+    int newRememberTotalTasks = await databaseHelper.getAllTermineCountUnconditional();
+    if(rememberAnsweredTasks != newRememberAnsweredTasks || rememberTotalTasks != newRememberTotalTasks){
       updateItems();
-    } else {
     }
   }
 
@@ -154,21 +132,18 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
 
   ///löscht Eintrag aus der Liste
   void deleteItem(String weekKey) async {
-    DateFormat format = DateFormat("dd.MM.yyyy");
-    DateTime displayDateString = format.parse(weekKey.substring(0, 10));
-    String correctedDate = DateFormat("yyyy-MM-dd").format(displayDateString);
-    databaseHelper.dropTable(correctedDate);
-    databaseHelper.updateActivities(weekKey);
+    databaseHelper.dropTable(weekKey);
+    NotificationHelper().loadAllNotifications(true); //Reload Notifications
   }
 
-  /// Lädt den gespeicherte Settings-Werte
+  /// Lädt die gespeicherte Settings-Werte
   void loadTheme() async {
     SettingData data = await SettingsPageState().getSettings();
     bool isDarkMode = data.isDarkMode;
     String name = data.name;
     String accentColor = data.accentColor;
 
-    setState(() { //Unschön, aber muss vor themeHelper geladen werden, damit textfarbe je nach darkmode richtig geladen wird
+    setState(() { //muss vor themeHelper geladen und angewendet werden, damit textfarbe je nach darkmode richtig geladen wird
       MyApp.of(context).changeTheme(isDarkMode ? ThemeMode.dark : ThemeMode.light);
       MyApp.of(context).changeColor(accentColor);
     });
@@ -182,7 +157,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
     });
   }
 
-  //TODO: Lokalisieren
+  ///Checkt nach erstem Start und zeigt ein Tutorial an
   Future<void> checkForFirstStart() async {
     final prefs = await SharedPreferences.getInstance();
     if(prefs.getBool("firstStart") == null && mounted){
@@ -191,6 +166,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
     }
   }
 
+  ///Öffnet die Settings-Seite und schaut ob eine Einstellung verändert wurde
   Future<void> openSettings() async {
     bool? changed = await navigatorKey.currentState?.push(
         PageRouteBuilder(
@@ -214,41 +190,34 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
           loadTheme();
         });
         _notAnsweredKey.currentState?.loadTheme();
+        //NotificationHelper().scheduleStudyDayNotification(); //TODO !STUDY!: 2te Benachrichtigung FÜR STUDIE
       }
     }
   }
 
-  ///Öffnet einen Wochenplan. Muss hier sein, damit die Liste geupdatet wird, falls
-  void openItem(String weekKey) async{
-    var result = await navigatorKey.currentState?.push(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => WeekPlanView(
-              weekKey: weekKey),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            const begin = Offset(1.0, 0.0);
-            const end = Offset.zero;
-            const curve = Curves.easeInOut;
-            var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-            var offsetAnimation = animation.drive(tween);
-
-            return SlideTransition(
-              position: offsetAnimation,
-              child: child,
-            );
-          },
-        )
-    );
-    if(result != null){
-      if(result == "updated"){
-        ///Checkt ob die Woche komplett beantwortet wurde und aktualisiert die Ansicht, wenn es der Fall ist
-        checkForChange();
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return
+      PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (bool didPop, result) {
+      if (!didPop) {
+        if(selectedIndex == 0 || selectedIndex == 2){ //Während des testen wurde die App mehrmals ausversehen geschlossen, wenn man auf der Übersichtsseite war
+          setState(() {
+            selectedIndex = 1;
+          });
+          _pageController.animateToPage(
+            selectedIndex,
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        } else {
+           SystemNavigator.pop(); //Funktioniert nicht auf IOS, in IOS soll einfach nichts gemacht werden, es ist intended, dass Apps durch den HOME-Button geschlossen werden
+        }
+      }
+    },
+    child: Scaffold(
       appBar: AppBar(
         title: selectedIndex == 0 ? Text(S.of(context).unanswered) :
         selectedIndex == 1 ? Text(S.of(context).home) :
@@ -354,8 +323,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
           controller: _pageController,
           physics: NeverScrollableScrollPhysics(), // Deaktiviert Swipe-Gesten, um eigene zu verwenden.
           children: [
+            ///Seite 1 (OffenSeite)
             NotAnsweredPage(key: _notAnsweredKey,),
-            //Seite 2 (Hauptseite):
+            ///Seite 2 (Hauptseite):
             LayoutBuilder(
               builder: (context, constraints) {
                 bool isPortrait = constraints.maxWidth < 600;
@@ -369,8 +339,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
                     if(items.isEmpty)SliverToBoxAdapter(
                       child: Container(
                         padding: EdgeInsets.all(40),
-                        //TODO: Lokalisieren
-                        child: Text("Du hast noch keine Wochenpläne ;)\n Tippe auf den Button in der Ecke rechts unten um den QR-Code scanner zu öffnen un einen Plan zu importieren :)", textAlign: TextAlign.center,),
+                        child: Text(S.current.mainPage_noEntries_text, textAlign: TextAlign.center,),
                       ),
                     ),
                     SliverList(
@@ -379,13 +348,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
                           return WeekTile(
                             item: items[index],
                             onDeleteTap: () async {
-                              deleteItem(items[index].title);
+                              deleteItem(items[index].weekKey);
                               setState(() {
                                 items.removeAt(index);
                               });
-                            },
-                            onTap: (){
-                              openItem(items[index].weekKey);
                             },
                           );
                         },
@@ -393,7 +359,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
                       ),
                     ),
                   ],
-                ) : Row(
+                ) : Row( ///Horizontales Layout
                   children: [
                     if(themeIllustration is! SizedBox) Expanded(
                         child: themeIllustration
@@ -420,13 +386,11 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
                             return WeekTile(
                               item: items[index],
                               onDeleteTap: () async {
-                                deleteItem(items[index].title);
+                                deleteItem(items[index].weekKey);
                                 setState(() {
                                   items.removeAt(index);
                                 });
-                              }, onTap: () {
-                              openItem(items[index].weekKey);
-                            },
+                              },
                             );
                           },
                         ),
@@ -437,7 +401,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
                 );
               },
             ),
-            /// Seite "Übersicht":
+            /// Seite 3 "ÜbersichtsSeite":
             ActivitySummary(),
           ],
         ),
@@ -451,10 +415,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
         ),
         child: BottomNavigationBar(
           elevation: 15,
-          backgroundColor: MyApp.of(context).themeMode == ThemeMode.dark ? Colors.transparent : Theme.of(context).appBarTheme.foregroundColor,
+          //backgroundColor: MyApp.of(context).themeMode == ThemeMode.dark ? Colors.transparent : Theme.of(context).bottomNavigationBarTheme.backgroundColor,
           currentIndex: selectedIndex,
           onTap: (int index) {
-            print(index);
             if(selectedIndex == 0){
               if(index == 1){
                 checkForChange();
@@ -471,8 +434,17 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
           },
           items: [
             BottomNavigationBarItem(
-              icon: selectedIndex == 0 ? Icon(Icons.album) : Icon(
-                  Icons.album_outlined),
+              icon: openTasks > 0 ? Badge(
+                isLabelVisible: true,
+                label: Text(openTasks.toString()),
+                offset: Offset(8, 8),
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                child: selectedIndex == 0 ?
+                  Icon(Icons.inventory_rounded) :
+                  Icon(Icons.inventory_outlined)
+              ) : openTasks == 0 && selectedIndex == 0 ?
+                  Icon(Icons.inventory_rounded) :
+                  Icon(Icons.inventory_outlined),
               label: S.of(context).open,
             ),
             BottomNavigationBarItem(
@@ -481,8 +453,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
               label:  S.of(context).home,
             ),
             BottomNavigationBarItem(
-              icon: selectedIndex == 2 ? Icon(Icons.summarize) : Icon(
-                  Icons.summarize_outlined),
+              icon: selectedIndex == 2 ? Icon(Icons.insights) : Icon(
+                  Icons.insights_outlined),
               label:  S.of(context).overview,
             ),
           ],
@@ -496,28 +468,15 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
             ),
           );
           if(result != null){
-            List<WeekTileData> weekLists = await ImportJson().loadDummyDataForQr(result);
-            for (WeekTileData data in weekLists) {
-              //data.toString();
-              addEntry(data);
-            }
-            ///Sortiert die Wochen
-            items.sort((a, b) {
-              DateTime dateA = DateTime.parse(a.weekKey);
-              DateTime dateB = DateTime.parse(b.weekKey);
-              return dateB.compareTo(dateA);
-            });
+            await ImportJson().loadDummyDataForQr(result);
+            updateItems();
+            NotificationHelper().loadAllNotifications(true); //Reload Benachrichtigungen
           }
-          //ImportJson().loadDummyDataForQr(CreateDummyJsonForTesting().toCompressedIntList());
-          //List<WeekTileData> weekLists = await ImportJson().loadDummyData(""); //Testing version
-          //for (WeekTileData data in weekLists) {
-          //  data.toString();
-          //  addEntry(data);
-          //}
         },
         backgroundColor: Theme.of(context).bottomNavigationBarTheme.selectedItemColor,
         child: Icon(Icons.add_box),
       ) : SizedBox(),
+    )
     );
   }
 }

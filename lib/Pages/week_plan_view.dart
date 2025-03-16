@@ -9,9 +9,9 @@ import 'package:time_planner/time_planner.dart';
 import '../generated/l10n.dart';
 import '../main.dart';
 import 'day_overview.dart';
-import 'main_page.dart';
 
-//Example-Code von: https://pub.dev/packages/time_planner/example
+///Wochenplan-Seite, zeigt eine Woche wie einen Stundenplan
+//Package von: https://pub.dev/packages/time_planner/example
 
 class WeekPlanView extends StatefulWidget {
   final String weekKey;
@@ -41,10 +41,9 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
   ///Falls eine Benachrichtigung geöffnet wird, wenn man bereits auf der WeekPlanView-Seite ist, wird so beim zurückkehren die Seite geupdated
   @override
   Future<void> didPopNext() async {
-    ///Checkt ob sich die Anzahl an beantworteten Tasks verändert hat und wenn ja updated den Kalender
+    //Checkt ob sich die Anzahl an beantworteten Tasks verändert hat und wenn ja updated den Kalender
     int c = await DatabaseHelper().getWeekTermineCountAnswered(widget.weekKey, true);
     if(rememberAnsweredTasks != c){
-      print("Diffrent: $rememberAnsweredTasks | $c");
       updated = true;
       setState(() {
         tasks.clear();
@@ -68,11 +67,13 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
     super.dispose();
   }
 
+  ///Setup vom Kalendar und den Einträgen
   void setUpCalendar(String weekKey) async{
     DatabaseHelper databaseHelper = DatabaseHelper();
     calendarStart = DateTime.parse(weekKey);
     calendarHeaders = [];
 
+    ///Erstellt die Köpfe der einzelnen Spalten
     for(int i = 0; i < 7;i++){
       DateTime date = calendarStart.add(Duration(days: i));
       String displayDate = DateFormat("dd.MM.yy").format(date);
@@ -86,51 +87,73 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
           ));
     }
 
-     List<Termin> weekAppointments = await databaseHelper.getWeeklyPlan(widget.weekKey); //await muss nach den erstellen der CalendarHeader passieren
-     List<String> foundOvrelaps = [];
-    for(Termin t in weekAppointments){
-       String title = t.terminName;
-       DateTime startTime = t.timeBegin;
-       DateTime endTime = t.timeEnd;
-       Color? color = t.answered ? Colors.lightGreen : Colors.white60; //Purple nur übergangsweise, bis ich mich für style entschieden habe und Termin braucht einen weiteren zustand, wenn etwas schon passiert ist, aber nicht beantwortet wurde
-       if(!t.answered && DateTime.now().isAfter(endTime)){
-         color = Colors.grey;
-       }
-       int overlapPos = 0;
-       ///Checkt nach Überschneidungen und macht den überlappenden Termin zu ca 25% Transparent
-       if(foundOvrelaps.contains(t.terminName)){
-         //color = color.withAlpha(60);
-         //TODO: was wenn sich mehr als 2 Überschneiden?
-         //print(foundOvrelaps);
-         //overlapPos = 1;
-         //for(String s in foundOvrelaps){
-         //  if(s == t.terminName){
-         //    overlapPos++;
-         //  }
-         //}
-         overlapPos = 2;
-       } else {
-         DateTimeRange range = DateTimeRange(start: t.timeBegin, end: t.timeEnd);
-         for (Termin t2 in weekAppointments) {
-           DateTimeRange rangeCompare = DateTimeRange(start: t2.timeBegin, end: t2.timeEnd);
+    List<Termin> weekAppointments = await databaseHelper.getWeeklyPlan(widget.weekKey);
+    // Liste für die Gruppen von überschneidenden Terminen
+    List<List<String>> overlapGroups = [];
+    // Set, um bereits gruppierte Termine zu verfolgen
+    Set<String> groupedTerminNames = {};
 
-           // Check if the ranges overlap
-           bool overlaps = range.start.isBefore(rangeCompare.end) && range.end.isAfter(rangeCompare.start);
+    // Funktion um zu überprüfen ob zwei Termine sich überschneiden
+    bool isOverlapping(Termin t1, Termin t2) {
+      return t1.timeBegin.isBefore(t2.timeEnd) && t1.timeEnd.isAfter(t2.timeBegin);
+    }
 
-           if (overlaps && t2.terminName != t.terminName && !foundOvrelaps.contains(t2.terminName)&& !foundOvrelaps.contains(t.terminName)) {
-             foundOvrelaps.add(t2.terminName);
-             foundOvrelaps.add(t.terminName);
-             overlapPos = 1;
-            // color = Colors.grey.shade600;
+    // Gruppierung der Termine
+    for (var t1 in weekAppointments) {
+      //SafeName, als einzigartige Identifikation
+      String t1SafeName = "${t1.terminName}${t1.timeBegin.toIso8601String()}";
+      if (groupedTerminNames.contains(t1SafeName)) continue;
 
-           }
-         }
-       }
+      //Wenn t1 noch in keiner Gruppe ist wird neue Gruppe erstellt
+      List<String> currentGroup = [t1SafeName];
 
-       _addObject(title, startTime, endTime, color, overlapPos);
-     }
+      //Vergleicht alle termine mit t1 und überspringt wenn er gleich ist, oder schon in einer gruppe ist
+      for (var t2 in weekAppointments) {
+        String t2SafeName =  "${t2.terminName}${t2.timeBegin.toIso8601String()}";
+        if (t1 == t2 || groupedTerminNames.contains(t2SafeName)) continue;
+
+        //wenn sich die termine überschneiden wird t2 der aktuellen gruppe hinzugefügt und als schon gruppiert markiert (dem set hinzugefügt
+        if (isOverlapping(t1, t2)) {
+          currentGroup.add(t2SafeName);
+          groupedTerminNames.add(t2SafeName);
+        }
+      }
+
+      // Termin selbst als gruppiert markieren
+      groupedTerminNames.add(t1SafeName);
+
+      // Gruppe nur hinzufügen, wenn sie mindestens zwei Termine enthält
+      if (currentGroup.length > 1) {
+        overlapGroups.add(currentGroup);
+      }
+    }
+
+    //TODO: Potentiell CellWidth erhöhen, wenn 3 oder mehr sich überschneiden!
+
+    for (Termin t in weekAppointments) {
+      String title = t.terminName;
+      DateTime startTime = t.timeBegin;
+      DateTime endTime = t.timeEnd;
+      Color? color = t.answered ? Colors.lightGreen : Colors.blueGrey.shade300;
+
+      if (!t.answered && DateTime.now().isAfter(endTime)) {
+        color = Colors.blueGrey.shade200;
+      }
+      int overlapPos =  0;
+      int overlapOffset = 0;
+      String safeName = "${t.terminName}${t.timeBegin.toIso8601String()}";
+      for (var group in overlapGroups) {
+        if(group.contains(safeName)){
+          overlapPos = group.length;
+          overlapOffset = group.indexOf(safeName);
+        }
+      }
+
+      _addObject(title, startTime, endTime, color, overlapPos, overlapOffset);
+    }
   }
 
+  ///Tap auf einen Kalenderkopf
   void clickOnCalendarHeader(String dateString){
     String weekDayKey = dateString;
     navigatorKey.currentState?.push(MaterialPageRoute(
@@ -142,6 +165,7 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
     ));
   }
 
+  ///Lädt den Kalender neu
   void updateCalendar() {
     setState(() {
       tasks.clear();
@@ -149,7 +173,7 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
     setUpCalendar(widget.weekKey);
   }
 
-
+  ///Wandelt dateTime.weekDay in einen String um
   String getWeekdayName(DateTime dateTime) {
     List<String> weekdays = [
       S.current.monday,
@@ -163,7 +187,7 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
     return weekdays[dateTime.weekday - 1]; //-1 weil index bei 0 beginnt aber weekday bei 1 beginnt
   }
 
-  //Konvertiert eine DateTime zu der vom package erwartetem Format (integer). errechnet differenz zwischen der 0ten Stunde am Kalender und dem Termin
+  ///Konvertiert eine DateTime zu der vom package erwartetem Format (integer). errechnet differenz zwischen der 0ten Stunde am Kalender und dem Termin
   Map<String, int> convertToCalendarFormat(DateTime calendarStart, DateTime terminDate) {
     Duration difference = terminDate.difference(calendarStart);
 
@@ -178,14 +202,14 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
     };
   }
 
-  //erzeugt Event im Kalender
-  void _addObject(String title, DateTime startTime, DateTime endTime, Color? color, int numberofOverlaps) { //
+  ///erzeugt Event im Kalender
+  void _addObject(String title, DateTime startTime, DateTime endTime, Color? color, int numberofOverlaps, int overlapOffset) { //
     Map<String, int> convertedDate = convertToCalendarFormat(calendarStart, startTime);
     int day = convertedDate["Days"]!;
     int hour = convertedDate["Hours"]!;
     int minutes = convertedDate["Minutes"]!;
     int duration = endTime.difference(startTime).inMinutes;
-    rememberAnsweredTasks += 1; //Merkt sich, wieviele Taks geantwortet wurden
+    if(color == Colors.lightGreen) rememberAnsweredTasks += 1; //Merkt sich, wieviele Taks geantwortet wurden
 
     setState(() {
       tasks.add(
@@ -197,6 +221,7 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
               minutes: minutes),
           minutesDuration: duration,
           numOfOverlaps: numberofOverlaps,
+          overLapOffset: overlapOffset,
           daysDuration: 1,
           child:
           GestureDetector(
@@ -211,7 +236,6 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
                           terminName: title),
                       transitionsBuilder: (context, animation, secondaryAnimation, child) {
                         const curve = Curves.easeInOut;
-                        // Erstelle eine Skalierungs-Animation
                         var tween = Tween<double>(begin: 0.1, end: 1.0).chain(CurveTween(curve: curve));
                         var scaleAnimation = animation.drive(tween);
                         return ScaleTransition(
@@ -233,7 +257,7 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
                   Positioned(
                       top: -6,
                       right: -3,
-                      child: Icon(color == Colors.grey ? Icons.priority_high : null)
+                      child: Icon(color == Colors.blueGrey.shade200 ? Icons.priority_high : null)
                   ),
                   ///Start and Endzeit, beide, damit falls sich einträge Überlappen, sie auseinandergehalten werden können
                   Positioned(
@@ -246,25 +270,6 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
                     left: 5,
                     child: Text(DateFormat("HH:mm").format(endTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic,  fontSize: duration < 46 ? 4 : 6),), //${DateFormat("HH:mm").format(startTime)} -
                   ),
-                  //Positioned(
-                  //  top: 2,
-                  //    left: 1,
-                  //    right: 1,
-                  //    bottom: 20,
-                  //    child: Center(
-                  //        child: Text(
-                  //          title,
-                  //          style: TextStyle(
-                  //            fontSize: 11,
-                  //            color: Colors.black,
-                  //          ),
-                  //          textAlign: TextAlign.center,
-                  //          maxLines: 2,
-                  //          overflow: TextOverflow.ellipsis,
-                  //        )
-                  //    )
-                  //),
-                  // Stroked text as border.
                   Container(
                     decoration:BoxDecoration(
                       color: Colors.transparent
@@ -280,24 +285,10 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
                             color: Colors.black,
                           ),
                           textAlign: TextAlign.center,
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
+
                         ),
                       )
                   )
-                      /*FittedBox(
-                        fit: BoxFit.fitWidth,
-                        child: Text(
-                          wrapTitle(title),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.black,
-                          ),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      )*/
                 ],
               )
           ),
@@ -306,8 +297,8 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
     });
   }
 
-  ///Wraped den Text manuel, da mit Constrains, Positioned, etc. immer Text horizontal abgeschnitten wurde
-  String wrapTitle(String text) {
+  //Wraped den Text manuel, da mit Constrains, Positioned, etc. immer Text horizontal abgeschnitten wurde
+  /*String wrapTitle(String text) {
     String correctedText = text;
     if (text.length > 9) { //9 wirkte wie guter Wert
       List<String> words = text.split(" ");
@@ -322,62 +313,101 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
       }
     }
     return correctedText;
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-        canPop: true,
-        onPopInvokedWithResult: (bool didPop, result) {
-          if (!didPop) {
-            String updateMainPage = updated ? "updated" : "";
-            navigatorKey.currentState?.pop(updateMainPage);
-          }
-        },
-        child: Scaffold(
+    return Scaffold(
           appBar: AppBar(
             title: FittedBox(
-              child: Text(Utilities().convertWeekkeyToDisplayPeriodString(widget.weekKey)),
+              child: Text(Utilities().convertWeekKeyToDisplayPeriodString(widget.weekKey)),
             ),
             centerTitle: true,
-            leading: IconButton(
-                onPressed: () {
-                  String updateMainPage = updated ? "updated" : "";
-                  navigatorKey.currentState?.pop(updateMainPage);
-                },
-                icon: Icon(Icons.arrow_back)),
+            shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(15))),
             actions: [
-              Utilities().getHelpBurgerMenu(context, "WeekPlanView")
+              Padding( //Nicht die Funktion aus Utilities, da ich auf hinzufügen von Eintrag reagieren muss, was nicht durch RouteAware/DidPopNext aufgefangen wird
+                padding: EdgeInsets.only(right: 5),
+                child: MenuAnchor(
+                    menuChildren: <Widget>[
+                      MenuItemButton(
+                        child: Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Icon(Icons.help_rounded),
+                              SizedBox(width: 10),
+                              Text(S.of(context).help)
+                            ],
+                          ),
+                        ),
+                        onPressed: () => Utilities().showHelpDialog(context, "WeekPlanView"),
+                      ),
+                      //TODO: Falls Eintröge manuell hinzugefügt werden können
+                      /*MenuItemButton(
+                        child: Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Icon(Icons.add_task),
+                              SizedBox(width: 10),
+                              Text(S.current.createTermin)
+                            ],
+                          ),
+                        ),
+                        onPressed: () async {
+                          var result = await TerminDialog(weekKey: widget.weekKey).show(context);
+                          if(result != null){
+                            if(result){
+                              updateCalendar();
+                            }
+                          }
+                        },
+                      )*/
+                    ],
+                    builder: (BuildContext context, MenuController controller, Widget? child) {
+                      return TextButton(
+                        focusNode: FocusNode(),
+                        onPressed: () {
+                          if (controller.isOpen) {
+                            controller.close();
+                          } else {
+                            controller.open();
+                          }
+                        },
+                        child: const Icon(Icons.menu, size: 30),
+                      );
+                    }
+                ),
+              )
+              //Utilities().getHelpBurgerMenu(context, "WeekPlanView", widget.weekKey)
             ],
           ),
           body: LayoutBuilder(builder: (context, constraints){
             bool isPortrait = constraints.maxWidth < 600;
             return Container(
-              decoration: BoxDecoration(color: Theme.of(context).appBarTheme.backgroundColor),
-              child: Container(
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20)),
-                    color: Theme.of(context).scaffoldBackgroundColor
-                ),
-                child: Padding(
-                  padding: EdgeInsets.only(left: 0, right: 0),
-                  child: TimePlanner( //evtl auf 24/7 ändern
-                    startHour: 0,
-                    endHour: 23,
-                    use24HourFormat: true,
-                    setTimeOnAxis: true,
-                    currentTimeAnimation: true,
-                    style: TimePlannerStyle(
-                      cellHeight: 50,
-                      cellWidth:  isPortrait ? 115 : ((MediaQuery.of(context).size.width - 60)/7).toInt(), //leider nur wenn neu gebuildet wird
-                      showScrollBar: true,
-                      borderRadius: BorderRadius.all(Radius.circular(5)),
-                      interstitialEvenColor: MyApp.of(context).themeMode == ThemeMode.light ? Colors.grey[50] : Colors.blueGrey.shade400,
-                      interstitialOddColor: MyApp.of(context).themeMode == ThemeMode.light ? Colors.grey[200] : Colors.blueGrey.shade500,
-                    ),
-                    headers: calendarHeaders,
-                    tasks: tasks,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20),topRight: Radius.circular(20)),
+                  color: Theme.of(context).scaffoldBackgroundColor
+              ),
+              child: Padding(
+                padding: EdgeInsets.only(left: 0, right: 0),
+                child: TimePlanner( //index startet bei 0, 0-23 ist also 24/7
+                  startHour: 0,
+                  endHour: 23,
+                  use24HourFormat: true,
+                  setTimeOnAxis: true,
+                  currentTimeAnimation: true,
+                  style: TimePlannerStyle(
+                    cellHeight: 50,
+                    cellWidth:  isPortrait ? 115 : ((MediaQuery.of(context).size.width - 60)/7).toInt(), //leider nur wenn neu gebuildet wird
+                    showScrollBar: true,
+                    borderRadius: BorderRadius.all(Radius.circular(5)),
+                    interstitialEvenColor: MyApp.of(context).themeMode == ThemeMode.light ? Colors.grey[50] : Colors.blueGrey.shade400,
+                    interstitialOddColor: MyApp.of(context).themeMode == ThemeMode.light ? Colors.grey[200] : Colors.blueGrey.shade500,
                   ),
+                  headers: calendarHeaders,
+                  tasks: tasks,
                 ),
               ),
             );
@@ -393,9 +423,6 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
             },
             child: const Icon(Icons.summarize_rounded),
           ),
-        )
-    );
-
-      ;
+        );
   }
 }

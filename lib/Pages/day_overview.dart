@@ -9,16 +9,15 @@ import 'package:menta_track/gif_progress_widget.dart';
 import 'package:menta_track/helper_utilities.dart';
 import 'package:sqflite/sqflite.dart';
 import '../generated/l10n.dart';
-import '../main.dart';
 import '../reward_pop_up.dart';
 import '../termin.dart';
-import 'week_plan_view.dart';
 
+///Tagesübersichtsseite zeigt Informationen zu einem Tag
 //Confetti package: https://pub.dev/packages/confetti
-
+//TODO Variation falls Termin nach endbenachrichtigung!
 class DayOverviewPage extends StatefulWidget {
-  final String weekKey;
-  final String weekDayKey; //braucht ("dd.MM.yy") format
+  final String weekKey; ///braucht "yyyy-MM-dd"-Format
+  final String weekDayKey; ///braucht ("dd.MM.yy") format
   final bool fromNotification;
 
   const DayOverviewPage({
@@ -35,7 +34,7 @@ class DayOverviewPage extends StatefulWidget {
 class DayOverviewState extends State<DayOverviewPage> {
   DatabaseHelper databaseHelper = DatabaseHelper();
   late ConfettiController _controllerCenter;
-  late ConfettiController _controllerConstant;
+  //late ConfettiController _controllerConstant;
   List<RadarEntry> radarEntries = [];
   int overAllTasksThisDay = 0;
   int tasksDoneInt = 0;
@@ -54,24 +53,25 @@ class DayOverviewState extends State<DayOverviewPage> {
   void initState() {
     getTermineForDay();
     _controllerCenter = ConfettiController(duration: const Duration(seconds: 2));
-    _controllerConstant = ConfettiController(duration: const Duration(seconds: 40));
+    //_controllerConstant = ConfettiController(duration: const Duration(seconds: 40));
     tooEarly = DateTime.now().isBefore(DateFormat("dd.MM.yy").parse(widget.weekDayKey));
-    print(tooEarly);
     super.initState();
   }
 
   @override
   void dispose() {
     _controllerCenter.dispose();
-    _controllerConstant.dispose();
+   // _controllerConstant.dispose();
 
     super.dispose();
   }
 
+  ///Holt alle relevanten Daten und wandelt sie für die verschieden Widgets (Besondere Aktivitäten/Graphen/Fortschritt-Baum) um
   void getTermineForDay() async{
     List<Termin> termineForThisDay = await databaseHelper.getDayTermine(widget.weekDayKey); //weekKey im Format "dd.MM.yy"
-    int totalTasksTillThisDay = await databaseHelper.getWeekTermineCount(widget.weekKey);
+    int totalTasksThisWeek = await databaseHelper.getWeekTermineCount(widget.weekKey, false);
     overAllTasksThisDay = termineForThisDay.length;
+    print(termineForThisDay);
     SettingData data = await SettingsPageState().getSettings();
     name = data.name;
 
@@ -136,56 +136,24 @@ class DayOverviewState extends State<DayOverviewPage> {
         RadarEntry(value: meanQuestion2 / tasksDoneInt +1),
 
       ];
-      print("goodMean: ${meanQuestion1 / tasksDoneInt +1}");
-      print("helpMean: ${meanQuestion3 / tasksDoneInt +1}");
-      print("calmMean: ${ meanQuestion2 / tasksDoneInt +1}");
       favoriteAnswers = [favoriteTasks.trimRight(), calmTasks.trimRight(), helpingTasks.trimRight()]; //.trimRight() entfernt letztes \n, if(favoriteTasks != "") favoriteAnswers.add(...) geht nicht, da die Tasks den Comments zugeordnet werden müssen, wenn nur calmTaks da wären, würden diese sonst den favoriteComment zugeordnet werden
-      //Und schaut ob sie leer sind, damit kein leeres Material angezeigt wird
-      if (favoriteTasks == "" && calmTasks == "" && helpingTasks == "") noFavorites = true;
-
+      if (favoriteTasks == "" && calmTasks == "" && helpingTasks == "") noFavorites = true;//schaut ob sie leer sind, damit kein leeres Material angezeigt wird
     } else {
       noFavorites = true;
     }
-    startFrame = tasksUntilThisDay/totalTasksTillThisDay;
-    endFrame = (tasksUntilThisDay + tasksDoneInt)/totalTasksTillThisDay;
+    startFrame = tasksUntilThisDay/totalTasksThisWeek;
+    endFrame = (tasksUntilThisDay + tasksDoneInt)/totalTasksThisWeek;
 
     setState(() {
       tasksDoneInt;
       overAllTasksThisDay;
       loaded = true;
       _controllerCenter.play();
-      _controllerConstant.play();
+      //_controllerConstant.play();
     });
   }
 
-
-
-  /*Widget favoriteItems(int i) { //TODO: Test
-    List<String> favoriteComments = [
-      "Am besten ging es dir hier ${Emojis.smile_grinning_face_with_smiling_eyes}:",
-      "Hier warst du am ruhigsten ${Emojis.smile_relieved_face}:",
-      "Am meisten geholfen hat dir ${Emojis.body_flexed_biceps}:"];
-
-    if(favoriteAnswers.isNotEmpty){
-      if(favoriteAnswers[i] != ""){
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            FittedBox(
-              child: Text(favoriteComments[i],textAlign: TextAlign.start, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
-            ),
-            Padding(
-                padding: EdgeInsets.only(left: 20,bottom: 10,top: 10),
-                child: Text(favoriteAnswers[i],style: TextStyle(fontSize: 15),textAlign: TextAlign.start,)
-            )
-          ],
-        );
-      }
-    }
-    return SizedBox(height: 0,);
-  }*/
-
+  ///Erstellt die Confetti Widgets
   Widget buildConfettiWidgets() {
     if (overAllTasksThisDay == 0 || tasksDoneInt == 0 || !widget.fromNotification) {
       return SizedBox(); // Wenn eine der Bedingungen nicht erfüllt ist, kein Confetti anzeigen
@@ -196,8 +164,8 @@ class DayOverviewState extends State<DayOverviewPage> {
       children: [
         buildConfetti(_controllerCenter, BlastDirectionality.explosive, 0.25, 20, 0.1, false, Alignment.topRight),
         buildConfetti(_controllerCenter, BlastDirectionality.explosive, 0.25, 20, 0.1, false, Alignment.topLeft),
-        buildConfetti(_controllerConstant, BlastDirectionality.explosive, 0.15, 2, 0.1, true, Alignment.topLeft),
-        buildConfetti(_controllerConstant, BlastDirectionality.explosive, 0.15, 2, 0.1, true, Alignment.topRight),
+        //buildConfetti(_controllerConstant, BlastDirectionality.explosive, 0.15, 2, 0.1, true, Alignment.topLeft),
+        //buildConfetti(_controllerConstant, BlastDirectionality.explosive, 0.15, 2, 0.1, true, Alignment.topRight),
       ],
     );
   }
@@ -216,22 +184,38 @@ class DayOverviewState extends State<DayOverviewPage> {
     );
   }
 
+  ///Öffnet das Belohnungs-PopUp und wartet auf das Bestätigen um die Seite zu verlassen
   void openRewardPopUp() async{
     String? result = await RewardPopUp().show(
         context,
         S.current.day_reward_message,
         widget.weekKey,
         false
-      //(){Navigator.of(context).pop();}
     );
     if(result == "confirmed"){
       leavePage();
     }
   }
 
+  ///Erzeugt den anzuzeigenden Text basierend auf beantworteten Aktivitäten/Zeitpunkt/etc.
   Widget getText() {
     final local = S.current;
-
+    /*if(DateFormat("dd.MM.yy").format(DateTime.now()) != widget.weekDayKey){
+      return RichText(
+        text: TextSpan(
+          style: TextStyle(
+            fontSize: 24,
+            color: Theme.of(context).textTheme.bodyMedium?.color,
+          ),
+          children: <TextSpan>[
+            TextSpan(text: S.current.dayNotYetArrived(name)),
+            TextSpan(text: "\n\n", style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(text: local.hopeYouHadAGoodDay(name.length,name)),
+          ],
+        ),
+        textAlign: TextAlign.center,
+      );
+    }
     if (tasksDoneInt != 0) {
       return RichText(
         text: TextSpan(
@@ -267,31 +251,28 @@ class DayOverviewState extends State<DayOverviewPage> {
         textAlign: TextAlign.center,
       );
     }
-
     if (tasksDoneInt == 0) {
       return RichText(
         text: overAllTasksThisDay == 0
-            ? TextSpan(
+        ? TextSpan(
           style: TextStyle(
             fontSize: 24,
             color: Theme.of(context).textTheme.bodyMedium?.color,
           ),
           children: <TextSpan>[
-            TextSpan(
-                text: local.noAppointmentsOn(DateFormat("dd.MM.yy").format(DateTime.now()) == widget.weekDayKey ? local.today : "${local.am} ${widget.weekDayKey}")
-            ),
-            TextSpan(
-                text: "\n\n", style: TextStyle(fontWeight: FontWeight.bold)),
+            TextSpan(text: local.noAppointmentsOn(DateFormat("dd.MM.yy").format(DateTime.now()) == widget.weekDayKey ? local.today : "${local.am} ${widget.weekDayKey}")),
+            TextSpan(text: "\n\n", style: TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(text: local.hopeYouHadAGoodDay(name.length,name)),
           ],
         )
-            : (tasksMissed > 0 && overAllTasksThisDay != 0)
+        : (tasksMissed > 0 && overAllTasksThisDay != 0) //Wenn etwas geplant war, aber garnichts beantwortet wurde
             ? TextSpan(
           style: TextStyle(
             fontSize: 24,
             color: Theme.of(context).textTheme.bodyMedium?.color,
           ),
           children: <TextSpan>[
+            if(widget.fromNotification) TextSpan(text: S.current.noFeedbackFromNotification),
             TextSpan(
                 text: local.tasksNotAnsweredOn(overAllTasksThisDay, DateFormat("dd.MM.yy").format(DateTime.now()) == widget.weekDayKey ? local.today : "${local.am} ${widget.weekDayKey}")
             ),
@@ -300,69 +281,115 @@ class DayOverviewState extends State<DayOverviewPage> {
             TextSpan(text: "\n\n${local.hopeYouHadAGoodDay(name.length,name)}"),
           ],
         )
-            : tasksMissed == 0 ? TextSpan(
+        : tasksMissed == 0 ? TextSpan(
             style: TextStyle(
             fontSize: 24,
             color: Theme.of(context).textTheme.bodyMedium?.color,
           ),
           children: <TextSpan>[
-            TextSpan(text: local.dayNotYetArrived(name)),
+            TextSpan(text: local.activity_not_there_yet(overAllTasksThisDay,name )),
           ],
         )
             : TextSpan(text: local.unexpectedCaseFound),
         textAlign: TextAlign.center,
+      );
+    }*/
+
+    print("OverallTermine: ${overAllTasksThisDay}");
+    List<TextSpan> text = [];
+
+    if(overAllTasksThisDay == 0){
+      ///kein Termin an diesem tag
+      text = [
+        TextSpan(text: local.noAppointmentsOn(DateFormat("dd.MM.yy").format(DateTime.now()) == widget.weekDayKey ? local.today : "${local.am} ${widget.weekDayKey}")),
+        TextSpan(text: "\n\n", style: TextStyle(fontWeight: FontWeight.bold)),
+        TextSpan(text: local.hopeYouHadAGoodDay(name.length,name)),
+      ];
+    }
+    if(overAllTasksThisDay != 0){
+      ///Es gab termine
+      if(tasksDoneInt != 0){
+        ///Es wurde mindestens ein Termin beantwortet
+        text = [
+          TextSpan(text: local.taskCompletedOn(DateFormat("dd.MM.yy").format(DateTime.now()) == widget.weekDayKey ? local.today : "${S.of(context).am} ${widget.weekDayKey}"),style: TextStyle(fontSize: 25),),
+          TextSpan(text: "$tasksDoneInt",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),),
+          TextSpan(text: local.tasksCompleted(tasksDoneInt),style: TextStyle(fontSize: 25),),
+          TextSpan(text: "\n\n${Utilities().getRandomisedEncouragement(widget.fromNotification, name)}",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),),
+        ];
+          if(tasksMissed > 0 ){
+          ///mindestens ein Termin missed
+          text.add(TextSpan(text: local.tasksPendingFeedback(tasksMissed),style: TextStyle(fontSize: 15)));
+          }
+      }
+      if(tasksMissed > 0 && tasksDoneInt == 0){
+        ///Noch keinen Termin beantwortet
+        text = [
+          if(widget.fromNotification) TextSpan(text: S.current.noFeedbackFromNotification),
+          TextSpan(text: local.tasksNotAnsweredOn(overAllTasksThisDay, DateFormat("dd.MM.yy").format(DateTime.now()) == widget.weekDayKey ? local.today : "${local.am} ${widget.weekDayKey}")),
+          TextSpan(text: "\n\n"),
+          TextSpan(text: local.checkPendingFeedback),
+          TextSpan(text: "\n\n${local.hopeYouHadAGoodDay(name.length,name)}"),
+        ];
+      }
+      if(tasksMissed == 0 && tasksDoneInt == 0){
+        ///die Aktivität ist noch nicht gekommen
+        text = [
+          TextSpan(text: local.activity_not_there_yet(overAllTasksThisDay, name)),
+        ];
+      }
+      if(tasksDoneInt + tasksMissed != overAllTasksThisDay){
+        ///mindestens ein termin ist noch nicht gekommen
+        text = [
+          if(tasksDoneInt > 0)...{
+            TextSpan(text: local.taskCompletedOn(DateFormat("dd.MM.yy").format(DateTime.now()) == widget.weekDayKey ? local.today : "${S.of(context).am}\n${widget.weekDayKey}"),style: TextStyle(fontSize: 25),),
+            TextSpan(text: "$tasksDoneInt",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),),
+            TextSpan(text: local.tasksCompleted(tasksDoneInt),style: TextStyle(fontSize: 25),),
+            TextSpan(text: "\n\n${Utilities().getRandomisedEncouragement(widget.fromNotification, name)}",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),),
+          },
+          ///mindestens ein Termin missed
+          if(tasksMissed > 0 ) TextSpan(text: local.tasksPendingFeedback(tasksMissed),style: TextStyle(fontSize: 15)),
+          TextSpan(text: local.activity_not_there_yet(overAllTasksThisDay, name)),
+        ];
+      }
+    }
+    if(DateTime.now().isBefore(DateFormat("dd.MM.yy").parse(widget.weekDayKey))){
+      ///Der Tag ist noch nicht gekommen
+      text = [
+        TextSpan(text: S.current.dayNotYetArrived(name)),
+        TextSpan(text: "\n\n", style: TextStyle(fontWeight: FontWeight.bold)),
+        TextSpan(text: local.hopeYouHadAGoodDay(name.length,name)),
+      ];
+    }
+    if(text.isNotEmpty){
+      return RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+              style: TextStyle(
+                fontSize: 24,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+              ),
+              children: text),
       );
     }
 
     return SizedBox();
   }
 
+  ///Zum verlassen der Seite, damit context nicht in async Funktion liegt
   void leavePage(){
-    if(widget.fromNotification){ //Andere Pageroute, wenn von Notification, wird wahrscheinlich entfernt
-      navigatorKey.currentState?.pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) => WeekPlanView(
-                weekKey: widget.weekKey),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-              const begin = Offset(1.0, 0.0);
-              const end = Offset.zero;
-              const curve = Curves.easeInOut;
-
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-              var offsetAnimation = animation.drive(tween);
-
-              return SlideTransition(
-                position: offsetAnimation,
-                child: child,
-              );
-            },
-          )
-      );
-    } else {
-      Navigator.pop(context);
-    }
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-        canPop: false, // Ermöglicht das Verlassen der Seite
+        canPop: false,
         onPopInvokedWithResult: (bool didPop, result) {
           if (!didPop) {
             leavePage();
           }
         },
         child:  Scaffold(
-          appBar: AppBar(
-            title: Text(widget.weekDayKey),
-            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () {
-                leavePage();
-              },
-            ),
-          ),
           body:  Stack(
             children: [
               ShaderMask(
@@ -383,7 +410,7 @@ class DayOverviewState extends State<DayOverviewPage> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          //SizedBox(height: MediaQuery.of(context).size.height*0.07,), //TODO: Falls Appbar entfernt wird
+                          SizedBox(height: MediaQuery.of(context).size.height*0.07,),
                           SizedBox(height: MediaQuery.of(context).size.height*0.03,),
                           loaded ? getText() : SizedBox(width: MediaQuery.of(context).size.width,),
                           SizedBox(height: 20,),
@@ -410,7 +437,7 @@ class DayOverviewState extends State<DayOverviewPage> {
                             ),
                           ),
                           SizedBox(height: 20),
-                          if (endFrame != 0 && tasksMissed == 0 && !tooEarly)
+                          if (endFrame != 0 && !tooEarly && tasksMissed != overAllTasksThisDay)
                             GifProgressWidget(
                               progress: endFrame,
                               startFrame: overAllTasksThisDay != 0 ? startFrame : 0,
@@ -455,7 +482,6 @@ class DayOverviewState extends State<DayOverviewPage> {
                                   getTitle: (index, angle) {
                                     switch (index) {
                                     /// case 0 ist oben, case 1 ist unten links, case 2 ist unten rechts
-                                    ///aber radar
                                       case 0: //Wie gut hast du dich gefühlt
                                         return RadarChartTitle(
                                           text: "${S.of(context).legend_Msg0}\n ${radarEntries[0].value.toString().substring(0, 3)}/7",
@@ -510,11 +536,11 @@ class DayOverviewState extends State<DayOverviewPage> {
             ],
           ),
         )
-
     );
   }
 
 
+  ///DataSet für den Radar-Chart
   List<RadarDataSet> showingDataSets() {
     return <RadarDataSet> [
       RadarDataSet(

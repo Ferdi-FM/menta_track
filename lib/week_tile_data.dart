@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-//CustomTileData für die Liste der Wochenpläne
+///CustomTileData für die Liste der Wochenpläne
 
 class WeekTileData {
   final Icon icon;

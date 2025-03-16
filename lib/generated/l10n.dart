@@ -170,6 +170,11 @@ class S {
     );
   }
 
+  /// `Comment:`
+  String get comment {
+    return Intl.message('Comment:', name: 'comment', desc: '', args: []);
+  }
+
   /// `{date}`
   String displayADateWithYear(DateTime date) {
     final DateFormat dateDateFormat = DateFormat(
@@ -221,6 +226,16 @@ class S {
   /// `to`
   String get till {
     return Intl.message('to', name: 'till', desc: '', args: []);
+  }
+
+  /// `You don't have any weekplans yet 🙂 \nTap the button on the bottom right to open the QR-Code scanner and import a plan 😊`
+  String get mainPage_noEntries_text {
+    return Intl.message(
+      'You don\'t have any weekplans yet 🙂 \nTap the button on the bottom right to open the QR-Code scanner and import a plan 😊',
+      name: 'mainPage_noEntries_text',
+      desc: '',
+      args: [],
+    );
   }
 
   /// ` No Entries yet`
@@ -463,6 +478,16 @@ class S {
     );
   }
 
+  /// `Deine Aktivität startet gleich, schau in 15min oder später nochmal vorbei um Feedback zu geben😊 👍`
+  String get questionPage_slightly_too_early {
+    return Intl.message(
+      'Deine Aktivität startet gleich, schau in 15min oder später nochmal vorbei um Feedback zu geben😊 👍',
+      name: 'questionPage_slightly_too_early',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `If you'd like, you can add a short comment here:`
   String get questionPage_comment {
     return Intl.message(
@@ -491,6 +516,42 @@ class S {
       desc: '',
       args: [],
     );
+  }
+
+  /// `{count, plural,  =0{{name} ist am {date1} um {date2}\n\nDu bist zu früh dran 😊 \nAber trotzdem cool, dass du vorbeischaust 👍} other{{name} ist am {date1} um {date2}\n\nCool das du da bist 😊 Schau in kürze nochmal hier rein um Feedback zu geben 👍}}`
+  String questionPage_too_early1(
+    DateTime date1,
+    DateTime date2,
+    num count,
+    Object name,
+  ) {
+    final DateFormat date1DateFormat = DateFormat(
+      'dd.MM',
+      Intl.getCurrentLocale(),
+    );
+    final String date1String = date1DateFormat.format(date1);
+
+    final DateFormat date2DateFormat = DateFormat(
+      'HH:mm',
+      Intl.getCurrentLocale(),
+    );
+    final String date2String = date2DateFormat.format(date2);
+
+    return Intl.plural(
+      count,
+      zero:
+          '$name ist am $date1String um $date2String\n\nDu bist zu früh dran 😊 \nAber trotzdem cool, dass du vorbeischaust 👍',
+      other:
+          '$name ist am $date1String um $date2String\n\nCool das du da bist 😊 Schau in kürze nochmal hier rein um Feedback zu geben 👍',
+      name: 'questionPage_too_early1',
+      desc: '',
+      args: [date1String, date2String, count, name],
+    );
+  }
+
+  /// `Edit`
+  String get edit {
+    return Intl.message('Edit', name: 'edit', desc: '', args: []);
   }
 
   /// `Your Name`
@@ -585,20 +646,20 @@ class S {
     );
   }
 
-  /// `Du hast die App gerade zum ersten mal geöffnet. \nCool, dass du diese App verwendest :) \n Du kannst alles in den Einstellungen ein wenig anpassen wenn du Lust hast. \nTippe dazu auf die drei Strich in der oberen rechten Ecke und dann auf Einstellungen\n\n`
+  /// `You just opened the app for the first time.\nCool that you're using this app! :)\nYou can customize things a bit in the settings if you'd like.\nJust tap the three lines in the top right corner and then select Settings.`
   String get firstStartUp_Message1 {
     return Intl.message(
-      'Du hast die App gerade zum ersten mal geöffnet. \nCool, dass du diese App verwendest :) \n Du kannst alles in den Einstellungen ein wenig anpassen wenn du Lust hast. \nTippe dazu auf die drei Strich in der oberen rechten Ecke und dann auf Einstellungen\n\n',
+      'You just opened the app for the first time.\nCool that you\'re using this app! :)\nYou can customize things a bit in the settings if you\'d like.\nJust tap the three lines in the top right corner and then select Settings.',
       name: 'firstStartUp_Message1',
       desc: '',
       args: [],
     );
   }
 
-  /// `Falls du mehr Infos zu einer Seite willst findest du in dem Menü auch einen Hilfe-Button`
+  /// `If you need more Help theres a Help-Button in the same menu😊`
   String get firstStartUp_Message2 {
     return Intl.message(
-      'Falls du mehr Infos zu einer Seite willst findest du in dem Menü auch einen Hilfe-Button',
+      'If you need more Help theres a Help-Button in the same menu😊',
       name: 'firstStartUp_Message2',
       desc: '',
       args: [],
@@ -660,6 +721,46 @@ class S {
     return Intl.message(
       'You can switch pages by swiping left/right or using the button in the bottom menu.',
       name: 'mainPageSwipeOrButton',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Shows you that you gave Feedback to every Activity`
+  String get iconHelp1 {
+    return Intl.message(
+      'Shows you that you gave Feedback to every Activity',
+      name: 'iconHelp1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Shows you that you can give Feedback`
+  String get iconHelp2 {
+    return Intl.message(
+      'Shows you that you can give Feedback',
+      name: 'iconHelp2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Shows you the current week`
+  String get iconHelp3 {
+    return Intl.message(
+      'Shows you the current week',
+      name: 'iconHelp3',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Shows you the week hasn't come yet`
+  String get iconHelp4 {
+    return Intl.message(
+      'Shows you the week hasn\'t come yet',
+      name: 'iconHelp4',
       desc: '',
       args: [],
     );
@@ -775,6 +876,56 @@ class S {
     );
   }
 
+  /// `Hier kannst du Feedback zu deinen Aktivitäten geben! :)\n`
+  String get questionPageHelpDialog1 {
+    return Intl.message(
+      'Hier kannst du Feedback zu deinen Aktivitäten geben! :)\n',
+      name: 'questionPageHelpDialog1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Du kannst auch feedback geben, falls es nicht geklappt hat!\nAllein das du Feedback gibst ist schon toll {name} :)\n`
+  String questionPageHelpDialog2(Object name) {
+    return Intl.message(
+      'Du kannst auch feedback geben, falls es nicht geklappt hat!\nAllein das du Feedback gibst ist schon toll $name :)\n',
+      name: 'questionPageHelpDialog2',
+      desc: '',
+      args: [name],
+    );
+  }
+
+  /// `Die Fragen öffnen sich jeweils wenn du die vorherige beantwortet hast, am Ende kannst du noch einen kurzen Kommentar mit deinen Gedanken hinzufügen `
+  String get questionPageHelpDialog3 {
+    return Intl.message(
+      'Die Fragen öffnen sich jeweils wenn du die vorherige beantwortet hast, am Ende kannst du noch einen kurzen Kommentar mit deinen Gedanken hinzufügen ',
+      name: 'questionPageHelpDialog3',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Schiebe dann den Slider nach rechts um dein Feedback zu speichern :)`
+  String get questionPageHelpDialog4 {
+    return Intl.message(
+      'Schiebe dann den Slider nach rechts um dein Feedback zu speichern :)',
+      name: 'questionPageHelpDialog4',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Viel Erfolg! Ich hoffe wirklich, dass es dir hilft! \n`
+  String get questionPageHelpDialog5 {
+    return Intl.message(
+      'Viel Erfolg! Ich hoffe wirklich, dass es dir hilft! \n',
+      name: 'questionPageHelpDialog5',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `General Help`
   String get generalHelp {
     return Intl.message(
@@ -805,12 +956,12 @@ class S {
     );
   }
 
-  /// `{count, plural, =0{Dein Progress bis zu diesem Tag 😇} other{Dein Progress an diesem Tag 😇}}`
+  /// `{count, plural, =0{Your Progress till this day 😇} other{Your Progress on this day 😇}}`
   String gifProgress_title(num count) {
     return Intl.plural(
       count,
-      zero: 'Dein Progress bis zu diesem Tag 😇',
-      other: 'Dein Progress an diesem Tag 😇',
+      zero: 'Your Progress till this day 😇',
+      other: 'Your Progress on this day 😇',
       name: 'gifProgress_title',
       desc: '',
       args: [count],
@@ -977,10 +1128,10 @@ class S {
     );
   }
 
-  /// `You're getting closer to your goal every day! 🚶♀️`
+  /// `You're getting closer to your goal every day! 🚶`
   String get helper_activities8 {
     return Intl.message(
-      'You\'re getting closer to your goal every day! 🚶♀️',
+      'You\'re getting closer to your goal every day! 🚶',
       name: 'helper_activities8',
       desc: '',
       args: [],
@@ -1217,20 +1368,20 @@ class S {
     );
   }
 
-  /// `{name} here is a list of all your weekly plans 😊`
+  /// `{name}here is a list of all your weekly plans 😊`
   String themeHelper_msg0(Object name) {
     return Intl.message(
-      '$name here is a list of all your weekly plans 😊',
+      '${name}here is a list of all your weekly plans 😊',
       name: 'themeHelper_msg0',
       desc: '',
       args: [name],
     );
   }
 
-  /// `{name} here are all the activities where you haven't given feedback yet 😉\n`
+  /// `{name}here are all the activities where you haven't given feedback yet 😉\n`
   String themeHelper_open_msg0(Object name) {
     return Intl.message(
-      '$name here are all the activities where you haven\'t given feedback yet 😉\n',
+      '${name}here are all the activities where you haven\'t given feedback yet 😉\n',
       name: 'themeHelper_open_msg0',
       desc: '',
       args: [name],
@@ -1250,10 +1401,20 @@ class S {
     );
   }
 
-  /// `{date} you completed\n`
+  /// `The day is over, it's great you opened this Notification,\nthat in itself proofs you're working to improve your Situation👍 \n Thank You!😉`
+  String get noFeedbackFromNotification {
+    return Intl.message(
+      'The day is over, it\'s great you opened this Notification,\nthat in itself proofs you\'re working to improve your Situation👍 \n Thank You!😉',
+      name: 'noFeedbackFromNotification',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{date} \nyou completed\n`
   String taskCompletedOn(Object date) {
     return Intl.message(
-      '$date you completed\n',
+      '$date \nyou completed\n',
       name: 'taskCompletedOn',
       desc: '',
       args: [date],
@@ -1337,6 +1498,16 @@ class S {
     );
   }
 
+  /// `{count, plural, =1{Die Aktivität ist} other{die Aktivitäten sind}} noch nicht gekommen 😉 Trotzdem schön, dass du schon mal hier reinschaust {name} :)`
+  String activity_not_there_yet(num count, Object name) {
+    return Intl.message(
+      '${Intl.plural(count, one: 'Die Aktivität ist', other: 'die Aktivitäten sind')} noch nicht gekommen 😉 Trotzdem schön, dass du schon mal hier reinschaust $name :)',
+      name: 'activity_not_there_yet',
+      desc: '',
+      args: [count, name],
+    );
+  }
+
   /// `Congratulations!!! 🎉 You found a case I didn't think of! Great job! 😊 If possible, let your therapist or the app developer know which combination led to this case.`
   String get unexpectedCaseFound {
     return Intl.message(
@@ -1377,15 +1548,15 @@ class S {
     );
   }
 
-  /// `{count, plural, =1{Task\n\n {randomText}} other{Tasks\n\n {randomText}}}`
-  String weekOverView_summary_part2(num count, Object randomText) {
+  /// `{count, plural, =1{Task\n\n} other{Tasks\n\n}}`
+  String weekOverView_summary_part2(num count) {
     return Intl.plural(
       count,
-      one: 'Task\n\n $randomText',
-      other: 'Tasks\n\n $randomText',
+      one: 'Task\n\n',
+      other: 'Tasks\n\n',
       name: 'weekOverView_summary_part2',
       desc: '',
-      args: [count, randomText],
+      args: [count],
     );
   }
 
@@ -1400,6 +1571,16 @@ class S {
       name: 'weekOverView_leftAnswers',
       desc: '',
       args: [count],
+    );
+  }
+
+  /// `Die Woche ist noch nicht gekommen. Schau gerne später wieder hierrein :)`
+  String get weekOverView_tooEarly {
+    return Intl.message(
+      'Die Woche ist noch nicht gekommen. Schau gerne später wieder hierrein :)',
+      name: 'weekOverView_tooEarly',
+      desc: '',
+      args: [],
     );
   }
 
@@ -1509,7 +1690,7 @@ class S {
     );
   }
 
-  /// `$🎉 Activity Summary for the {date}`
+  /// `🎉 Activity Summary for the {date}`
   String noti_dayEnd_title(DateTime date) {
     final DateFormat dateDateFormat = DateFormat(
       'dd.MM.yy',
@@ -1518,7 +1699,7 @@ class S {
     final String dateString = dateDateFormat.format(date);
 
     return Intl.message(
-      '\$🎉 Activity Summary for the $dateString',
+      '🎉 Activity Summary for the $dateString',
       name: 'noti_dayEnd_title',
       desc: '',
       args: [dateString],
@@ -1578,6 +1759,66 @@ class S {
       desc: '',
       args: [],
     );
+  }
+
+  /// `Du you want to really delete:`
+  String get delete_Termin {
+    return Intl.message(
+      'Du you want to really delete:',
+      name: 'delete_Termin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `delete Activity`
+  String get delete_Entry {
+    return Intl.message(
+      'delete Activity',
+      name: 'delete_Entry',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `create Activity`
+  String get createTermin {
+    return Intl.message(
+      'create Activity',
+      name: 'createTermin',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Activity Name`
+  String get terminName {
+    return Intl.message(
+      'Activity Name',
+      name: 'terminName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Name mustn't `
+  String get notEmpty {
+    return Intl.message('Name mustn\'t ', name: 'notEmpty', desc: '', args: []);
+  }
+
+  /// `Starttime:`
+  String get beginTime {
+    return Intl.message('Starttime:', name: 'beginTime', desc: '', args: []);
+  }
+
+  /// `Endtime:`
+  String get endTime {
+    return Intl.message('Endtime:', name: 'endTime', desc: '', args: []);
+  }
+
+  /// `Date`
+  String get date {
+    return Intl.message('Date', name: 'date', desc: '', args: []);
   }
 }
 

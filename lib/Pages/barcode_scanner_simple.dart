@@ -3,6 +3,8 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../generated/l10n.dart';
 
+///QR-Code Scanner Seite
+
 class BarcodeScannerSimple extends StatefulWidget {
 
   const BarcodeScannerSimple({
@@ -36,12 +38,12 @@ class _BarcodeScannerSimpleState extends State<BarcodeScannerSimple> {
 
   Future<void> _handleBarcode(BarcodeCapture barcodes) async {
     if (mounted && !codeFound) {
-        codeFound = true; //Hier, damit der Barcode nicht mehrmals gescannt wird was zu crashes führt im Zusammenhang mit dem 1sekunden delay
+        codeFound = true; //Hier, damit der Barcode nicht mehrmals gescannt wird was im Zusammenhang mit dem 1 Sekunden delay zu crashes führt
         _barcode = barcodes.barcodes.firstOrNull;
         setState(() {
           _barcode;
         });
-        await Future.delayed(const Duration(seconds: 1)); //Warte 1 Sekunde
+        await Future.delayed(const Duration(seconds: 1)); //Warte 1 Sekunde damit der Nutzer Feedback bekommt, dass es geklappt hat
         returnToPage();
     }
   }

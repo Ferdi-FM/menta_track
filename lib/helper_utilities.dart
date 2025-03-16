@@ -1,36 +1,19 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:menta_track/Pages/settings.dart';
 import 'package:menta_track/create_dummy_json_for_testing.dart';
 import 'package:menta_track/generated/l10n.dart';
+import 'package:menta_track/notification_helper.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-//Klasse für alle möglichen nützlichen funktionen, die Appübergreifend genutzt werden können aber keine eigene Klasse rechtfertigen
+///Klasse für alle möglichen nützlichen funktionen, die Appübergreifend genutzt werden können aber keine eigene Klasse rechtfertigen
 
 class Utilities{
 
   Utilities();
 
-  //standard DateTime-Format ist (yyyy-MM-dd), deshalb wird hier übergangsweise der DisplayName zu dem in der Datenbank verwendeten key umformatiert
-  String convertDisplayDateStringToWeekkey(String displayString){
-    DateFormat format = DateFormat("dd.MM.yyyy");
-    DateTime displayDateString = format.parse(displayString.substring(0,10));
-    String correctedDate = DateFormat("yyyy-MM-dd").format(displayDateString);
-
-    return correctedDate;
-  }
-
-  //und anders herum
-  String convertWeekkeyToDisplayDateString(String weekKey){
-    DateFormat format = DateFormat("yyyy-MM-dd");
-    DateTime displayDateString = format.parse(weekKey);
-    String correctedDate = DateFormat("dd.MM.yyyy").format(displayDateString);
-
-    return correctedDate;
-  }
-
-  String convertWeekkeyToDisplayPeriodString(String weekKey){
+  ///Erzeugt einen Wochen-Range-String von einem weekKey
+  String convertWeekKeyToDisplayPeriodString(String weekKey){
     //DateFormat normFormat = DateFormat("dd.MM.yy");
     DateTime displayDate = DateFormat("yyyy-MM-dd").parse(weekKey);
     DateTime endOfWeekDate= displayDate.add(Duration(days: 6));
@@ -39,8 +22,8 @@ class Utilities{
     return displayPeriodString;
   }
 
+  ///Checkt ob ein DateTime-String im originalen oder formatierten Zustand ist
   String checkDateFormat(String weekDayKey){
-    print("VOR dem Check: $weekDayKey");
     DateTime checkFormatDate;
     try{
       checkFormatDate = DateFormat("dd.MM.yy").parse(weekDayKey);
@@ -48,16 +31,50 @@ class Utilities{
       checkFormatDate = DateTime.parse(weekDayKey);
     }
     String checkedFormatDateString = DateFormat("yyyy-MM-dd").format(checkFormatDate);
-    print("NACH dem Check: $checkedFormatDateString");
-
     return checkedFormatDateString;
   }
 
+  ///Zeigt den Dialog zum abermaligen bestätigen einer Löschung
+  Future<bool?> showDeleteDialog(String title, bool weekPlan, BuildContext context) async {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(S.current.delete),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                weekPlan ? Text(S.current.delete_week_plan, textAlign: TextAlign.center,) : Text(S.current.delete_Termin, textAlign: TextAlign.center,),
+                Text(title, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),),
+                Text(S.current.delete_week_plan2, textAlign: TextAlign.center),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text(S.current.delete,style: TextStyle(color: Colors.redAccent),),
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+            ),
+            TextButton(
+              child: Text(S.current.back),
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },),
+          ],
+        );
+      },
+    );
+  }
 
-  //Zeigt das HilfeFenster, wollte nicht extra eine neue Klasse für sowas simples anlegen, wird aber wrsch. noch gemacht
-  void showHelpDialog(BuildContext context, String whichSite) {
+
+  ///Zeigt das HilfeFenster
+  // wollte nicht extra eine neue Klasse für sowas simples anlegen
+  void showHelpDialog(BuildContext context, String whichSite, [String? name]) {
     TextSpan mainText;
-
+    print(name);
     final localizations = S.of(context);
 
     switch (whichSite) {
@@ -75,11 +92,11 @@ class Utilities{
                     SizedBox(height: 6),
                     Row(
                       children: [
-                        Icon(Icons.event_available, size: 30),
+                        Icon(Icons.event_available, size: 30, color: Colors.green,),
                         SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            "Zeigt dir, dass du alle Aktivitäten in einer Woche bewertet hast",
+                            S.current.iconHelp1,
                             overflow: TextOverflow.visible,
                             textAlign: TextAlign.left,
                             softWrap: true,
@@ -90,11 +107,11 @@ class Utilities{
                     SizedBox(height: 3),
                     Row(
                       children: [
-                        Icon(Icons.free_cancellation, size: 30),
+                        Icon(Icons.free_cancellation, size: 30, color: Theme.of(context).iconTheme.color),
                         SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            "Zeigt dir, dass noch Aktivitäten bewertet werden können",
+                            S.current.iconHelp2,
                             overflow: TextOverflow.visible,
                             textAlign: TextAlign.left,
                             softWrap: true,
@@ -105,11 +122,11 @@ class Utilities{
                     SizedBox(height: 3),
                     Row(
                       children: [
-                        Icon(Icons.today, size: 30),
+                        Icon(Icons.today, size: 30, color: Colors.tealAccent,),
                         SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            "Zeigt dir, die aktuelle Woche",
+                            S.current.iconHelp3,
                             overflow: TextOverflow.visible,
                             textAlign: TextAlign.left,
                             softWrap: true,
@@ -120,11 +137,11 @@ class Utilities{
                     SizedBox(height: 3),
                     Row(
                       children: [
-                        Icon(Icons.lock_clock, size: 30),
+                        Icon(Icons.lock_clock, size: 30, color: Theme.of(context).iconTheme.color,),
                         SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            "Zeigt dir, dass die Woche noch nicht gekommen ist",
+                            S.current.iconHelp4,
                             overflow: TextOverflow.visible,
                             textAlign: TextAlign.left,
                             softWrap: true,
@@ -133,7 +150,6 @@ class Utilities{
                       ],
                     ),
                     SizedBox(height: 6),
-
                     Text(localizations.mainPageDeleteWeek, textAlign: TextAlign.center),
                     Text(localizations.mainPageSwipeOrButton, textAlign: TextAlign.center)
                   ],
@@ -161,7 +177,7 @@ class Utilities{
                       Text(localizations.weekPlanDescription, textAlign: TextAlign.center),
                       Text(localizations.weekPlanInstructions, textAlign: TextAlign.center),
                       Text("\n${localizations.weekPlanGrayActivities}"),
-                      Text("${localizations.weekPlanGreenActivities}"),
+                      Text(localizations.weekPlanGreenActivities),
                       Text("${localizations.weekPlanActivitiesWithExclamation}\n"),
                       Text(localizations.weekPlanTapForDayView, textAlign: TextAlign.center),
                       Text(localizations.weekPlanTapForWeekView, textAlign: TextAlign.center),
@@ -210,9 +226,31 @@ class Utilities{
           style: TextStyle(fontSize: 10)
         );
         break;
+      case "QuestionPage":
+        mainText = TextSpan(
+            children: [
+              WidgetSpan(
+                child: Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(S.current.questionPageHelpDialog1, textAlign: TextAlign.center),
+                      Text(S.current.questionPageHelpDialog2(name ?? ""), textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),),
+                      Text(S.current.questionPageHelpDialog3, textAlign: TextAlign.center),
+                      Text(S.current.questionPageHelpDialog4, textAlign: TextAlign.center),
+                      Text("\n${S.current.questionPageHelpDialog5}", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),)
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            style: TextStyle(fontSize: 10),
+        );
+        break;
       default:
         mainText = TextSpan(text: localizations.generalHelp);
-
         break;
     }
 
@@ -260,7 +298,10 @@ class Utilities{
                   Align(
                     alignment: Alignment.bottomCenter,
                     child: TextButton(
-                      onPressed: () => Navigator.pop(context, "confirmed"),
+                      onPressed: () {
+                        Navigator.pop(context, "confirmed");
+                        //NotificationHelper().scheduleStudyStartNotification();//TODO !STUDY!: FÜR STUDIE
+                      },
                       child: const Text("OK"),
                     ),
                   ),
@@ -273,67 +314,24 @@ class Utilities{
     );
   }
 
-  // Funktion, die den QR-Code in einem Dialog anzeigt
-  /*void showNameSetter(BuildContext context) {
-    final TextEditingController nameController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Speicher deinen Namen"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-                Text("Du kannst einen Namen festlegen, der in der App benutzt wird. Falls du das nicht willst lass das Feld einfach frei :)"),
-                TextField(
-                controller: nameController,
-                decoration: InputDecoration(hintText: S.of(context).settings_name),
-                onChanged: (value){
-                  nameController.text = value;
-                }
-              )
-            ],
-          ),
-          actions: [
-            TextButton(
-              child: Text(S.current.questionPage_save),
-              onPressed: () {
-                SettingsPageState().saveName(nameController.text);
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text(S.current.cancel),
-              onPressed: () {
-                SettingsPageState().saveName("");
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }*/
-
-
-  // Funktion, die den QR-Code in einem Dialog anzeigt
+  /// Funktion, die den QR-Code in einem Dialog anzeigt
   void showQrCode(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("QR Code"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              QrImageView(
-                backgroundColor: Colors.white,
-                version: QrVersions.auto,
-                data: CreateDummyJsonForTesting().toCompressedIntListTwoTermine(),
-              ),
-            ],
-          ),
+          content:  RepaintBoundary(
+                  child: Padding(
+                    padding: EdgeInsets.all(0),
+                    child: QrImageView(
+                      backgroundColor: Colors.white,
+                      version: QrVersions.auto,
+                      data: CreateDummyJsonForTesting().toCompressedStudyList(),
+                    ),
+                  ),
+                ),
           actions: [
             TextButton(
               child: Text("Schließen"),
@@ -431,18 +429,6 @@ class Utilities{
               ),
               onPressed: () => Utilities().showHelpDialog(context, pageKey),
             ),
-            if(pageKey == "weekPlanView") MenuItemButton( //Könnte zum manuellen hinzufügen dienen
-              child: Center(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Icon(Icons.help_rounded),
-                    SizedBox(width: 10),
-                    Text("Eintrag hinzufügen") //TODO Evtl
-                  ],
-                ),
-              ),
-            )
           ],
           builder: (BuildContext context, MenuController controller, Widget? child) {
             return TextButton(

@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:menta_track/database_helper.dart';
-import 'package:menta_track/termin.dart';
 import 'package:menta_track/theme_helper.dart';
-import 'package:sqflite/sqflite.dart';
 import 'Pages/settings.dart';
 import 'generated/l10n.dart';
 import 'gif_progress_widget.dart';
+
+///Klasse für den Belohnungs-PopUp- Dialog
 
 class RewardPopUp {
 
@@ -94,6 +94,7 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
     });
   }
 
+  ///lädt das Thema
   void _loadTheme() async {
     SettingData data = await SettingsPageState().getSettings();
     illustrationImage = await ThemeHelper().getRewardImage();
@@ -111,17 +112,10 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
 
   }
 
+  ///Errechnet den start und Endframe für die Baum-Fortschrittsanzeige
   void getProgressForGif() async {
-    Database db = await DatabaseHelper().database;
-    final List<Map<String, dynamic>> doneTasksMap = await db.query( //Holt alle Termine, die den spezifizierten weekKey verwenden
-      "Termine",
-      where: "weekKey = ? AND answered = ?",
-      whereArgs: [widget.weekKey, 1],
-    );
-    List<Termin> allTasksList = await DatabaseHelper().getWeeklyPlan(widget.weekKey);
-
-    int totalTasks = allTasksList.length;
-    double doneTasks = doneTasksMap.length.toDouble();
+    int totalTasks = await DatabaseHelper().getWeekTermineCount(widget.weekKey,false);
+    int doneTasks = await DatabaseHelper().getWeekTermineCountAnswered(widget.weekKey, true);
     setState(() {
       finishedGif = widget.gifBegin;
       !widget.gifBegin ? startFrame = doneTasks/totalTasks : startFrame = 0;
@@ -129,6 +123,8 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
     });
   }
 
+
+  ///wenn das Gif zum ersten mal fertig animiert hat, wird der Text und Thema angezeigt und GIF nach unten verschoben
   void gifIsFinished(){
       if(mounted && !finishedGif){ //!finishedGif weil gif_progress_widget jeden loop gifIsFinished aufruft
         _confettiController.play();
@@ -146,6 +142,7 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
     super.dispose();
   }
 
+  ///Animation für den Button
   void _buttonAnimation() async {
     await _buttonController.forward();
     _buttonController.reverse();
@@ -153,158 +150,142 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
     backToPage(); // Seite wechseln
   }
 
+  ///Verlassen des Popups, damit context nicht async ist
   void backToPage() {
-    Navigator.of(context).pop("confirmed"); //"onConfirm" ist alternative Version mit VoidCallBack
-    //widget.onConfirm();
+    Navigator.of(context).pop("confirmed");
+    //widget.onConfirm();//"onConfirm" ist alternative Version mit VoidCallBack
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-        canPop: false, //Muss false sein, damit ich es selbst steuern kann
-        onPopInvokedWithResult: (bool didPop, result) {
-      if (!didPop) {
-        //backToPage();
-      }
-    },
-    child: Padding(
-      padding: EdgeInsets.only(left: 32,right: 32,bottom: 66,top: 42),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          /*GestureDetector( Falls danebenclicken popup Schließen soll
-            onTap: () => {
-              Navigator.of(context).pop(),
-              FocusScope.of(context).unfocus()
-            },
-            child: Container(
-              color: Colors.transparent,
-            ),
-          ),*/
-          ScaleTransition(
-              scale: _scaleAnimation,
-            alignment: Alignment.center, //Alignment(widget.buttonPosition!.dx / MediaQuery.of(context).size.width * 2 - 1, widget.buttonPosition!.dy / MediaQuery.of(context).size.height * 2 - 1),
-              child: Column(
-                children: [
-                  SizedBox( //Hat einige Probleme mit Skalierung gemacht, wesegen der Code etwas Kompliziert geworden ist
-                    width: MediaQuery.of(context).size.width * 0.8,  // Feste Breite
-                    height: MediaQuery.of(context).size.height * 0.7, // Feste Höhe
-                  child: Material(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    color: Theme.of(context).listTileTheme.tileColor,
-                    elevation: 8,
-                    child: ShaderMask(
-                        shaderCallback: (Rect rect) {
-                          return LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Theme.of(context).listTileTheme.tileColor as Color, Colors.transparent, Colors.transparent, Theme.of(context).listTileTheme.tileColor as Color],
-                            stops: [0.0, 0.1, 0.9, 1.0], // 10% purple, 80% transparent, 10% purple
-                          ).createShader(rect);
-                        },
-                        blendMode: BlendMode.dstOut,
-                        child:SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.1),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                if(!_showOnlyOnMainPage && finishedGif) illustrationImage,
-                                if(finishedGif)SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-                                if(finishedGif)ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    maxHeight: MediaQuery.of(context).size.height * 0.35,
-                                    minHeight: 40.0,
-                                  ),
-                                  child: Text(
-                                    widget.message,
-                                    textAlign: TextAlign.center,
-                                    overflow: TextOverflow.visible,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: MediaQuery.of(context).size.width * 0.045,
+        canPop: false, //Nutzer darf nicht über zurück das Pop-Up verlassen (Muss sich loben lassen)
+        child: Padding(
+          padding: EdgeInsets.only(left: 32,right: 32,bottom: 66,top: 42),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              ScaleTransition(
+                  scale: _scaleAnimation,
+                alignment: Alignment.center, //Alignment(widget.buttonPosition!.dx / MediaQuery.of(context).size.width * 2 - 1, widget.buttonPosition!.dy / MediaQuery.of(context).size.height * 2 - 1),
+                  child: Column(
+                    children: [
+                      SizedBox( //Hat einige Probleme mit Skalierung gemacht, wesegen der Code etwas Kompliziert geworden ist
+                        width: MediaQuery.of(context).size.width * 0.8,  // Feste Breite
+                        height: MediaQuery.of(context).size.height * 0.7, // Feste Höhe
+                      child: Material(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        color: Theme.of(context).listTileTheme.tileColor,
+                        elevation: 8,
+                        child: ShaderMask(
+                            shaderCallback: (Rect rect) {
+                              return LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [Theme.of(context).listTileTheme.tileColor as Color, Colors.transparent, Colors.transparent, Theme.of(context).listTileTheme.tileColor as Color],
+                                stops: [0.0, 0.1, 0.9, 1.0], // 10% purple, 80% transparent, 10% purple
+                              ).createShader(rect);
+                            },
+                            blendMode: BlendMode.dstOut,
+                            child:SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.1),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    if(!_showOnlyOnMainPage && finishedGif) illustrationImage,
+                                    if(finishedGif)SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+                                    if(finishedGif)ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        maxHeight: MediaQuery.of(context).size.height * 0.35,
+                                        minHeight: 40.0,
+                                      ),
+                                      child: Text(
+                                        widget.message,
+                                        textAlign: TextAlign.center,
+                                        overflow: TextOverflow.visible,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: MediaQuery.of(context).size.width * 0.045,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                                if(finishedGif)Text(S.of(context).rewardPopUp_scroll,style: TextStyle(fontSize: 10),),
-                                SizedBox(height: MediaQuery.of(context).size.height * 0.04,),
-                                if(endFrame != 0)GifProgressWidget(
-                                    progress: endFrame,
-                                    startFrame: startFrame,
-                                    finished: () => gifIsFinished(),
-                                    forRewardPage: true,
+                                    if(finishedGif)Text(S.of(context).rewardPopUp_scroll,style: TextStyle(fontSize: 10),),
+                                    SizedBox(height: MediaQuery.of(context).size.height * 0.04,),
+                                    if(endFrame != 0)GifProgressWidget(
+                                        progress: endFrame,
+                                        startFrame: startFrame,
+                                        finished: () => gifIsFinished(),
+                                        forRewardPage: true,
 
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
+                            ],
+                          ),
+                        )
+                      ),
+                      ),
+                      ),
+                      SizedBox(height: 15,),
+                      if(finishedGif)ScaleTransition(
+                        alignment: Alignment.center,
+                        scale: _scaleButtonAnimation,
+                        child: SizedBox(  // Use a Container to wrap the ElevatedButton
+                          width: double.infinity,  // Make the container take the full width
+                          child: ElevatedButton(
+                            onPressed: () => {
+                              //TODO: Zusätzlich Sound abspielen?
+                              HapticFeedback.lightImpact(),
+                              _buttonAnimation(),
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context).primaryColor,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
+                            ),
+                            child: Text(
+                              S.of(context).rewardPopUp_conf,
+                              style: TextStyle(
+                                fontSize: MediaQuery.of(context).size.width * 0.045,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.black87,
+                              ),
                             ),
                           ),
-                        ],
-                      ),
-                    )
-                  ),
-                  ),
-                  ),
-                  SizedBox(height: 15,),
-                  if(finishedGif)ScaleTransition(
-                    alignment: Alignment.center,
-                    scale: _scaleButtonAnimation,
-                    child: SizedBox(  // Use a Container to wrap the ElevatedButton
-                      width: double.infinity,  // Make the container take the full width
-                      child: ElevatedButton(
-                        onPressed: () => {
-                          //TODO: Sound abspielen!
-                          HapticFeedback.lightImpact(),
-                          _buttonAnimation(),
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColor,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
-                        ),
-                        child: Text(
-                          S.of(context).rewardPopUp_conf,
-                          style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.width * 0.045,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.black87,
-                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
+              Align(
+                alignment: Alignment.topLeft,
+                child: ConfettiWidget(
+                  confettiController: _confettiController,
+                  blastDirectionality: BlastDirectionality.explosive,
+                  emissionFrequency: 0.25,
+                  numberOfParticles: 20, // a lot of particles at once
+                  gravity: 0.1,
+                  shouldLoop: false,
+                ),
               ),
-            ),
-          Align(
-            alignment: Alignment.topLeft,
-            child: ConfettiWidget(
-              confettiController: _confettiController,
-              blastDirectionality: BlastDirectionality.explosive,
-              emissionFrequency: 0.25,
-              numberOfParticles: 20, // a lot of particles at once
-              gravity: 0.1,
-              shouldLoop: false,
-            ),
+              Align(
+                alignment: Alignment.topRight,
+                child: ConfettiWidget(
+                  confettiController: _confettiController,
+                  blastDirectionality: BlastDirectionality.explosive,
+                  emissionFrequency: 0.25,
+                  numberOfParticles: 20, // a lot of particles at once
+                  gravity: 0.1,
+                  shouldLoop: false,
+                ),
+              ),
+            ],
           ),
-          Align(
-            alignment: Alignment.topRight,
-            child: ConfettiWidget(
-              confettiController: _confettiController,
-              blastDirectionality: BlastDirectionality.explosive,
-              emissionFrequency: 0.25,
-              numberOfParticles: 20, // a lot of particles at once
-              gravity: 0.1,
-              shouldLoop: false,
-            ),
-          ),
-        ],
-      ),
-    )
+        )
     );
-    
   }
-
-
 }

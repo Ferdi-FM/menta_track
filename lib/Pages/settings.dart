@@ -6,15 +6,7 @@ import 'package:audioplayers/audioplayers.dart';
 import '../generated/l10n.dart';
 import '../main.dart';
 
-class SettingData {
-  final String name;
-  final String theme;
-  final String accentColor;
-  final bool isDarkMode;
-  final bool themeOnlyOnMainPage;
-
-  SettingData(this.name, this.theme, this.isDarkMode, this.themeOnlyOnMainPage, this.accentColor);
-}
+///Einstellungs-Seite
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -24,6 +16,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class SettingsPageState extends State<SettingsPage> {
+  ///Variabeln werden zuerst mit Standard-Werten initialisiert
   bool isDarkMode = false;
   String _theme = "nothing";
   String _chosenAccentColor = "blue";
@@ -44,6 +37,7 @@ class SettingsPageState extends State<SettingsPage> {
     _loadSettings();
   }
 
+  ///Kann in andern Klassen auf die Settings-Daten zentralisiert zugreifen
   Future<SettingData> getSettings() async{
     final prefs = await SharedPreferences.getInstance();
     bool isDarkMode = prefs.getBool("darkMode") ?? false;
@@ -55,6 +49,8 @@ class SettingsPageState extends State<SettingsPage> {
     return SettingData(name, theme, isDarkMode, themeOnlyOnMainPage, accentColor);
   }
 
+
+  ///Lädt alle Settings aus sharedPreferences
   void _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     audioAsset = await ThemeHelper().getSound(); //Lädt hier da sonst audio verzögerung hat
@@ -90,7 +86,7 @@ class SettingsPageState extends State<SettingsPage> {
     });
   }
 
-  void _saveTheme(String value) async {
+  void saveTheme(String value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("theme", value);
     _settingsChanged = true;
@@ -118,25 +114,30 @@ class SettingsPageState extends State<SettingsPage> {
     });
   }
 
-  void _saveSound(String value) async{
+  void saveSound(String value) async{
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("soundAlert", value);
     _settingsChanged = true;
-
+    audioAsset = await  ThemeHelper().getSound();
+    player.stop();
     player.play(AssetSource(audioAsset));
     setState(() {
         _rewardSound = value;
     });
-
   }
 
-  Future<void> saveNotificationTime(BuildContext context, bool isMorning) async {
-    final prefs = await SharedPreferences.getInstance();
-    TimeOfDay initialTime = isMorning ? morningTime : eveningTime;
-    final TimeOfDay? picked = await showTimePicker(
+  ///Damit context nicht in async ist
+  Future<TimeOfDay?> pickTime(TimeOfDay initialTime) {
+    return showTimePicker(
       context: context,
       initialTime: initialTime,
     );
+  }
+
+  Future<void> saveNotificationTime(bool isMorning) async {
+    final prefs = await SharedPreferences.getInstance();
+    TimeOfDay initialTime = isMorning ? morningTime : eveningTime;
+    final TimeOfDay? picked = await pickTime(initialTime);
     if (picked != null) {
       setState(() {
         if (isMorning) {
@@ -153,7 +154,7 @@ class SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  void _saveNotificationIntervals() async {
+  void saveNotificationIntervals() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList("notificationIntervals", _notificationIntervals.map((e) => e.toString()).toList());
     setState(() {
@@ -162,26 +163,26 @@ class SettingsPageState extends State<SettingsPage> {
     _notificationsChanged = true;
   }
 
-  void _addNotification() {
+  void addNotification() {
     setState(() {
       _notificationIntervals.add(60);
-      _saveNotificationIntervals();
+      saveNotificationIntervals();
     });
   }
 
-  void _removeNotification(int index) {
+  void removeNotification(int index) {
     setState(() {
       if(_notificationIntervals.length > 1){
         _notificationIntervals.removeAt(index);
-        _saveNotificationIntervals();
+        saveNotificationIntervals();
       }
     });
   }
 
-  void _updateNotificationInterval(int index, double value) {
+  void updateNotificationInterval(int index, double value) {
     setState(() {
       _notificationIntervals[index] = value.toInt();
-      _saveNotificationIntervals();
+      saveNotificationIntervals();
     });
   }
 
@@ -245,7 +246,7 @@ class SettingsPageState extends State<SettingsPage> {
                     value: _theme,
                     onChanged: (value) {
                       if (value != null) {
-                        _saveTheme(value);
+                        saveTheme(value);
                       }
                     },
                     items: [
@@ -255,7 +256,7 @@ class SettingsPageState extends State<SettingsPage> {
                     ],
                   ),
                 ),
-                ListTile( //TODO: Notwendigkeit überprüfen, evtl in Studie erfragen
+                ListTile(
                   title: Text(S.of(context).settings_themeOnlyMainPage),
                   trailing: Checkbox(
                     value: _themeOnlyOnMainPage,
@@ -311,14 +312,14 @@ class SettingsPageState extends State<SettingsPage> {
                       value: _rewardSound,
                       onChanged: (value) {
                         if (value != null) {
-                          _saveSound(value);
+                          saveSound(value);
                         }
                       },
                       items: [
                         DropdownMenuItem(value: "standard", child: Text("Standard")),
-                        DropdownMenuItem(value: "bell", child: Text("Bell")),
                         DropdownMenuItem(value: "classicGame", child: Text("GameSound")),
                         DropdownMenuItem(value: "longer", child: Text("Longer")),
+                        DropdownMenuItem(value: "level-up", child: Text("Level Up")),
                         DropdownMenuItem(value: "level", child: Text("Level End")),
                       ],
                     ),
@@ -330,13 +331,13 @@ class SettingsPageState extends State<SettingsPage> {
                 ListTile(
                   title: Text(S.of(context).settings_morningNotification),
                   trailing: SizedBox(
-                    width: 40,
+                    width: 60,
                     child: Stack(
                         children: [
                           Positioned(
-                            right: -12,
+                            right: -10,
                             child:TextButton(
-                              onPressed: () => saveNotificationTime(context, true),
+                              onPressed: () => saveNotificationTime(true),
                               child: Text(morningTime.format(context), textAlign: TextAlign.right,),
                             ),
                           )
@@ -347,13 +348,13 @@ class SettingsPageState extends State<SettingsPage> {
                 ListTile(
                   title: Text(S.of(context).settings_eveningNotification),
                   trailing: SizedBox(
-                    width: 60,
+                    width: 65,
                     child: Stack(
                         children: [
                           Positioned(
-                            right: -12,
+                            right: -10,
                             child:TextButton(
-                              onPressed: () => saveNotificationTime(context, false),
+                              onPressed: () => saveNotificationTime(false),
                               child: Text(eveningTime.format(context), textAlign: TextAlign.right,),
                             ),
                           )
@@ -402,7 +403,7 @@ class SettingsPageState extends State<SettingsPage> {
                                         max: 120,
                                         divisions: 23,
                                         label: "${_notificationIntervals[index]} min",
-                                        onChanged: (value) => _updateNotificationInterval(index, value),
+                                        onChanged: (value) => updateNotificationInterval(index, value),
                                       ),
                                     ],
                                   ),
@@ -411,8 +412,8 @@ class SettingsPageState extends State<SettingsPage> {
                                   alignment: Alignment.centerRight ,
                                   child:IconButton(
                                     icon:_notificationIntervals.length > 1 ? Icon(Icons.remove_circle) : SizedBox(), //Immer mindestens eine Benachrichtigung
-                                    onPressed: () => _removeNotification(index),
-                                  ) ,
+                                    onPressed: () => removeNotification(index),
+                                  ),
                                 ),
                               ],
                             ),
@@ -420,13 +421,12 @@ class SettingsPageState extends State<SettingsPage> {
                         },
                       ),
                       IconButton(
-                        icon: Icon(Icons.add),
-                        onPressed: _addNotification,
+                        icon: Icon(Icons.add_alert),
+                        onPressed: addNotification,
                       ),
                     ],
                   ),
                 ),
-
               ],
             ),
           ),
@@ -434,8 +434,15 @@ class SettingsPageState extends State<SettingsPage> {
       )
     );
   }
+}
 
+///Settings-Daten
+class SettingData {
+  final String name;
+  final String theme;
+  final String accentColor;
+  final bool isDarkMode;
+  final bool themeOnlyOnMainPage;
 
-
-
+  SettingData(this.name, this.theme, this.isDarkMode, this.themeOnlyOnMainPage, this.accentColor);
 }

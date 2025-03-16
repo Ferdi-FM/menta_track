@@ -3,8 +3,9 @@ import 'package:menta_track/helper_utilities.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:string_similarity/string_similarity.dart';
-
 import 'termin.dart';
+
+///Klasse für alles was mit der SQLite-Datenbank zu tun hat
 
 class DatabaseHelper {
   static Database? _database;
@@ -20,7 +21,7 @@ class DatabaseHelper {
   Future<Database> initDatabase() async {
     String path = await getDatabasesPath();
     return openDatabase(
-      join(path, "weekly_plans_ver2.db"),
+      join(path, "weekly_plans_test7.db"),
       onCreate: (db, version) async {
         await db.execute('''
          CREATE TABLE WeeklyPlans(
@@ -38,7 +39,10 @@ class DatabaseHelper {
            id INTEGER PRIMARY KEY,
            activity TEXT,
            category TEXT,
-           doneTask INTEGER
+           doneTask INTEGER,
+           weekKey TEXT,
+           date TEXT,
+           comment TEXT
          )
        ''');
 
@@ -59,7 +63,7 @@ class DatabaseHelper {
           )
         ''');
       },
-      version: 2,
+      version: 3,
     );
   }
 
@@ -97,6 +101,29 @@ class DatabaseHelper {
     }
   }
 
+  Future<void> insertSingleTermin(String weekKey, String terminName, DateTime timeBegin, DateTime timeEnd) async {
+    final db = await database;
+
+    //Einfügen der Termine in die Tabelle, die als Key den ersten Tag der Woche hat
+    // Sollte es notwendig werden, dass eine Woche geupdated wird, ist es so möglich, da Termine-Table keine unique Keys hat. Man könne timebegin und end zu UNIQUE machen, dann könnte man aber keine 2 Termine zur gleichen zeit haben
+    await db.insert(
+      "Termine",
+      {
+        "weekKey": weekKey,
+        "terminName": terminName,
+        "timeBegin": timeBegin.toIso8601String(),
+        "timeEnd": timeEnd.toIso8601String(),
+        "doneQuestion": -1,
+        "goodQuestion": -1,
+        "calmQuestion": -1,
+        "helpQuestion": -1,
+        "comment": "termin.comment",
+        "answered": 0,
+      },
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+  }
+
   ///Funktionen für alle Termine
 
   ///Gibt alle Termine in einer Liste zurück
@@ -106,12 +133,21 @@ class DatabaseHelper {
     return termine;
   }
 
+  Future<int> getAllTermineCountUnconditional() async {
+    final db = await database;
+    int count = Sqflite.firstIntValue(await db.rawQuery(
+      "SELECT COUNT(*) FROM Termine",
+    )) ?? 0;
+
+    return count;
+  }
+
   ///Gibt die Anzahl an allen Terminen zurück
   Future<int> getAllTermineCount(bool answered, bool tillNow) async {
     final db = await database;
 
     String query = "SELECT COUNT(*) FROM Termine WHERE answered = ? ";
-    if (tillNow) query += "AND (datetime(timeBegin) < datetime(CURRENT_DATE))";
+    if (tillNow) query += "AND (datetime(timeBegin) < datetime(current_timestamp))";
     int count = Sqflite.firstIntValue(await db.rawQuery(query, [answered ? 1 : 0])) ?? 0;
 
     return count;
@@ -131,10 +167,12 @@ class DatabaseHelper {
   }
 
   ///Gibt die Anzahl aller Termine in einer woche zurück. WeekKey braucht format "yyyy-MM-dd"
-  Future<int> getWeekTermineCount(String weekKey) async {
+  Future<int> getWeekTermineCount(String weekKey, bool tillNow) async {
     final db = await database;
+    String query = "SELECT COUNT(*) FROM Termine WHERE weekKey = ?";
+    if (tillNow) query += " AND (datetime(timeBegin) < datetime(current_timestamp))";
     int count = Sqflite.firstIntValue(await db.rawQuery(
-      "SELECT COUNT(*) FROM Termine WHERE weekKey = ?",
+      query,
       [weekKey],
     )) ?? 0;
     return count;
@@ -190,20 +228,20 @@ class DatabaseHelper {
     return mapToTerminList(terminMap);
   }
 
-  //Theoretische dynamische Funktion die jede Variation an Tagesterminen zurückgeben kann (alle, unbeantwortet, beantwortet) TODO: reine spielerei, eigentlich nicht notwendig
-  //Future<List<Termin>> getDayTerminDynamic(String weekDayKey, bool? answered) async{
-  //  final db = await database;
-  //  String checkedFormatDateString = Utilities().checkDateFormat(weekDayKey); // Überprüfung, ob der Key korrekt ist
-  //
-  //  String query = "SELECT COUNT(*) FROM Termine WHERE timeBegin LIKE ?";
-  //  List<dynamic> whereArgs = ["$checkedFormatDateString%"];
-  //  if (answered != null) {
-  //    query += " AND answered = ?";
-  //    whereArgs.add(answered ? 1 : 0); // 1 für true, 0 für false
-  //  }
-  //
-  //  return mapToTerminList(await db.rawQuery(query, whereArgs));
-  //}
+  ///Theoretische dynamische Funktion die jede Variation an Tagesterminen zurückgeben kann (alle, unbeantwortet, beantwortet).
+  /// Reine spielerei, eigentlich nicht notwendig
+  /*Future<List<Termin>> getDayTerminDynamic(String weekDayKey, bool? answered) async{
+    final db = await database;
+    String checkedFormatDateString = Utilities().checkDateFormat(weekDayKey); // Überprüfung, ob der Key korrekt ist
+    String query = "SELECT COUNT(*) FROM Termine WHERE timeBegin LIKE ?";
+    List<dynamic> whereArgs = ["$checkedFormatDateString%"];
+    if (answered != null) {
+      query += " AND answered = ?";
+      whereArgs.add(answered ? 1 : 0); // 1 für true, 0 für false
+    }
+    return mapToTerminList(await db.rawQuery(query, whereArgs));
+  }*/
+
   ///Einzelne Termin Funktionen
 
   ///Gibt einen einzelnen bestimmten Termin zurück, der über weekKey, timeBegin und terminName identifiziert wird (sollte keine überschneidungen geben)
@@ -238,7 +276,7 @@ class DatabaseHelper {
   }
 
   ///Speichert eine neue sehr gut bewertete Aktivität und checkt ob sie schon ähnlich existiert
-  Future<void> saveHelpingActivities(String activity, String category, bool doneTask) async {
+  Future<void> saveHelpingActivities(String activity, String category, bool doneTask, String date, String comment, String weekKey) async {
     if(category == "good" || category == "calm" || category == "help"){//Check ob es eine der drei richtigen kategorien ist
       final db = await database;
       bool doesAlreadyExist = false;
@@ -265,6 +303,9 @@ class DatabaseHelper {
               "activity": activity,
               "category": category,
               "doneTask": doneTask ? 1 : 0,
+              "date": date,
+              "comment": comment,
+              "weekKey": weekKey
             });
       }
     }
@@ -274,6 +315,16 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getHelpingActivity() async{
     final db = await database;
     return await db.query("savedActivities"); //Alternativ könnte man eine query mit WHERE question1 = 6 OR question2 = 6 OR question3 = 6 durch die "Termine"-Table laufen lassen
+  }
+
+  ///Löscht Eintrag aus den besonderen Aktivitäten
+  Future<void> deleteSpecificHelpingActivity(String weekKey, String terminName, String timeBegin) async {
+    final db = await database;
+    await db.delete(
+        "savedActivities",
+        where: "weekKey = ? AND date = ? AND activity = ?" ,
+        whereArgs: [weekKey, timeBegin, terminName],
+    );
   }
 
   ///Updated den Durchschnittswert in der WeeklyPlans-Table
@@ -320,6 +371,7 @@ class DatabaseHelper {
   List<Termin> mapToTerminList(List<Map<String, dynamic>> maps){
     return List.generate(maps.length, (i) {
       return Termin(
+        weekKey: maps[i]["weekKey"],
         terminName: maps[i]["terminName"],
         timeBegin: DateTime.parse(maps[i]["timeBegin"]),
         timeEnd: DateTime.parse(maps[i]["timeEnd"]),
@@ -338,7 +390,16 @@ class DatabaseHelper {
     Database db = await database;
 
     await db.execute("DELETE FROM WeeklyPlans WHERE weekKey = ?", [weekKey]);
-    await db.execute("DELETE FROM Termine WHERE weekKey = ?", [weekKey]);
+    await db.execute("DELETE FROM Termine WHERE weekKey = ?", [weekKey]);//Könnte mit SQLite Cascade gelöscht werden, da weekKey foreignkey ist
+  }
+
+  Future<void> dropTermin(String weekKey, String terminName, String timeBegin) async {
+    final db = await database;
+    await db.delete(
+      "Termine",
+      where: "weekKey = ? AND timeBegin = ? AND terminName = ?" ,
+      whereArgs: [weekKey, timeBegin, terminName],
+    );
   }
 }
 

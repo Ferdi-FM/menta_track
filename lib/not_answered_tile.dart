@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:menta_track/not_answered_data.dart';
 import 'generated/l10n.dart';
 
+///Custom-ListTile für die Offen-Seite (Not_answered_page)
+
 class NotAnsweredTile extends StatelessWidget {
   final NotAnsweredData item;
   final Function(dynamic ev) onItemTap;
@@ -12,6 +14,7 @@ class NotAnsweredTile extends StatelessWidget {
     super.key,
   });
 
+  ///wandelt Datum in lokalisierte Darstellung um
   String getDateAndTimeFromDay(String dayString, BuildContext context){
     DateTime dateTime = DateTime.parse(dayString);
     String correctedString = "${S.of(context).am} ${S.current.displayADate(dateTime)} ${S.of(context).um} ${S.of(context).displayATime(dateTime)}";

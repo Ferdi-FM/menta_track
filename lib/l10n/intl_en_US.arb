@@ -24,6 +24,7 @@
   "open_singular": "Open",
   "done": "Success! \uD83C\uDFC6",
   "not_yet_single": "Not here yet \uD83D\uDE09",
+  "comment": "Comment:",
 
   "displayADateWithYear": "{date}",
   "@displayADateWithYear" : {
@@ -59,6 +60,11 @@
     }
   },
   "till": "to",
+
+  "@MainPage": {
+  },
+  "mainPage_noEntries_text": "\"You don't have any weekplans yet \uD83D\uDE42 \nTap the button on the bottom right to open the QR-Code scanner and import a plan \uD83D\uDE0A",
+
 
   "summary_no_entries": " No Entries yet",
   "special_activities": "Memorable Activities:",
@@ -102,11 +108,29 @@
   "questionPage_a0e": "No",
 
   "questionPage_too_early": "You're here too early 😊 \nBut cool that you stopped by 👍",
+  "questionPage_slightly_too_early": "Deine Aktivität startet gleich, schau in 15min oder später nochmal vorbei um Feedback zu geben\uD83D\uDE0A \uD83D\uDC4D",
   "questionPage_comment": "If you'd like, you can add a short comment here:",
   "questionPage_commentLabel": "Your Feedback",
 
   "questionPage_save": "Slide to save",
-
+  "questionPage_too_early1" : "{count, plural,  =0{{name} ist am {date1} um {date2}\n\nDu bist zu früh dran \uD83D\uDE0A \nAber trotzdem cool, dass du vorbeischaust \uD83D\uDC4D} other{{name} ist am {date1} um {date2}\n\nCool das du da bist \uD83D\uDE0A Schau in kürze nochmal hier rein um Feedback zu geben \uD83D\uDC4D}}",
+  "@questionPage_too_early1" : {
+    "placeholders": {
+      "date1": {
+        "type": "DateTime",
+        "format": "dd.MM",
+        "example": "20.01.2025",
+        "isCustomDateFormat": "true"
+      },
+      "date2": {
+        "type": "DateTime",
+        "format": "HH:mm",
+        "example": "13:00",
+        "isCustomDateFormat": "true"
+      }
+    }
+  },
+  "edit": "Edit",
 
   "@Settings": {
   },
@@ -124,9 +148,8 @@
 
   "@HelpMessages": {
   },
-  "firstStartUp_Message1": "Du hast die App gerade zum ersten mal geöffnet. \nCool, dass du diese App verwendest :) \n Du kannst alles in den Einstellungen ein wenig anpassen wenn du Lust hast. \nTippe dazu auf die drei Strich in der oberen rechten Ecke und dann auf Einstellungen\n\n",
-  "firstStartUp_Message2": "Falls du mehr Infos zu einer Seite willst findest du in dem Menü auch einen Hilfe-Button",
-
+  "firstStartUp_Message1": "You just opened the app for the first time.\nCool that you're using this app! :)\nYou can customize things a bit in the settings if you'd like.\nJust tap the three lines in the top right corner and then select Settings.",
+  "firstStartUp_Message2": "If you need more Help theres a Help-Button in the same menu\uD83D\uDE0A",
 
   "mainPageDescription": "This is the main page.",
   "mainPageInstructions": "Here you can find all your saved weekly plans.",
@@ -134,6 +157,11 @@
   "mainPageTapOnPlan": "Tapping on a plan will open it.",
   "mainPageDeleteWeek": "Hold the trash symbol to delete an entry.",
   "mainPageSwipeOrButton": "You can switch pages by swiping left/right or using the button in the bottom menu.",
+
+  "iconHelp1": "Shows you that you gave Feedback to every Activity",
+  "iconHelp2": "Shows you that you can give Feedback",
+  "iconHelp3": "Shows you the current week",
+  "iconHelp4": "Shows you the week hasn't come yet",
 
   "unansweredActivities": "On this page you'll find activities that haven't been evaluated yet.\n Tap on a entry to give feedback",
 
@@ -148,6 +176,13 @@
   "activitySummaryDescription": "This is your summary of all weeks.",
   "activitySummaryGraphDescription": "The chart displays your average values for each week.",
   "activitySummaryGoodFeedback": "The list below notes activities you've evaluated particularly well.",
+
+  "questionPageHelpDialog1": "Here you can give feedback on your activities! 😊",
+  "questionPageHelpDialog2":"You can also give feedback if it didn't work out! Just giving feedback is already great, {name} \uD83D\uDE07\uD83D\uDC96\n",
+  "questionPageHelpDialog3":"Each question opens once you've answered the previous one; at the end, you can add a short comment with your thoughts.",
+  "questionPageHelpDialog4":"Slide the slider to the right to save your feedback ✨",
+  "questionPageHelpDialog5":"Good luck! I truly hope this helps you! \uD83E\uDD1E\uD83D\uDE0A\n",
+
   "generalHelp": "General Help",
 
 
@@ -159,7 +194,7 @@
 
   "@GifProgress": {
   },
-  "gifProgress_title": "{count, plural, =0{Dein Progress bis zu diesem Tag \uD83D\uDE07} other{Dein Progress an diesem Tag \uD83D\uDE07}}",
+  "gifProgress_title": "{count, plural, =0{Your Progress till this day \uD83D\uDE07} other{Your Progress on this day \uD83D\uDE07}}",
   "gifProgress_title_week": "Your progress this week \uD83D\uDE07 ",
   "gifProgress_case0": "Great start {name}! Keep it up! 🎉",
   "gifProgress_case1": "A quarter achieved {name}, fantastic job! 🌟",
@@ -180,7 +215,7 @@
   "helper_activities5": "Impressive work, you really nailed this! ✨",
   "helper_activities6": "You deserve recognition! 🥇",
   "helper_activities7": "Awesome effort, you're pushing hard! 🎯",
-  "helper_activities8": "You're getting closer to your goal every day! 🚶♀️",
+  "helper_activities8": "You're getting closer to your goal every day! 🚶",
   "helper_activities9": "You’re so strong, from you! 💪",
   "helper_activities10":"You're on the right track! 🌟",
   "helper_activities11":"Great work! 🌟",
@@ -213,14 +248,15 @@
 
   "@ThemeHelper": {
   },
-  "themeHelper_msg0": "{name} here is a list of all your weekly plans 😊",
-  "themeHelper_open_msg0": "{name} here are all the appointments where you haven't given feedback yet 😉\n",
+  "themeHelper_msg0": "{name}here is a list of all your weekly plans 😊",
+  "themeHelper_open_msg0": "{name}here are all the appointments where you haven't given feedback yet 😉\n",
   "themeHelper_open_msg1": "{count, plural, =0{Currently there is nothing to answer \uD83D\uDE09} =1{{count} appointment is left \uD83D\uDE09} other{{count} appointments are left \uD83D\uDE09}}",
 
 
   "@DayOverView": {
   },
-  "taskCompletedOn": "{date} you completed\n",
+  "noFeedbackFromNotification": "The day is over, it's great you opened this Notification,\nthat in itself proofs you're working to improve your Situation\uD83D\uDC4D \n Thank You!\uD83D\uDE09",
+  "taskCompletedOn": "{date} \nyou completed\n",
   "today": "today",
   "tasksCompleted": "{count, plural, =1{\nTask} other{\nTasks}}",
   "tasksPendingFeedback": "\n\n(If you like, you can still give feedback on {count, plural, =1{one activity} other{{count} activities}} on the 'Open' page 😊)",
@@ -229,6 +265,7 @@
   "tasksNotAnsweredOn": "You haven't answered {count, plural, =1{your activity} other{{count} activites}} {date} yet.",
   "checkPendingFeedback": "Check on the home page under 'Open' or in the 'Week Overview' to give feedback on an activity 👍",
   "dayNotYetArrived": "The day hasn't arrived yet 😉 \n Still, it's nice that you're checking in early {name} :)",
+  "activity_not_there_yet": "{count, plural, =1{Die Aktivität ist} other{die Aktivitäten sind}} noch nicht gekommen 😉 Trotzdem schön, dass du schon mal hier reinschaust {name} :)",
   "unexpectedCaseFound": "Congratulations!!! 🎉 You found a case I didn't think of! Great job! 😊 If possible, let your therapist or the app developer know which combination led to this case.",
   "daily_Values": "Daily Values",
   "day_reward_message": "Thanks! \uD83D\uDE0A \n\n I hope the day was helpful and you felt good \n\n Just take it one day at a time \uD83D\uDE0A \uD83D\uDCAA",
@@ -238,8 +275,9 @@
   "@WeekOverview": {
   },
   "weekOverView_summary": "This week you completed\n",
-  "weekOverView_summary_part2": "{count, plural, =1{Task\n\n {randomText}} other{Tasks\n\n {randomText}}}",
+  "weekOverView_summary_part2": "{count, plural, =1{Task\n\n} other{Tasks\n\n}}",
   "weekOverView_leftAnswers": "{count, plural, =0{} =1{\n\n If you like, you can still give feedback on {count} activity} other{\n\n If you like, you can still give feedback on {count} activities}}",
+  "weekOverView_tooEarly": "Die Woche ist noch nicht gekommen. Schau gerne später wieder hierrein :)",
   "weekOverView_noAnswers": "You haven't yet evaluated any activity this week\n Please come back later 🙋♂️",
   "weekOverView_scroll": "\n\n Scroll down to get more info ;)",
   "week_reward_message": "Thanks! \uD83D\uDE0A \n\n Ich hope this week did you good and you made progress \n\n You're doing great one week at a time \uD83D\uDCAA",
@@ -269,7 +307,7 @@
 
 
   "@End": {  },
-  "noti_dayEnd_title":"$\uD83C\uDF89 Activity Summary for the {date}",
+  "noti_dayEnd_title":"\uD83C\uDF89 Activity Summary for the {date}",
   "@noti_dayEnd_title" : {
     "placeholders": {
       "date": {
@@ -286,5 +324,14 @@
 
   "delete": "Delete",
   "delete_week_plan":"Do you really want to delete the Plan for:",
-  "delete_week_plan2": "Are you sure?"
+  "delete_week_plan2": "Are you sure?",
+
+  "delete_Termin": "Du you want to really delete:",
+  "delete_Entry": "delete Activity",
+  "createTermin": "create Activity",
+  "terminName": "Activity Name",
+  "notEmpty": "Name mustn't ",
+  "beginTime": "Starttime:",
+  "endTime": "Endtime:",
+  "date": "Date"
 }

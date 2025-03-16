@@ -4,8 +4,8 @@ import 'Pages/main_page.dart';
 import 'generated/l10n.dart';
 
 //TODO: - Aufräumen
-//TODO: - Date Lokalisation für dayOverView/weekOverview anpassen
-//TODO: - Neue WeekTiles testen und ob es es wert ist
+
+///Oberste App-Seite, verwendet für Themes & Navigation
 
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -53,7 +53,7 @@ class MyAppState extends State<MyApp> {
             seedColor: seedColor,
             brightness: Brightness.light),
         primaryColor: accentColorTwo,
-        appBarTheme: AppBarTheme(color: accentColorOne.shade300),
+        appBarTheme: AppBarTheme(color: accentColorOne.shade300,foregroundColor: Colors.black87),
         scaffoldBackgroundColor: accentColorOne.shade50,
         listTileTheme: ListTileThemeData(
           tileColor: Colors.white,
@@ -63,7 +63,9 @@ class MyAppState extends State<MyApp> {
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
             backgroundColor: accentColorOne.shade100,
             selectedItemColor:accentColorTwo ,
-            unselectedItemColor: Colors.black87),
+            unselectedItemColor: Colors.black87,
+            enableFeedback: true,
+        ),
         useMaterial3: true,
       ),
       darkTheme: ThemeData(
@@ -73,7 +75,7 @@ class MyAppState extends State<MyApp> {
           brightness: Brightness.dark,
         ),
         primaryColor: accentColorTwo,
-        appBarTheme: AppBarTheme(color: accentColorOne),
+        appBarTheme: AppBarTheme(color: accentColorOne.shade400, foregroundColor: Colors.black87, iconTheme: IconThemeData(color: Colors.black87)),
         scaffoldBackgroundColor: Colors.blueGrey.shade800,
         listTileTheme: ListTileThemeData(
           tileColor: Colors.grey.shade600,
@@ -81,9 +83,10 @@ class MyAppState extends State<MyApp> {
           iconColor: accentColorTwo,
         ),
         bottomNavigationBarTheme: BottomNavigationBarThemeData(
-          backgroundColor: Colors.blueGrey.shade700,
+          backgroundColor: Colors.transparent,  //Colors.blueGrey.shade700.withAlpha(100),
           selectedItemColor: accentColorTwo,
           unselectedItemColor: Colors.white70,
+          enableFeedback: true
         ),
         useMaterial3: true,
       ),
@@ -158,48 +161,6 @@ LayoutBuilder(
                     ),
                   ],
                 )
-                    : Row(
-                  children: [
-                    if(themeIllustration is! SizedBox) Expanded(
-                        child: themeIllustration
-                    ) else SizedBox(width: 80,),
-                    Expanded(
-                      child: ShaderMask(
-                        shaderCallback: (Rect bounds) {
-                          return LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black,
-                              Colors.black,
-                              Colors.transparent
-                            ],
-                            stops: [0.0, 0.03, 0.95, 1.0],
-                          ).createShader(bounds);
-                        },
-                        blendMode: BlendMode.dstIn,
-                        child: ListView.builder(
-                          itemCount: items.length,
-                          itemBuilder: (context, index) {
-                            return WeekTile(
-                              item: items[index],
-                              onDeleteTap: () async {
-                                deleteItem(items[index].title);
-                                setState(() {
-                                  items.removeAt(index);
-                                });
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    if(themeIllustration is! SizedBox) SizedBox(width: 0,) else SizedBox(width: 80,),
-                  ],
-                );
-              },
-            ),
  */
 /*
 TODO: Alternative zum laden der Wochenpläne die nicht auf weekKey und Weeklytable-Datenbanktabelle beruht
@@ -245,132 +206,4 @@ void checkDatabaseAlternative() async {
 
     }
   }
- */
-
-//PageView alternate Children
-/*          Column(
-              children: [
-                themeIllustration,
-                Expanded(
-                    child: ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: items.length,
-                        itemBuilder: (context, index) {
-                          return WeekTile(
-                            item: items[index],
-                            onDeleteTap: () async {
-                              deleteItem(items[index].title);
-                              setState(() {
-                                items.removeAt(index);
-                              });
-                            },
-                          );
-                        }),
-                )
-              ],
-            ),
-*/
-/* DropDown Menu
-MenuAnchor(
-            childFocusNode: _buttonFocusNode,
-            menuChildren: <Widget>[
-              MenuItemButton(
-                child: Text("Hilfe?"),
-                onPressed: () => print("ONE"),
-              ),
-              MenuItemButton(
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                    Text("Darkmode"),
-                    Switch(
-                      value: isDarkMode,
-                        onChanged: (value) {
-                          isDarkMode = isDarkMode; // Darkmode umschalten
-                        },
-                      ),
-                    ]
-                ),
-                onPressed: () => print("Two"),
-              ),
-            ],
-            builder:
-            (BuildContext context, MenuController controller, Widget? child) {
-              return TextButton(
-                focusNode: _buttonFocusNode,
-                onPressed: () {
-                  if (controller.isOpen) {
-                    controller.close();
-                  } else {
-                    controller.open();
-                  }
-                },
-                child: const Icon(Icons.menu),
-              );
-            }
-          )
- */
-
-/*PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == "hilfe") {
-                // Zeige Hilfe-Dialog
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text("Hilfe"),
-                    content: Text("Hier könnte Hilfe stehen."),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text("OK"),
-                      ),
-                    ],
-                  ),
-                );
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: "hilfe",
-                child: Text("Hilfe?"),
-              ),
-              PopupMenuItem(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Darkmode"),
-                    Switch(
-                      value: isDarkMode,
-                      onChanged: (val) {
-                        toggleDarkMode(val);
-                      }
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),*/
-//TODO: PopScope Idee:
-/*
-PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (bool didPop, result) {
-          if (!didPop) {
-            setState(() {
-              if(selectedIndex != 1) {
-                selectedIndex = 1;
-                _pageController.animateToPage(
-                  1,
-                  duration: Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              } else {
-                Navigator.of(context).pop();
-              }
-            });
-          }
-        },
-        child:
  */

@@ -1,4 +1,8 @@
+///Klasse für Termin-Objekt
+library;
+
 class Termin {
+  String weekKey;
   String terminName;
   DateTime timeBegin;
   DateTime timeEnd;
@@ -19,10 +23,12 @@ class Termin {
     required this.helpMean,
     required this.comment,
     required this.answered,
+    required this.weekKey,
   });
 
   Map<String,dynamic> toMap() {
    return{
+     "weekKey": weekKey,
      "terminName":terminName,
      "timeBegin": timeBegin.toString(),
      "timeEnd": timeEnd.toString(),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gif_view/gif_view.dart';
 import 'package:menta_track/Pages/settings.dart';
-
 import 'generated/l10n.dart';
 
+///Erstellt und passt das Baum-Fortschritts-Widget an
 
 class GifProgressWidget extends StatefulWidget {
   final double progress; //letzter anzuzeigender frame als prozent zwischen 0.0 und 1.0
@@ -21,7 +21,7 @@ class GifProgressWidget extends StatefulWidget {
     this.totalFrames = 30,
     required this.finished,
     this.termineForThisDay,
-    required this.forRewardPage //unelegant, aber es ist spät...
+    required this.forRewardPage
   });
 
   @override
@@ -40,6 +40,7 @@ class GifProgressWidgetState extends State<GifProgressWidget> {
     _gifController = GifController();
   }
 
+  ///Lädt Theme-Daten
   Future<void> loadTheme() async {
     SettingData data = await SettingsPageState().getSettings();
     name = data.name;
@@ -49,6 +50,7 @@ class GifProgressWidgetState extends State<GifProgressWidget> {
     });
   }
 
+  ///Definiert die Range und den Loop für Das Gif
   Future<void> _pauseGifAtProgress(int val) async {
     int targetFrame = (widget.progress * (widget.totalFrames - 1)).clamp(0, widget.totalFrames - 1).toInt();
     int startFrame = (widget.startFrame * (widget.totalFrames - 1)).clamp(0, widget.totalFrames - 1).toInt();
@@ -67,6 +69,7 @@ class GifProgressWidgetState extends State<GifProgressWidget> {
     }
   }
 
+  ///Erstellt den Text des Widgets basierend auf den Fortschritt
   Text getProgressText(){
     double p = widget.progress;
     String text = "";
@@ -105,23 +108,9 @@ class GifProgressWidgetState extends State<GifProgressWidget> {
     super.dispose();
   }
 
-  Widget build1(BuildContext context) {
-    return GifView.asset(
-      widget.gifPath,
-      controller: _gifController,
-      frameRate: 5,
-      onFrame: _pauseGifAtProgress,
-      onStart: () => {
-        _gifController.seek((widget.startFrame * (widget.totalFrames - 1)).clamp(0, widget.totalFrames - 1).toInt()),
-      },
-      height: MediaQuery.of(context).size.height * 0.3,
-      width: MediaQuery.of(context).size.height * 0.35,
-    );
-  }
-
   @override
   Widget build(BuildContext context){
-    return !widget.forRewardPage ? Material(
+    return !widget.forRewardPage ? Material( //Eventuell forRewardpage entfernen
         elevation: 10,
         color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(15),
@@ -155,16 +144,24 @@ class GifProgressWidgetState extends State<GifProgressWidget> {
             ],
           ),
         )
-    ): GifView.asset(
-      widget.gifPath,
-      controller: _gifController,
-      frameRate: 5,
-      onFrame: _pauseGifAtProgress,
-      onStart: () => {
-        _gifController.seek((widget.startFrame * (widget.totalFrames - 1)).clamp(0, widget.totalFrames - 1).toInt()),
-      },
-      height: MediaQuery.of(context).size.height * 0.3,
-      width: MediaQuery.of(context).size.height * 0.35,
+    ): Column( ///Für die Belohnungsseite, da es mit Material nicht so gut aussah
+      children: [
+        GifView.asset(
+          widget.gifPath,
+          controller: _gifController,
+          frameRate: 5,
+          onFrame: _pauseGifAtProgress,
+          onStart: () => {
+            _gifController.seek((widget.startFrame * (widget.totalFrames - 1)).clamp(0, widget.totalFrames - 1).toInt()),
+          },
+          height: MediaQuery.of(context).size.height * 0.3,
+          width: MediaQuery.of(context).size.height * 0.35,
+        ),
+        Padding(
+          padding: EdgeInsets.all(15),
+          child:  getProgressText(),
+        ),
+      ],
     );
   }
 }

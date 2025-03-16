@@ -1,13 +1,15 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:menta_track/Pages/question_page.dart';
 import 'package:menta_track/Pages/settings.dart';
 import 'package:menta_track/database_helper.dart';
 import 'package:sqflite/sqflite.dart';
+import '../generated/l10n.dart';
 import '../main.dart';
 import '../not_answered_data.dart';
 import '../not_answered_tile.dart';
 import '../theme_helper.dart';
+
+///Übersichtsseite über alle unbeantworteten Aktivitäten
 
 class NotAnsweredPage extends StatefulWidget {
   const NotAnsweredPage({super.key,});
@@ -29,6 +31,7 @@ class NotAnsweredState extends State<NotAnsweredPage> {
     super.initState();
   }
 
+  ///Lädt alle unbeantworteten Aktivitäten aus der Datenbank und fügt sie in eine Liste ein
   Future<List<NotAnsweredData>> loadNotAnswered() async {
     List<NotAnsweredData> items = [];
     Database db = await DatabaseHelper().database;
@@ -41,7 +44,8 @@ class NotAnsweredState extends State<NotAnsweredPage> {
       String terminName = map["terminName"];
       String weekKey = map["weekKey"];
       String timeBegin = map["timeBegin"];
-      NotAnsweredData data = NotAnsweredData(icon: Icons.priority_high_rounded,
+      NotAnsweredData data = NotAnsweredData(
+          icon: Icons.priority_high_rounded,
           terminName: terminName,
           dayKey: timeBegin,
           weekKey: weekKey);
@@ -50,9 +54,9 @@ class NotAnsweredState extends State<NotAnsweredPage> {
     return items;
   }
 
+  ///Öffnet ein Item via ScaleAnimation, diese lässt die Seite aus dem Listelement "herauswachsen"
   dynamic openItem(NotAnsweredData data, var ev) async {
     Offset pos = ev.globalPosition;
-
     return await navigatorKey.currentState?.push(
         PageRouteBuilder(
           pageBuilder: (context, animation, secondaryAnimation) =>
@@ -64,14 +68,12 @@ class NotAnsweredState extends State<NotAnsweredPage> {
             const curve = Curves.easeInOut;
 
             // Erstelle eine Skalierungs-Animation
-            var tween = Tween<double>(begin: 0.01, end: 1.0).chain(
-                CurveTween(curve: curve));
+            var tween = Tween<double>(begin: 0.1, end: 1.0).chain(CurveTween(curve: curve));
             var scaleAnimation = animation.drive(tween);
 
             return ScaleTransition(
               scale: scaleAnimation,
-              alignment: Alignment(MediaQuery.of(context).size.width * 0.5, pos.dy / MediaQuery.of(context).size.height * 2 - 1),
-              //x-Tap-position = pos.dx / MediaQuery.of(context).size.width * 2 - 1
+              alignment: Alignment(0, pos.dy / MediaQuery.of(context).size.height * 2 - 1),
               child: child,
             );
           },
@@ -79,20 +81,22 @@ class NotAnsweredState extends State<NotAnsweredPage> {
     );
   }
 
+  ///lädt thema und items und updatet den State
   void setUpPage() async {
     loadTheme();
     itemsNotAnswered = await loadNotAnswered();
     setState(() {
-      loaded = true;
+      loaded = true; //damit wenn nicht geladen ein ladesymbol angezeigt werden kann
     });
   }
 
+  ///lädt das App-Theme
   void loadTheme() async {
     SettingData data = await SettingsPageState().getSettings();
     name = data.name;
     _showOnlyOnMainPage = data.themeOnlyOnMainPage;
     Widget image = SizedBox();
-    if (mounted) image = await ThemeHelper().getIllustrationImage("OpenPage"); //Wird probleme mit context geben
+    if (mounted) image = await ThemeHelper().getIllustrationImage("OpenPage"); //mounted redundant, kann wrsch. entfernt werden
     setState(() {
       themeIllustration = image;
       _showOnlyOnMainPage;
@@ -136,23 +140,18 @@ class NotAnsweredState extends State<NotAnsweredPage> {
                             setState(() {
                               itemsNotAnswered.removeAt(index);
                             });
-                          } else {
-                            if (kDebugMode) {
-                              print("canceled");
-                            }
                           }
                         },
                       );
                     },
                   ): Container(
                       padding: EdgeInsets.all(40),
-                      child: Text("Gerade gibts nichts zu beantworten :)"),
+                      child: Text(S.current.themeHelper_open_msg1(0)),
                     ),
                 ),
               ),
             ],
-          )
-              : Row(
+          ) : Row( ///Landscape Layout
             children: [
               if(themeIllustration is! SizedBox) Expanded(
                   child: themeIllustration
@@ -185,10 +184,6 @@ class NotAnsweredState extends State<NotAnsweredPage> {
                               //Teilweise seltsames Verhalten und aufgerufen, bevor QuestionPage gepopt ist?
                               itemsNotAnswered.removeAt(index);
                             });
-                          } else {
-                            if (kDebugMode) {
-                              print("canceled");
-                            }
                           }
                         },
                       );
@@ -196,7 +191,7 @@ class NotAnsweredState extends State<NotAnsweredPage> {
                   ),
                 ),
               ),
-              if(themeIllustration is! SizedBox) SizedBox(width: 0,) else SizedBox(width: 80,),
+              if(themeIllustration is! SizedBox) SizedBox(width: 0,) else SizedBox(width: 80,), //Zusätzlicher Abstand, falls keine illustration gewählt wurde
             ],
           );
         },
@@ -204,8 +199,7 @@ class NotAnsweredState extends State<NotAnsweredPage> {
     );
   }
 }
-      /* TODO! WICHTIG!: Hier scrollt die Illustration mit, dafür ist queres Layout nicht so schön
-
+      /* TODO: Illustration mitscrolln?
       CustomScrollView( //Wegen  Einbindung von Illustration über Liste, die mitscrollen soll
         slivers: [
           SliverToBoxAdapter(
@@ -237,97 +231,6 @@ class NotAnsweredState extends State<NotAnsweredPage> {
               child: CircularProgressIndicator()
           ),
         ],
-      ),*/
+      ),
+      */
 
-/*Old Build funktion
-/*Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                //crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.03,),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.45,
-                    child:Padding(
-                      padding: EdgeInsets.symmetric(vertical: 15),
-                      child:
-                      ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child:
-                          _theme == "mascot" ? Image.asset( "assets/images/mascot/Mascot Klemmbrett Transparent.png", //Image.asset("assets/images/mascot/Mascot Wochenplan Transparent v2.png",
-                            //width: MediaQuery.of(context).size.width * 0.5,
-                            height: MediaQuery.of(context).size.width * 0.4,
-                          ):
-                          _theme == "illustration" ? Image.asset( "assets/images/illustrations/flat-design illustration.png", //Image.asset("assets/images/mascot/Mascot Wochenplan Transparent v2.png",
-                            width: MediaQuery.of(context).size.width * 0.5,
-                          ): SizedBox(height: 0,)
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.04,),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.45,
-                    child: RichText(
-                        textAlign: TextAlign.left,
-                        text: TextSpan(
-                            children: [
-                              //TextSpan(text: "\n", style: TextStyle(fontSize: 20)),
-                              TextSpan(text: "Offen: \n", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color ,fontWeight: FontWeight.bold, fontSize: 18)),
-                              TextSpan(text: "\n", style: TextStyle(fontSize: 5)),
-                              TextSpan(text: "Hier findest du alle Termine angezeigt zu denen du noch kein Feedback gegeben hast ${Emojis.smile_winking_face}", style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 17))
-                            ]
-                        )
-                    ),
-                  ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.03,),
-                ],
-              )*/
-            /*child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  //SizedBox(width: MediaQuery.of(context).size.width * 0.2,),
-                  Padding(
-                      padding: EdgeInsets.symmetric(vertical: 15),
-                      child:
-                        ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child:
-                            _theme == "mascot" ? Image.asset( "assets/images/mascot/Mascot Klemmbrett Transparent.png", //Image.asset("assets/images/mascot/Mascot Wochenplan Transparent v2.png",
-                              //width: MediaQuery.of(context).size.width * 0.5,
-                              height: MediaQuery.of(context).size.width * 0.4,
-                            ):
-                            _theme == "illustration" ? Image.asset( "assets/images/flat-design illustration.png", //Image.asset("assets/images/mascot/Mascot Wochenplan Transparent v2.png",
-                              width: MediaQuery.of(context).size.width * 0.5,
-                            ): SizedBox(height: 0,)
-                        ),
-
-                  ),
-                  SizedBox(
-                    width: 150,
-                    child: RichText(
-                        textAlign: TextAlign.left,
-                        text: TextSpan(
-                            children: [
-                              TextSpan(text: "Offen: \n", style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color ,fontWeight: FontWeight.bold, fontSize: 18)),
-                              TextSpan(text: "\n", style: TextStyle(fontSize: 5)),
-                              TextSpan(text: "Hier findest du alle Termine angezeigt zu denen du noch kein Feedback gegeben hast ${Emojis.smile_winking_face}", style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 17))
-                            ]
-                        )
-                    ),
-                  )
-                ],
-              )*/
-    ALT loadNotAnswered:
-    DatabaseHelper databaseHelper = DatabaseHelper();
-    List<Map<String, dynamic>> weekPlans = await databaseHelper.getAllWeekPlans();
-    for (var weekPlan in weekPlans) {
-      String weekKey = weekPlan["weekKey"];
-      List<Termin> weekAppointments = await databaseHelper.getWeeklyPlan(weekKey); //await muss nach den erstellen der CalendarHeader passieren
-      for(Termin t in weekAppointments){
-        if(!t.answered && DateTime.now().isAfter(t.timeEnd)){
-          NotAnsweredData data = NotAnsweredData(icon: Icons.priority_high_rounded,terminName: t.terminName, dayKey: t.timeBegin.toIso8601String(), weekKey: weekKey);
-          items.add(data);
-        }
-      }
-    }
-    print("forloop length: ${items.length}");
- */

@@ -1,18 +1,20 @@
 import 'package:action_slider/action_slider.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:menta_track/database_helper.dart';
+import 'package:menta_track/main.dart';
 import 'package:menta_track/reward_pop_up.dart';
 import 'package:menta_track/termin.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../generated/l10n.dart';
-
-//TODO?: Man könnte ziemlich einfach den Termin im nachhinein wieder bearbeitbar machen, wenn gewünscht
+import '../helper_utilities.dart';
 
 class QuestionPage extends StatefulWidget{
   final String weekKey; ///"MM-dd-yyyy"
-  final String timeBegin;
-  final String terminName;
+  final String timeBegin;  //DateTime.toIso... ("MM-dd-yyyyT012:00:00")
+  final String terminName; //DateTime.toIso...
 
   const QuestionPage({
     super.key,
@@ -25,11 +27,16 @@ class QuestionPage extends StatefulWidget{
 }
 
 class QuestionPageState extends State<QuestionPage> {
-  List<int> radioAnswers = [-1,-1,-1,-1]; //Hier deklariert um beim abfragen im Scaffholding keine outOfRange Exception zu bekommen
+  List<int> radioAnswers = [-1,-1,-1,-1]; //Hier deklariert um beim abfragen im Scaffholding keine Exception zu bekommen
   TextEditingController textEditingController = TextEditingController();
   bool isEditable = false;
+  bool isBeingEdited = false;
   late bool isTooEarly = false;
+  late bool slightlyTooEarly = false;
   DatabaseHelper databaseHelper = DatabaseHelper();
+  String name = "";
+
+
 
   @override
   void initState() {
@@ -37,9 +44,11 @@ class QuestionPageState extends State<QuestionPage> {
     super.initState();
   }
 
-  //Holt sich den Termin und füllt die Questionpage mit den Antworten, falls er schon beantwortet wurde
+  ///Holt sich den Termin und füllt die Questionpage mit den Antworten, falls er schon beantwortet wurde
   void getTermin() async {
+    final pref = await SharedPreferences.getInstance();
      Termin? termin = await databaseHelper.getSpecificTermin(widget.weekKey, widget.timeBegin, widget.terminName);
+     name = pref.getString("userName") ?? "";
      if(termin != null){
         if(termin.answered){ //Wenn hier true, müsste isEditable eigentlich immer false sein, da diese Info schon im WeekPlanView abgefragt wird. Diese Datenabfrage hier ist auch eher eine zusätzliche redundanz zur Sicherheit
           setState(() {
@@ -51,20 +60,25 @@ class QuestionPageState extends State<QuestionPage> {
             isEditable = false;
           });
         } else {
-          if(DateTime.now().isAfter(termin.timeBegin.add(Duration(minutes: 10)))){
+          int differenceInMinutes = termin.timeBegin.add(Duration(minutes: 10)).difference(DateTime.now()).inMinutes;
+          if(differenceInMinutes < 10 && !differenceInMinutes.isNegative){
+            isEditable = false;
+            isTooEarly = true;
+            slightlyTooEarly = true;
+          } else if(differenceInMinutes.isNegative) {
             isEditable = true;
           } else {
             isEditable = false;
             isTooEarly = true;
           }
         }
-     }
+     } 
      setState(() {
        isEditable;
      });
   }
 
-  //Speichert/Updated die Antworten in der Datenbank
+  ///Speichert/Updated die Antworten in der Datenbank
   void saveAnswers() {
     Map<String, dynamic> updatedValues = {
       "doneQuestion": radioAnswers[0],
@@ -74,25 +88,39 @@ class QuestionPageState extends State<QuestionPage> {
       "comment": textEditingController.text,
       "answered": 1,
     };
-    //print("Updatedvalues: $updatedValues");
     checkIfExceptional(radioAnswers);
     databaseHelper.updateEntry(widget.weekKey, widget.timeBegin, widget.terminName, updatedValues);
     databaseHelper.updateActivities(widget.weekKey);
-    Navigator.pop(context, "updated");
-    //print(databaseHelper.getSpecificTermin(widget.weekKey, timeBeginForDataBase, widget.terminName).toString()); UpdateTest
+    if(!isBeingEdited) {
+      Navigator.pop(context, "updated");
+    } else { //TODO: Lieber verlassen? Oder lieber wieder den Slider einblenden?
+      setState(() {
+        isBeingEdited = false;
+        isEditable = false;
+      });
+    }
   }
 
-  void checkIfExceptional(List<int> radioAnswers) {
+  ///Checkt ob etwas besonders gut beantwortet wurde
+  Future<void> checkIfExceptional(List<int> radioAnswers) async {
+    //Löscht den Eintrag falls schon vorhanden (z.B. wenn Antwort bearbeitet wird)
+    await DatabaseHelper().deleteSpecificHelpingActivity(widget.weekKey, widget.terminName, widget.timeBegin);
+
+    //Speichert den Eintrag wenn besonders gut beantwortet wurde (Könnte auf 0,1 und 5,6 checken und die Werte im Table speichern um größere Varianz beim speichern zu haben)
     for(int i = 1; i < radioAnswers.length; i++){ //starten bei 1 um die ja/später/nein frage zu überspringen
       if(radioAnswers[i] >= 6){
         databaseHelper.saveHelpingActivities(
             widget.terminName,
             i == 1 ? "good" : i == 2 ? "calm" : i == 3 ? "help" : "",
-            radioAnswers[0] == 2 ? false : true);
+            radioAnswers[0] == 2 ? false : true,
+            widget.timeBegin,
+            textEditingController.text,
+            widget.weekKey);
       }
     }
   }
 
+  ///Öffnet das Belohnung-PopUp
   void openRewardPopUp() async{
     String? result = await RewardPopUp().show(
         context,
@@ -101,37 +129,33 @@ class QuestionPageState extends State<QuestionPage> {
         false
     );
     if(result == "confirmed"){
-      //for(int i = 0; i < radioAnswers.length; i++){
-      //  print(radioAnswers[i]);
-      //}
       saveAnswers();
     }
   }
 
+  ///Erstellt ein Fragen-Widget abhängig von Index im for-Loop, kann so theoretisch sehr leicht erweitert werden
+  ///Man könnte auch noch die Scala variabel anpassbar machen
   Widget buildQuestion(
       int questionIndex,
-      //String questionText,
-      //int groupValue,
-      //int questionIndex,
-      //String labelStart,
-      //String labelEnd,
       bool firstQuestion) {
     List<String> questions = [
       S.of(context).questionPage_q1,
       S.of(context).questionPage_q2,
       S.of(context).questionPage_q3,
-      S.of(context).questionPage_q4,
+      S.of(context).questionPage_q4
     ];
     List<String> labelStart = [
       "",
       S.of(context).questionPage_a1s,
       S.of(context).questionPage_a2s,
-      S.of(context).questionPage_a3s];
+      S.of(context).questionPage_a3s
+    ];
     List<String> labelEnd = [
       "",
       S.of(context).questionPage_a1e,
       S.of(context).questionPage_a2e,
-      S.of(context).questionPage_a3e,];
+      S.of(context).questionPage_a3e
+    ];
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 5),
@@ -145,43 +169,43 @@ class QuestionPageState extends State<QuestionPage> {
             children: List.generate(firstQuestion ? 3 : 7, (index) {
               return Expanded(
                   child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.03,
-                    child: FittedBox(
-                      fit: BoxFit.contain ,
-                      child: firstQuestion ?
-                      Text(
-                        index == 0 ? S.of(context).questionPage_a0s
-                            : index == 1 ? S.of(context).questionPage_a0m
-                            : index == 2 ? S.of(context).questionPage_a0e : "",
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, height: 1.7),
-                        textAlign: TextAlign.center,
-                      ) : Text(
-                        index == 0 ? labelStart[questionIndex] :
-                        index == 6 ? labelEnd[questionIndex] : " \n ",
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, height: 1.1),
-                        textAlign: TextAlign.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.03,
+                        child: FittedBox(
+                          fit: BoxFit.contain ,
+                          child: firstQuestion ?
+                          Text(
+                            index == 0 ? S.of(context).questionPage_a0s
+                                : index == 1 ? S.of(context).questionPage_a0m
+                                : index == 2 ? S.of(context).questionPage_a0e : "",
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, height: 1.7),
+                            textAlign: TextAlign.center,
+                          ) : Text(
+                            index == 0 ? labelStart[questionIndex] :
+                            index == 6 ? labelEnd[questionIndex] : " \n ",
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, height: 1.1),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                   SizedBox(
-                     width: MediaQuery.of(context).size.width,
-                     //fit: BoxFit.contain,
-                      child: Radio<int>(
-                        value: index,
-                        groupValue: radioAnswers[questionIndex],
-                        onChanged: !isEditable ? null : (value) {
-                          setState(() {
-                            radioAnswers[questionIndex] = value as int;
-                          });
-                        },
-                        activeColor: Theme.of(context).primaryColor,
-                      ),
-                   ),
-                ],
-              )
+                       SizedBox(
+                         width: MediaQuery.of(context).size.width,
+                         //fit: BoxFit.contain,
+                          child: Radio<int>(
+                            value: index,
+                            groupValue: radioAnswers[questionIndex],
+                            onChanged: !isEditable ? null : (value) {
+                              setState(() {
+                                radioAnswers[questionIndex] = value as int;
+                              });
+                            },
+                            activeColor: Theme.of(context).primaryColor,
+                          ),
+                       ),
+                    ],
+                )
               );
             }),
           ),
@@ -189,6 +213,7 @@ class QuestionPageState extends State<QuestionPage> {
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -198,23 +223,83 @@ class QuestionPageState extends State<QuestionPage> {
           title: FittedBox(
             fit: BoxFit.fitWidth,
             child: Row(
+                spacing: 25,
                 children: [
                   RichText(
                     text: TextSpan(
                         children: [
                           TextSpan(text: "${widget.terminName}  \n", style: TextStyle(fontWeight: FontWeight.bold)),
-                          TextSpan(text: "${S.of(context).am} ${S.current.displayADate(DateTime.parse(widget.timeBegin))} "
-                              "${S.of(context).um} ${S.current.displayATime(DateTime.parse(widget.timeBegin))}")
+                          TextSpan(text:  "${S.of(context).am} ${S.current.displayADate(DateTime.parse(widget.timeBegin))} "
+                                          "${S.of(context).um} ${S.current.displayATime(DateTime.parse(widget.timeBegin))}")
                         ],
                         style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 18)),
                   ),
-                  if(!isEditable && !isTooEarly) SizedBox(width: 15,),
                   if(!isEditable && !isTooEarly) Icon(Icons.check,size: 35, color: Colors.green,),
-                  if(!isEditable && !isTooEarly) SizedBox(width: 15,),
                 ]
             ) ,
-          ), //Text(pageTitle,style: TextStyle(fontSize: 18)),
-          backgroundColor: Colors.transparent),
+          ),
+          backgroundColor: Colors.transparent,
+        actions: [
+          if(isBeingEdited || isEditable || isTooEarly) Padding( //Nicht die Funktion aus Utilities, da ich auf hinzufügen von Eintrag reagieren muss, was nicht durch RouteAware/DidPopNext aufgefangen wird
+            padding: EdgeInsets.only(right: 5),
+            child: MenuAnchor(
+                menuChildren: <Widget>[
+                  MenuItemButton(
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Icon(Icons.help_rounded),
+                          SizedBox(width: 10),
+                          Text(S.of(context).help)
+                        ],
+                      ),
+                    ),
+                    onPressed: () => Utilities().showHelpDialog(context, "QuestionPage", name),
+                  ),
+                  //TODO: Falls Eintröge manuell hinzugefügt werden können
+                  /*MenuItemButton(
+                        child: Center(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Icon(Icons.delete),
+                              SizedBox(width: 10),
+                              Text("Aktivität Löschen?")
+                            ],
+                          ),
+                        ),
+                        onPressed: () async {
+                          String title =" ${widget.terminName} ${S.current.am} ${DateFormat("dd.MM").format(DateTime.parse(widget.timeBegin))} ${S.current.um} ${DateFormat("HH:mm").format(DateTime.parse(widget.timeBegin))}";
+                          bool? result = await Utilities().showDeleteDialog(title, false, context);
+                          if(result != null){
+                            if(result){
+                              DatabaseHelper().dropTermin(widget.weekKey, widget.terminName, widget.timeBegin);
+                              navigatorKey.currentState?.pop("updated");
+                            }
+                          }
+
+                        },
+                      )*/
+                ],
+                builder: (BuildContext context, MenuController controller, Widget? child) {
+                  return TextButton(
+                    focusNode: FocusNode(),
+                    onPressed: () {
+                      if (controller.isOpen) {
+                        controller.close();
+                      } else {
+                        controller.open();
+                      }
+                    },
+                    child: const Icon(Icons.menu, size: 30),
+                  );
+                }
+            ),
+          )
+          //Utilities().getHelpBurgerMenu(context, "WeekPlanView", widget.weekKey)
+        ],
+      ),
       body: GestureDetector(
         child: SingleChildScrollView(
           child: Padding(
@@ -223,16 +308,21 @@ class QuestionPageState extends State<QuestionPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SizedBox(height: 15,),
-                //Erste Frage
                 //!isEditable ? ÜBERSICHT ÜBER WERTE?
-                !isTooEarly ? buildQuestion(0, true) : Text("${widget.terminName} ist ${S.current.am} ${DateFormat("dd.MM").format(DateTime.parse(widget.timeBegin))} ${S.current.um} ${DateFormat("HH:mm").format(DateTime.parse(widget.timeBegin))}\n${S.of(context).questionPage_too_early}", style: TextStyle(fontSize: 24),textAlign: TextAlign.center,),
+                ///Erste Frage (Falls Zeitpunkt gekommen ist, ansonsten Info)
+                isTooEarly ? Text(!slightlyTooEarly ?
+                        S.current.questionPage_too_early1(DateTime.parse(widget.timeBegin), DateTime.parse(widget.timeBegin),0,widget.terminName) :
+                        S.current.questionPage_too_early1(DateTime.parse(widget.timeBegin), DateTime.parse(widget.timeBegin),1,widget.terminName),
+                    style: TextStyle(fontSize: 24),textAlign: TextAlign.center,)
+                : buildQuestion(0, true),
                 SizedBox(height: 16),
-                //Frage 2,3,4
+                ///Frage 2,3,4
                 for (int i = 1; i < 4; i++)
                   if (radioAnswers[i - 1] != -1) ...[
                     buildQuestion(i, false),
                     SizedBox(height: 16),
                   ],
+                ///TextFeld für Kommentar
                 if(radioAnswers[3] != -1)...{
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -251,17 +341,11 @@ class QuestionPageState extends State<QuestionPage> {
                           border: OutlineInputBorder(borderSide: BorderSide(color: Theme.of(context).primaryColorLight)),
                           labelText: S.of(context).questionPage_commentLabel,
                         ),
-                        onChanged: !isEditable ? null : (value){
-                          setState(() {
-                            //enteredText = textEditingController.text.isNotEmpty;
-                          });
-                        },
-                        onTap:() => {} //tapedOnTextBox = true,
                       )],
                   )
                 },
-                //Buttons & Sliders
-                if(radioAnswers[3] != -1 && isEditable)...{
+                ///Slider falls es bearbeitbar/beantwortbar ist
+                if(radioAnswers[3] != -1 && isEditable && !isBeingEdited)...{
                   SizedBox(height: 20),
                   Center(
                     child: Column(
@@ -278,7 +362,7 @@ class QuestionPageState extends State<QuestionPage> {
                               openRewardPopUp();
                             },
                             stateChangeCallback:(actionsliderState1 ,actionSliderState2, actionSliderController1) {
-                               // print(actionSliderState2.position); //Prozent des Sliders
+                               //actionSliderState2.position; //Prozent des Sliders
                               HapticFeedback.vibrate();
                             },
                           ),
@@ -289,26 +373,63 @@ class QuestionPageState extends State<QuestionPage> {
                           child: Text(S.of(context).cancel, style: TextStyle(fontSize: 16),),
                         ),
                         SizedBox(height: 16)
-
                       ],
                     ),
                   )
                 },
-                if(!isEditable || isTooEarly)...{ //Zurückknopf
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(minimumSize: Size(200,50),),
-                    child: Text(S.of(context).back, style: TextStyle(fontSize: 16),)
-                  ),
-                  SizedBox(height: 16)
-                },
+                ///Buttons, falls es schon beantwortet wurde
+                if(!isEditable || isTooEarly || isBeingEdited)...{
+                  Padding(
+                    padding: EdgeInsets.only(top: 20, bottom: 30,left: 10,right: 10),
+                    child: Row(
+                      spacing: 20,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        if(!isTooEarly) !isBeingEdited ? Expanded(
+                          child: ElevatedButton(
+                              onPressed: (){
+                                setState(() {
+                                  isEditable = true;
+                                  isBeingEdited = true;
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).buttonTheme.colorScheme?.surface.withAlpha(50)),
+                              child: AutoSizeText(S.current.edit, style: TextStyle(fontSize: 16), maxLines: 1,)
+                          ),
+                        ): Expanded(
+                          child: ElevatedButton(
+                              onPressed: (){
+                                  saveAnswers();
+                              },
+                              style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).buttonTheme.colorScheme?.primary.withAlpha(80)),
+                              child: AutoSizeText(S.current.save, style: TextStyle(fontSize: 16), maxLines: 1,)
+                          ),
+                        ),
+                         Expanded(
+                          child: !isBeingEdited ? ElevatedButton(
+                              onPressed: () => Navigator.pop(context),
+                              //style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColorLight),
+                              child: Text(S.of(context).back, style: TextStyle(fontSize: 16))
+                          ) : ElevatedButton(
+                              onPressed: (){
+                                setState(() {
+                                  isEditable = false;
+                                  isBeingEdited = false;
+                                });
+                              },
+                              child: Text(S.of(context).cancel, style: TextStyle(fontSize: 16))
+                          ),
+                         )
+                      ],
+                    ),
+                  )
+                }
               ],
             ),
           ),
         ),
         onTapDown: (ev) => {
-          FocusScope.of(context).unfocus(),
+          FocusScope.of(context).unfocus(), //Um focus von TextField zu entfernen
         },
       )
     );
@@ -316,19 +437,6 @@ class QuestionPageState extends State<QuestionPage> {
 }
 
 //Alternative
-/*
-    Alternative erste Anzeige von den Fragen
-    /*//Zweite Frage
-    if (radioAnswers[0] != -1) buildQuestion(questions[1], radioAnswers[1], 1, "sehr \n schlecht", "sehr \n gut", false),
-    SizedBox(height: 16),
-    //Dritte Frage
-    if (radioAnswers[1] != -1) buildQuestion(questions[2], radioAnswers[2], 2, "sehr \n aufgeregt", "sehr \n ruhig",false),
-    SizedBox(height: 16),
-    //Vierte Frage
-    if (radioAnswers[2] != -1) buildQuestion(questions[3], radioAnswers[3], 3, "wenig \n geholfen", "sehr \n geholfen",false),
-    SizedBox(height: 16),*/
-    //Textbox
- */
 /*Anzeige von Termin
               Material(
                       elevation: 10,
@@ -358,189 +466,3 @@ class QuestionPageState extends State<QuestionPage> {
                         )
                       ),
                     ),*/
-/* ALTE VERSION  Center(
-                  child: Column(
-                    children: [
-                      Text(questions[0],
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 16),
-                      Wrap(
-                        spacing: 70,
-                        children: List.generate(3, (index) {
-                          return Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SizedBox(
-                                height: 15,
-                                child: Text(
-                                  index == 0 ? "Ja"
-                                      : index == 1 ? "Später"
-                                      : "Nein",
-                                  style: TextStyle(fontSize: 12),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                              Radio<int>(
-                                value: index,
-                                groupValue: radioAnswers[0],
-                                onChanged: !isEditable ? null : (value) {
-                                  setState(() {
-                                    radioAnswers[0] = value as int;
-                                  });
-                                },
-                                activeColor: Theme.of(context).primaryColor,
-                              ),
-                            ],
-                          );
-                        }),
-                      )
-                    ],
-                  ),
-                ),
-                if(radioAnswers[0] != -1)...{ //Zeigt es erst an, wenn Frage 1 beantwortet wurde
-                  Center( //crossAxisAlignment hat nicht funktioniert
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(questions[1],
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        SizedBox(height: 16),
-                        Wrap(
-                          children: List.generate(7, (index) {
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  height: 35,
-                                  child: Text(
-                                    index == 0 ? "sehr \n schlecht"
-                                        : index == 6 ? "sehr \n gut"
-                                        : "\n",
-                                    style: TextStyle(fontSize: 12),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                                Radio<int>(
-                                  value: index,
-                                  groupValue: radioAnswers[1],
-                                  onChanged: !isEditable ? null : (value) {
-                                    setState(() {
-                                      print(value);
-                                      radioAnswers[1] = value as int;
-                                    });
-                                  },
-                                  activeColor: Theme.of(context).primaryColor,
-                                ),
-                              ],
-                            );
-                          }),
-                        )
-                      ],
-                    ),
-                  )},
-                SizedBox(height: 16),
-                //Dritte Frage
-                if(radioAnswers[1] != -1)...{
-                  Center(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(questions[2],
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        SizedBox(height: 16),
-                        Wrap(
-                          children: List.generate(7, (index) {
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  height: 35,
-                                  child: Text(
-                                    index == 0 ? "sehr \n aufgeregt"
-                                        : index == 6 ? "sehr \n ruig"
-                                        : "\n",
-                                    style: TextStyle(fontSize: 12),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                                Radio<int>(
-                                  value: index,
-                                  groupValue: radioAnswers[2],
-                                  onChanged: !isEditable ? null : (value) {
-                                    setState(() {
-                                      radioAnswers[2] = value as int;
-                                    });
-                                  },
-                                  activeColor: Theme.of(context).primaryColor,
-                                ),
-                              ],
-                            );
-                          }),
-                        )
-                      ],
-                    ),
-                  )},
-                SizedBox(height: 16),
-                //vierte Frage
-                if(radioAnswers[2] != -1)...{
-                  Center(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(questions[3],
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        SizedBox(height: 16),
-                        Wrap(
-                          children: List.generate(7, (index) {
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  height: 35,
-                                  child: Text(
-                                    index == 0 ? "wenig \n geholfen"
-                                        : index == 6 ? "sehr \n geholfen"
-                                        : "\n",
-                                    style: TextStyle(fontSize: 12),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                                Radio<int>(
-                                  value: index,
-                                  groupValue: radioAnswers[3],
-                                  onChanged: !isEditable ? null : (value) {
-                                    setState(() {
-                                      radioAnswers[3] = value as int;
-                                    });
-                                  },
-                                  activeColor: Theme.of(context).primaryColor,
-                                ),
-                              ],
-                            );
-                          }),
-                        )
-                      ],
-                    ),
-                  )},*/
-
-
-                  /*ElevatedButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade400),
-                          child: Text("Abbrechen", style: TextStyle(fontSize: 16),),
-                        ),
-                        ElevatedButton(
-                          key: buttonKey,
-                          onPressed: () => {
-                            RewardPopUp().show(
-                                context,
-                                    "Danke ${Emojis.smile_smiling_face} \n\n "
-                                    "Du hast dich mit deinen Emotionen außeinandergesetzt ${Emojis.smile_smiling_face_with_hearts} \n\n "
-                                    "Das war wirklich stark von dir ${Emojis.body_flexed_biceps}",
-                                buttonKey,
-                                saveAnswers
-                            ),
-                          },
-                          style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColorLight),
-                          child: Text("Speichern", style: TextStyle(fontSize: 16)),
-                        ),*/
