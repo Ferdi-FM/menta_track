@@ -1,3 +1,4 @@
+import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:menta_track/Pages/week_overview.dart';
@@ -8,6 +9,7 @@ import 'package:menta_track/termin.dart';
 import 'package:time_planner/time_planner.dart';
 import '../generated/l10n.dart';
 import '../main.dart';
+import '../termin_creator.dart';
 import 'day_overview.dart';
 
 ///Wochenplan-Seite, zeigt eine Woche wie einen Stundenplan
@@ -15,10 +17,12 @@ import 'day_overview.dart';
 
 class WeekPlanView extends StatefulWidget {
   final String weekKey;
+  final int? scrollToSpecificHour;
 
   const WeekPlanView({
     super.key,
     required this.weekKey,
+    this.scrollToSpecificHour,
   });
 
   @override
@@ -70,6 +74,7 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
   ///Setup vom Kalendar und den Einträgen
   void setUpCalendar(String weekKey) async{
     DatabaseHelper databaseHelper = DatabaseHelper();
+
     calendarStart = DateTime.parse(weekKey);
     calendarHeaders = [];
 
@@ -77,7 +82,7 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
     for(int i = 0; i < 7;i++){
       DateTime date = calendarStart.add(Duration(days: i));
       String displayDate = DateFormat("dd.MM.yy").format(date);
-      String weekDay = getWeekdayName(date);
+      String weekDay = Utilities().getWeekdayName(date);
       calendarHeaders.add(
           TimePlannerTitle(
               title: weekDay,
@@ -129,7 +134,6 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
     }
 
     //TODO: Potentiell CellWidth erhöhen, wenn 3 oder mehr sich überschneiden!
-
     for (Termin t in weekAppointments) {
       String title = t.terminName;
       DateTime startTime = t.timeBegin;
@@ -151,6 +155,7 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
 
       _addObject(title, startTime, endTime, color, overlapPos, overlapOffset);
     }
+    if(mounted) await Utilities().checkAndShowFirstHelpDialog(context, "WeekPlanView");
   }
 
   ///Tap auf einen Kalenderkopf
@@ -171,20 +176,6 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
       tasks.clear();
     });
     setUpCalendar(widget.weekKey);
-  }
-
-  ///Wandelt dateTime.weekDay in einen String um
-  String getWeekdayName(DateTime dateTime) {
-    List<String> weekdays = [
-      S.current.monday,
-      S.current.tuesday,
-      S.current.wednesday,
-      S.current.thursday,
-      S.current.friday,
-      S.current.saturday,
-      S.current.sunday
-    ];
-    return weekdays[dateTime.weekday - 1]; //-1 weil index bei 0 beginnt aber weekday bei 1 beginnt
   }
 
   ///Konvertiert eine DateTime zu der vom package erwartetem Format (integer). errechnet differenz zwischen der 0ten Stunde am Kalender und dem Termin
@@ -211,6 +202,8 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
     int duration = endTime.difference(startTime).inMinutes;
     if(color == Colors.lightGreen) rememberAnsweredTasks += 1; //Merkt sich, wieviele Taks geantwortet wurden
 
+    int textheight = duration - 24;
+
     setState(() {
       tasks.add(
         TimePlannerTask(
@@ -233,6 +226,7 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
                       pageBuilder: (context, animation, secondaryAnimation) => QuestionPage(
                           weekKey: widget.weekKey,
                           timeBegin: startTime.toIso8601String(),
+                          timeEnd: endTime.toIso8601String(),
                           terminName: title),
                       transitionsBuilder: (context, animation, secondaryAnimation, child) {
                         const curve = Curves.easeInOut;
@@ -263,31 +257,27 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
                   Positioned(
                       top: 1,
                       left: 5,
-                      child: Text(DateFormat("HH:mm").format(startTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic, fontSize: duration < 46 ? 4 : 6),), //Ursprünglich 7 : 9
+                      child: Text(DateFormat("HH:mm").format(startTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic, fontSize: duration/10 < 10 ? duration/10 : 9,),), //Ursprünglich 7 : 9
                   ),
                   Positioned(
                     bottom: 1,
                     left: 5,
-                    child: Text(DateFormat("HH:mm").format(endTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic,  fontSize: duration < 46 ? 4 : 6),), //${DateFormat("HH:mm").format(startTime)} -
+                    child: Text(DateFormat("HH:mm").format(endTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic,  fontSize: duration/10 < 10 ? duration/10 : 9),), //${DateFormat("HH:mm").format(startTime)} -
                   ),
                   Container(
-                    decoration:BoxDecoration(
-                      color: Colors.transparent
-                    ),
+                    height: textheight.toDouble(),
                     alignment: Alignment.center,
-                    margin: EdgeInsets.only(left: 10, right: 10, bottom: duration < 46 ? 5: 10, top: duration < 46 ? 5: 10), //Ursprünglich 8 : 12
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints.expand(),
-                        child: Text(
+                    margin: EdgeInsets.only(left: 10, right: 10, bottom: 14, top: 10), //Ursprünglich 8 : 12
+                      child: Text(
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: (duration/30).toInt(),
                           title,
                           style: TextStyle(
                             fontSize: 10, //Ursprünglich 11
                             color: Colors.black,
                           ),
                           textAlign: TextAlign.center,
-
-                        ),
-                      )
+                      ),
                   )
                 ],
               )
@@ -297,31 +287,36 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
     });
   }
 
-  //Wraped den Text manuel, da mit Constrains, Positioned, etc. immer Text horizontal abgeschnitten wurde
-  /*String wrapTitle(String text) {
-    String correctedText = text;
-    if (text.length > 9) { //9 wirkte wie guter Wert
-      List<String> words = text.split(" ");
-      if (words.length > 2) {
-        if (words[0].length + words[1].length >= 9) {
-          correctedText = "${words[0]} ${words[1]}\n${words[2]}";
-        } else {
-          correctedText = "${words[0]}\n${words.sublist(1).join(" ")}";
-        }
-      } else if (words.length == 2) {
-        correctedText = "${words[0]}\n${words[1]}";
-      }
-    }
-    return correctedText;
-  }*/
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
           appBar: AppBar(
-            title: FittedBox(
-              child: Text(Utilities().convertWeekKeyToDisplayPeriodString(widget.weekKey)),
-            ),
+            title: //Text(Utilities().convertWeekKeyToDisplayPeriodString(widget.weekKey)),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+              Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      elevation: 6,
+                      backgroundColor: Colors.transparent,
+
+                      shadowColor: Theme.of(context).shadowColor.withAlpha(80),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    onPressed: (){
+                      navigatorKey.currentState?.push(MaterialPageRoute(
+                        builder: (context) =>
+                            WeekOverview(
+                              weekKey: widget.weekKey,
+                              fromNotification: false,),
+                      ));
+                    },
+                    child:FittedBox(fit:BoxFit.contain,child: Text(Utilities().convertWeekKeyToDisplayPeriodString(widget.weekKey), style: TextStyle(fontSize: 25, color: Theme.of(context).appBarTheme.foregroundColor),)),
+                  ))
+            ],),
             centerTitle: true,
             shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.only(bottomLeft: Radius.circular(15))),
@@ -343,27 +338,26 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
                         ),
                         onPressed: () => Utilities().showHelpDialog(context, "WeekPlanView"),
                       ),
-                      //TODO: Falls Eintröge manuell hinzugefügt werden können
-                      /*MenuItemButton(
+                      MenuItemButton(
                         child: Center(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              Icon(Icons.add_task),
+                              Icon(Icons.assessment_outlined),
                               SizedBox(width: 10),
-                              Text(S.current.createTermin)
+                              Text(S.current.weekOverViewHeadline)
                             ],
                           ),
                         ),
                         onPressed: () async {
-                          var result = await TerminDialog(weekKey: widget.weekKey).show(context);
-                          if(result != null){
-                            if(result){
-                              updateCalendar();
-                            }
-                          }
+                          navigatorKey.currentState?.push(MaterialPageRoute(
+                            builder: (context) =>
+                                WeekOverview(
+                                  weekKey: widget.weekKey,
+                                  fromNotification: false,),
+                          ));
                         },
-                      )*/
+                      ),
                     ],
                     builder: (BuildContext context, MenuController controller, Widget? child) {
                       return TextButton(
@@ -375,12 +369,11 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
                             controller.open();
                           }
                         },
-                        child: const Icon(Icons.menu, size: 30),
+                        child: Icon(Icons.menu, size: 30, color: Theme.of(context).appBarTheme.foregroundColor),
                       );
                     }
                 ),
               )
-              //Utilities().getHelpBurgerMenu(context, "WeekPlanView", widget.weekKey)
             ],
           ),
           body: LayoutBuilder(builder: (context, constraints){
@@ -398,9 +391,10 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
                   use24HourFormat: true,
                   setTimeOnAxis: true,
                   currentTimeAnimation: true,
+                  animateToDefinedHour: widget.scrollToSpecificHour,
                   style: TimePlannerStyle(
-                    cellHeight: 50,
-                    cellWidth:  isPortrait ? 115 : ((MediaQuery.of(context).size.width - 60)/7).toInt(), //leider nur wenn neu gebuildet wird
+                    cellHeight: 60,
+                    cellWidth:  isPortrait ? 125 : ((MediaQuery.of(context).size.width - 60)/7).toInt(), //leider nur wenn neu gebuildet wird
                     showScrollBar: true,
                     borderRadius: BorderRadius.all(Radius.circular(5)),
                     interstitialEvenColor: MyApp.of(context).themeMode == ThemeMode.light ? Colors.grey[50] : Colors.blueGrey.shade400,
@@ -413,16 +407,33 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
             );
           }),
           floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              navigatorKey.currentState?.push(MaterialPageRoute(
-                builder: (context) =>
-                    WeekOverview(
-                      weekKey: widget.weekKey,
-                      fromNotification: false,),
-              ));
+            onPressed: () async {
+              var result = await TerminDialog(weekKey: widget.weekKey).show(context);
+              if(result != null){
+                if(result){
+                  updateCalendar();
+                }
+              }
             },
-            child: const Icon(Icons.summarize_rounded),
+            child: FittedBox( //Damit bei unterschiedlichen Displaygrößen die Icongröße nicht Über den Button ragt
+              fit: BoxFit.fitHeight,
+              child: Icon(Icons.add_task, size: 28),
+            ),
           ),
         );
+  }
+
+  ///Soll alle Events dem Handy-Kalender hinzufügen, funktioniert aber nicht, da immer der Kalender erst geöffnet wird
+  ///Man müsste ein anders Package suchen, dass Events hinzufügen kann ohne den Kalender zu öffnen, wird evtl noch gemacht
+  Future<void> addToCalendar() async {
+    List<Termin> weekAppointments = await DatabaseHelper().getWeeklyPlan(widget.weekKey);
+        for(Termin t in weekAppointments){
+          final Event event = Event(
+            title: t.terminName,
+            startDate: t.timeBegin,
+            endDate: t.timeEnd,
+          );
+          Add2Calendar.addEvent2Cal(event);
+        }
   }
 }

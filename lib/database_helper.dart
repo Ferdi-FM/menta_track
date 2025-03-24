@@ -1,8 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:menta_track/helper_utilities.dart';
+import 'package:menta_track/notification_helper.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:string_similarity/string_similarity.dart';
 import 'termin.dart';
 
 ///Klasse für alles was mit der SQLite-Datenbank zu tun hat
@@ -23,6 +24,7 @@ class DatabaseHelper {
     return openDatabase(
       join(path, "weekly_plans_test7.db"),
       onCreate: (db, version) async {
+        //Könnte auch aus "Termine" errechnet werden, ist so aber performanter und einfacher zu organisieren
         await db.execute('''
          CREATE TABLE WeeklyPlans(
            id INTEGER PRIMARY KEY,
@@ -30,19 +32,6 @@ class DatabaseHelper {
            goodMean DOUBLE,
            calmMean DOUBLE,
            helpingMean DOUBLE
-         )
-       ''');
-
-        //Tables zum speichern der Aktivitäten, die gut getan haben
-        await db.execute('''
-         CREATE TABLE savedActivities(
-           id INTEGER PRIMARY KEY,
-           activity TEXT,
-           category TEXT,
-           doneTask INTEGER,
-           weekKey TEXT,
-           date TEXT,
-           comment TEXT
          )
        ''');
 
@@ -67,16 +56,38 @@ class DatabaseHelper {
     );
   }
 
+  Future<void> insertSingleWeek(String weekKey, BuildContext context) async{
+    final db = await database;
+    String query = '''
+      SELECT weekKey FROM WeeklyPlans 
+      WHERE date(weekKey) BETWEEN date(?, '-6 days') AND date(?, '+6 days')
+      LIMIT 1;
+    ''';
+    List<Map<String, dynamic>> result = await db.rawQuery(query, [weekKey, weekKey]);
+
+    if(result.isEmpty){
+      await db.insert(
+        "WeeklyPlans",
+        {"weekKey": weekKey},
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+    } else {
+      if(context.mounted){
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Woche würde sich überschneiden"))
+        );
+      }
+    }
+  }
+
   ///Speichert einen neuen Termin in der Datenbank
   Future<void> insertWeeklyPlan(String weekKey, List<Termin> terminItems) async {
     final db = await database;
-
-    //Erstellt die Tabelle mit dem ersten Tag der Woche in der Tabelle WeeklyPlans.
     await db.insert(
       "WeeklyPlans",
       {"weekKey": weekKey},
       conflictAlgorithm: ConflictAlgorithm.ignore,
-    ); 
+    );
     //Einfügen der Termine in die Tabelle, die als Key den ersten Tag der Woche hat
     for (var termin in terminItems) {
       Termin? t = await getSpecificTermin(weekKey, termin.timeBegin.toIso8601String(), termin.terminName); //checkt ob es den Termin schon gibt
@@ -103,25 +114,26 @@ class DatabaseHelper {
 
   Future<void> insertSingleTermin(String weekKey, String terminName, DateTime timeBegin, DateTime timeEnd) async {
     final db = await database;
-
     //Einfügen der Termine in die Tabelle, die als Key den ersten Tag der Woche hat
-    // Sollte es notwendig werden, dass eine Woche geupdated wird, ist es so möglich, da Termine-Table keine unique Keys hat. Man könne timebegin und end zu UNIQUE machen, dann könnte man aber keine 2 Termine zur gleichen zeit haben
+    Termin termin = Termin(
+        terminName: terminName,
+        timeBegin: timeBegin,
+        timeEnd: timeEnd,
+        doneQuestion: -1,
+        goodMean: -1,
+        calmMean: -1,
+        helpMean: -1,
+        comment: "",
+        answered: false,
+        weekKey: weekKey);
+
     await db.insert(
       "Termine",
-      {
-        "weekKey": weekKey,
-        "terminName": terminName,
-        "timeBegin": timeBegin.toIso8601String(),
-        "timeEnd": timeEnd.toIso8601String(),
-        "doneQuestion": -1,
-        "goodQuestion": -1,
-        "calmQuestion": -1,
-        "helpQuestion": -1,
-        "comment": "termin.comment",
-        "answered": 0,
-      },
+      termin.toMap(),
       conflictAlgorithm: ConflictAlgorithm.ignore,
     );
+
+    NotificationHelper().scheduleNewTerminNotification(termin);
   }
 
   ///Funktionen für alle Termine
@@ -204,12 +216,15 @@ class DatabaseHelper {
   }
 
   ///Gibt eine Liste aller un/beantworteter Termine in einer woche zurück. weekDayKey braucht format "dd.MM.yy" oder "yyyy-MM-dd"
-  Future<List<Termin>> getDayTermineAnswered(String weekDayKey, bool answered) async { //EVTL. DateTime anstelle weekDayKey
+  Future<List<Termin>> getDayTermineAnswered(String weekDayKey, bool answered, [bool? tillNow]) async { //EVTL. DateTime anstelle weekDayKey
     final db = await database;
-    String checkedFormatDateString = Utilities().checkDateFormat(weekDayKey);  //Extra check ob weekDayKey richtiges Format hat
+    String checkedFormatDateString = Utilities().checkDateFormat(weekDayKey); //Extra check ob weekDayKey richtiges Format hat
+    String query = "timeBegin LIKE ? AND answered = ?";
+    if(tillNow == true) query += "AND (datetime(timeBegin) < datetime(current_timestamp))";
+
     final List<Map<String, dynamic>> terminMap = await db.query(
       "Termine",
-      where: "timeBegin LIKE ? AND answered = ?",
+      where: query,
       whereArgs: ["$checkedFormatDateString%", answered ? 1 : 0],
     );
 
@@ -228,22 +243,8 @@ class DatabaseHelper {
     return mapToTerminList(terminMap);
   }
 
-  ///Theoretische dynamische Funktion die jede Variation an Tagesterminen zurückgeben kann (alle, unbeantwortet, beantwortet).
-  /// Reine spielerei, eigentlich nicht notwendig
-  /*Future<List<Termin>> getDayTerminDynamic(String weekDayKey, bool? answered) async{
-    final db = await database;
-    String checkedFormatDateString = Utilities().checkDateFormat(weekDayKey); // Überprüfung, ob der Key korrekt ist
-    String query = "SELECT COUNT(*) FROM Termine WHERE timeBegin LIKE ?";
-    List<dynamic> whereArgs = ["$checkedFormatDateString%"];
-    if (answered != null) {
-      query += " AND answered = ?";
-      whereArgs.add(answered ? 1 : 0); // 1 für true, 0 für false
-    }
-    return mapToTerminList(await db.rawQuery(query, whereArgs));
-  }*/
 
   ///Einzelne Termin Funktionen
-
   ///Gibt einen einzelnen bestimmten Termin zurück, der über weekKey, timeBegin und terminName identifiziert wird (sollte keine überschneidungen geben)
   Future<Termin?> getSpecificTermin(String weekKey, String timeBegin, String terminName) async {
     Database db = await database;
@@ -272,58 +273,6 @@ class DatabaseHelper {
       where: "weekKey = ? AND timeBegin = ? AND terminName = ?",
       whereArgs: [weekKey, timeBegin, terminName],
       conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-
-  ///Speichert eine neue sehr gut bewertete Aktivität und checkt ob sie schon ähnlich existiert
-  Future<void> saveHelpingActivities(String activity, String category, bool doneTask, String date, String comment, String weekKey) async {
-    if(category == "good" || category == "calm" || category == "help"){//Check ob es eine der drei richtigen kategorien ist
-      final db = await database;
-      bool doesAlreadyExist = false;
-      final List<Map<String, dynamic>> result = await db.query(
-        "savedActivities",
-        where: "category = ?",
-        whereArgs: [category],
-      );
-      for (var row in result) {
-        String databaseActivity = row["activity"].toLowerCase().trim();
-        String newActivity = activity.toLowerCase().trim();
-
-        double similarity = databaseActivity.similarityTo(newActivity); // Wert zwischen 0 und 1
-        if (similarity > 0.8) {
-          doesAlreadyExist = true;
-          break;
-        }
-      }
-
-      if(!doesAlreadyExist){
-        await db.insert(
-            "savedActivities",
-            {
-              "activity": activity,
-              "category": category,
-              "doneTask": doneTask ? 1 : 0,
-              "date": date,
-              "comment": comment,
-              "weekKey": weekKey
-            });
-      }
-    }
-  }
-
-  ///Holt die Map an von der savedActivities-Table
-  Future<List<Map<String, dynamic>>> getHelpingActivity() async{
-    final db = await database;
-    return await db.query("savedActivities"); //Alternativ könnte man eine query mit WHERE question1 = 6 OR question2 = 6 OR question3 = 6 durch die "Termine"-Table laufen lassen
-  }
-
-  ///Löscht Eintrag aus den besonderen Aktivitäten
-  Future<void> deleteSpecificHelpingActivity(String weekKey, String terminName, String timeBegin) async {
-    final db = await database;
-    await db.delete(
-        "savedActivities",
-        where: "weekKey = ? AND date = ? AND activity = ?" ,
-        whereArgs: [weekKey, timeBegin, terminName],
     );
   }
 
@@ -395,6 +344,7 @@ class DatabaseHelper {
 
   Future<void> dropTermin(String weekKey, String terminName, String timeBegin) async {
     final db = await database;
+
     await db.delete(
       "Termine",
       where: "weekKey = ? AND timeBegin = ? AND terminName = ?" ,
@@ -402,94 +352,3 @@ class DatabaseHelper {
     );
   }
 }
-
-//TODO: Für alternative Version müssten alle weekKey = ? durch timeBegin BETWEEN date(startDateTime) AND date(endDateTime) ersetzt werden. Das würde zu Problemen führen, wenn sich der erste Tag einer WOche ändert
-/* Zum Beispiel so:
-
-    final db = await database;
-    Map<String, dynamic> map = db.query("Termine").first;
-    String dayTerminTime = "2025-01-20";
-    DateTime firstTermin = map["TerminBeginn"];
-    while(firstTermin.difference(DateTime.parse(dayTerminTime)) > Duration(days: 7)){
-      firstTermin = firstTermin.add(Duration(days: 7));
-    }
-
-    DateTime startDate = firstTermin;
-    DateTime endDate = firstTermin.add(Duration(days: 6));
-
-    final List<Map<String, dynamic>> maps1 = await db.query( //Holt alle Termine, die den spezifizierten weekKey verwenden
-      "Termine",
-      where: "date(timeBegin) BETWEEN date(?) AND date(?)",
-      whereArgs: [startDate, endDate],
-    );
- */
-
-/* Alternative Funktionenen zum auslesen der Durchschnittswerte für einen Tag, bzw. eine WOche
-  Future<List<double>> countMeanDay(String dayKey) async {
-    final db = await database;
-    DateTime date = DateFormat('dd.MM.yy').parse(dayKey);
-    String formattedDate = DateFormat('yyyy-MM-dd').format(date);
-
-    List<Map<String,dynamic>> maps = await db.query(
-      "Termine",
-      columns: [
-        "SUM(goodQuestion) / COUNT(*) AS goodMean",
-        "SUM(calmQuestion) / COUNT(*) AS calmMean",
-        "SUM(helpQuestion) / COUNT(*) AS helpMean"
-      ],
-      where: "answered = 1 AND timeBegin LIKE ?",
-      whereArgs: ["$formattedDate%"],
-    );
-
-    print("${maps[0]["goodMean"]}");
-
-    int goodMean = maps[0]["goodMean"] ?? -1.0; // Standardwert -1.0, wenn null
-    int calmMean = maps[0]["calmMean"] ?? -1.0;
-    int helpMean = maps[0]["helpMean"] ?? -1.0;
-
-    return [goodMean.toDouble(),calmMean.toDouble(),helpMean.toDouble()];
-  }
-
-Future<Map<String, dynamic>> getMeanForWeeks() async {
-    final db = await database;
-    Map<String, dynamic> meanMap = {};
-    int index = 0;
-    List<Termin> termine1 = await DatabaseHelper().getAllTermine();
-    DateTime firstDay = termine1.first.timeBegin;
-    String firstWeekDayString = DateFormat("yyyy-MM-dd").format(firstDay); // Format for use in the query
-    DateTime endDay = firstDay.add(Duration(days: 6));
-    String endWeekDayString = DateFormat("yyyy-MM-dd").format(endDay);
-
-
-    for (Termin t in termine1) {
-      if(t.timeBegin.difference(firstDay) > Duration(days: 6)){
-        List<Map<String,dynamic>> maps = await db.query(
-          "Termine",
-          columns: [
-            "SUM(goodQuestion) / COUNT(*) AS goodMean",
-            "SUM(calmQuestion) / COUNT(*) AS calmMean",
-            "SUM(helpQuestion) / COUNT(*) AS helpMean"
-          ],
-          where: "answered = 1 AND date(timeBegin) BETWEEN date(?) AND date(?)",
-          whereArgs: [firstWeekDayString, endWeekDayString],
-        );
-
-        print("-----------------$index--------------------");
-        if(!meanMap.containsKey(firstWeekDayString)){
-          meanMap[firstWeekDayString] = [];
-        }
-        meanMap[firstWeekDayString]?.add([maps.first["goodMean"],maps.first["calmMean"],maps.first["helpMean"]]);
-        print("$firstWeekDayString");
-        index++;
-        print("---------------------------");
-      }
-      while (t.timeBegin.difference(firstDay) > Duration(days: 6)) {
-        firstDay = firstDay.add(Duration(days: 7));
-        firstWeekDayString = DateFormat("yyyy-MM-dd").format(firstDay);
-        endDay = firstDay.add(Duration(days: 6));
-        endWeekDayString = DateFormat("yyyy-MM-dd").format(endDay);
-      }
-
-    }
-    return meanMap;
-  }*/

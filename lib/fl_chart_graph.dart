@@ -135,25 +135,25 @@ class FlChartGraph extends StatelessWidget {
     }
     switch (correctedDayInt) {
       case 0:
-        text = Text( S.of(context).monday.substring(0,2), style: style);
+        text = Text( S.current.monday.substring(0,2), style: style);
         break;
       case 1:
-        text = Text( S.of(context).tuesday.substring(0,2), style: style);
+        text = Text( S.current.tuesday.substring(0,2), style: style);
         break;
       case 2:
-        text = Text( S.of(context).wednesday.substring(0,2), style: style);
+        text = Text( S.current.wednesday.substring(0,2), style: style);
         break;
       case 3:
-        text = Text( S.of(context).thursday.substring(0,2), style: style);
+        text = Text( S.current.thursday.substring(0,2), style: style);
         break;
       case 4:
-        text = Text( S.of(context).friday.substring(0,2), style: style);
+        text = Text( S.current.friday.substring(0,2), style: style);
         break;
       case 5:
-        text = Text( S.of(context).saturday.substring(0,2), style: style);
+        text = Text( S.current.saturday.substring(0,2), style: style);
         break;
       case 6:
-        text = Text( S.of(context).sunday.substring(0,2), style: style);
+        text = Text( S.current.sunday.substring(0,2), style: style);
         break;
       default:
         text = Text("");

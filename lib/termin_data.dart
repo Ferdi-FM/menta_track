@@ -1,14 +1,16 @@
 import 'package:flutter/cupertino.dart';
 
-//CustomTileData für die Liste der Wochenpläne
+//CustomTileData für die Liste der an einzelnen Aktivitäten
 
-class NotAnsweredData {
+class TerminData {
   final IconData icon;
   final String terminName;
   final String dayKey;
+  final String timeEnd;
   final String weekKey;
 
-  NotAnsweredData({
+  TerminData({
+    required this.timeEnd,
     required this.icon,
     required this.terminName,
     required this.dayKey,

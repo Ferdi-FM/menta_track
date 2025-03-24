@@ -5,7 +5,7 @@ import 'package:menta_track/database_helper.dart';
 import 'package:sqflite/sqflite.dart';
 import '../generated/l10n.dart';
 import '../main.dart';
-import '../not_answered_data.dart';
+import '../termin_data.dart';
 import '../not_answered_tile.dart';
 import '../theme_helper.dart';
 
@@ -19,7 +19,7 @@ class NotAnsweredPage extends StatefulWidget {
 }
 
 class NotAnsweredState extends State<NotAnsweredPage> {
-  List<NotAnsweredData> itemsNotAnswered = [];
+  List<TerminData> itemsNotAnswered = [];
   bool loaded = false;
   Widget themeIllustration = SizedBox();
   bool _showOnlyOnMainPage = false;
@@ -32,8 +32,8 @@ class NotAnsweredState extends State<NotAnsweredPage> {
   }
 
   ///Lädt alle unbeantworteten Aktivitäten aus der Datenbank und fügt sie in eine Liste ein
-  Future<List<NotAnsweredData>> loadNotAnswered() async {
-    List<NotAnsweredData> items = [];
+  Future<List<TerminData>> loadNotAnswered() async {
+    List<TerminData> items = [];
     Database db = await DatabaseHelper().database;
     final List<Map<String, dynamic>> maps = await db.query(
         "Termine",
@@ -44,10 +44,12 @@ class NotAnsweredState extends State<NotAnsweredPage> {
       String terminName = map["terminName"];
       String weekKey = map["weekKey"];
       String timeBegin = map["timeBegin"];
-      NotAnsweredData data = NotAnsweredData(
+      String timeEnd = map["timeEnd"];
+      TerminData data = TerminData(
           icon: Icons.priority_high_rounded,
           terminName: terminName,
           dayKey: timeBegin,
+          timeEnd: timeEnd,
           weekKey: weekKey);
       items.add(data);
     }
@@ -55,7 +57,7 @@ class NotAnsweredState extends State<NotAnsweredPage> {
   }
 
   ///Öffnet ein Item via ScaleAnimation, diese lässt die Seite aus dem Listelement "herauswachsen"
-  dynamic openItem(NotAnsweredData data, var ev) async {
+  dynamic openItem(TerminData data, var ev) async {
     Offset pos = ev.globalPosition;
     return await navigatorKey.currentState?.push(
         PageRouteBuilder(
@@ -63,6 +65,7 @@ class NotAnsweredState extends State<NotAnsweredPage> {
               QuestionPage(
                   weekKey: data.weekKey,
                   timeBegin: data.dayKey,
+                  timeEnd: data.timeEnd,
                   terminName: data.terminName),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const curve = Curves.easeInOut;
@@ -88,6 +91,7 @@ class NotAnsweredState extends State<NotAnsweredPage> {
     setState(() {
       loaded = true; //damit wenn nicht geladen ein ladesymbol angezeigt werden kann
     });
+
   }
 
   ///lädt das App-Theme
@@ -199,38 +203,3 @@ class NotAnsweredState extends State<NotAnsweredPage> {
     );
   }
 }
-      /* TODO: Illustration mitscrolln?
-      CustomScrollView( //Wegen  Einbindung von Illustration über Liste, die mitscrollen soll
-        slivers: [
-          SliverToBoxAdapter(
-              child: themeIllustration
-          ),
-          loaded ? SliverList(
-            delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    return NotAnsweredTile(
-                      item: itemsNotAnswered[index],
-                      onItemTap: (ev) async {
-                        final result = await openItem(
-                            itemsNotAnswered[index],ev);
-                        if (result != null) {
-                          setState(() {
-                            itemsNotAnswered.removeAt(index);
-                          });
-                        } else {
-                          if (kDebugMode) {
-                            print("canceled");
-                          }
-                        }
-                      },
-                    );
-              },
-              childCount: itemsNotAnswered.length,
-            ),
-          ) :  SliverToBoxAdapter(
-              child: CircularProgressIndicator()
-          ),
-        ],
-      ),
-      */
-

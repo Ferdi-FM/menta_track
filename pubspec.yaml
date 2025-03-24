@@ -54,6 +54,8 @@ dependencies:
   syncfusion_flutter_charts: ^28.2.6
   audioplayers: ^6.2.0
   auto_size_text: ^3.0.0
+  flutter_colorpicker: ^1.1.0
+  add_2_calendar: ^3.0.1
 
 dev_dependencies:
   flutter_test:
@@ -81,6 +83,7 @@ flutter:
     - assets/images/
     - assets/images/mascot/
     - assets/images/illustrations/
+    - assets/images/illustrationsV2/
     - assets/soundAlerts/
     - lib/l10n/
   fonts:

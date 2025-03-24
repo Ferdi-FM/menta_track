@@ -79,7 +79,7 @@
   "friday": "Friday",
   "saturday": "Saturday",
   "sunday": "Sunday",
-
+  "den" : "the",
 
   "@qrScanner": {
   },
@@ -90,10 +90,17 @@
   "@Question_Page": {
   },
   "questionPage_rewardMsg": "Thank you 😊 \n\n You've dealt with your emotions 🥰 \n\n That was really strong of you 💪",
+  "questionPage_rewardMsg2": "Thanks for taking the time! 😊 \n\nReflection is an important part of growth. 💪",
+  "questionPage_rewardMsg3": "Awesome! ⭐ Great to see you sticking with it! 🥰",
+  "questionPage_rewardMsg4": "Thank you! 🙌 Taking time for your emotions is a valuable step. 💪",
+  "questionPage_rewardMsg5": "Glad you made time for this! 🌿",
   "questionPage_q1": "Could you attend the appointment?",
   "questionPage_q2": "How did it go for ?",
   "questionPage_q3": "Were you excited ?",
   "questionPage_q4": "Did it do you good?",
+  "questionPage_noQ1": "How did you feel about not doing it?",
+  "questionPage_noQ2": "Did you feel calm or excited about not having done it?",
+  "questionPage_noQ3": "Did it still feel good?",
 
   "questionPage_a1s": "very \n bad",
   "questionPage_a2s": "very \n excited",
@@ -108,12 +115,12 @@
   "questionPage_a0e": "No",
 
   "questionPage_too_early": "You're here too early 😊 \nBut cool that you stopped by 👍",
-  "questionPage_slightly_too_early": "Deine Aktivität startet gleich, schau in 15min oder später nochmal vorbei um Feedback zu geben\uD83D\uDE0A \uD83D\uDC4D",
+  "questionPage_slightly_too_early": "Your activity starts shortly, com back in 15min or later to give Feedback\uD83D\uDE0A \uD83D\uDC4D",
   "questionPage_comment": "If you'd like, you can add a short comment here:",
   "questionPage_commentLabel": "Your Feedback",
 
   "questionPage_save": "Slide to save",
-  "questionPage_too_early1" : "{count, plural,  =0{{name} ist am {date1} um {date2}\n\nDu bist zu früh dran \uD83D\uDE0A \nAber trotzdem cool, dass du vorbeischaust \uD83D\uDC4D} other{{name} ist am {date1} um {date2}\n\nCool das du da bist \uD83D\uDE0A Schau in kürze nochmal hier rein um Feedback zu geben \uD83D\uDC4D}}",
+  "questionPage_too_early1" : "{count, plural,  =0{{name} is on the {date1} at {date2}\n\nYou're too early \uD83D\uDE0A \nBut it's still nice that you're here \uD83D\uDC4D} other{{name} is on the {date1} at {date2}\n\nBut it's still nice that you're here \uD83D\uDE0A Come back shortly too give Feedback! \uD83D\uDC4D}}",
   "@questionPage_too_early1" : {
     "placeholders": {
       "date1": {
@@ -144,7 +151,9 @@
   "settings_morningNotification": "Notification-Time in the morning",
   "settings_eveningNotification": "Notification-Time in the evening",
   "settings_notificationsForTasks": "Notifications before Activities",
-
+  "illustration_mascot": "Mascot",
+  "illustration_things": "Illustration Things" ,
+  "illustration_people": "Illustration People",
 
   "@HelpMessages": {
   },
@@ -177,11 +186,30 @@
   "activitySummaryGraphDescription": "The chart displays your average values for each week.",
   "activitySummaryGoodFeedback": "The list below notes activities you've evaluated particularly well.",
 
-  "questionPageHelpDialog1":"Hier kannst du Feedback zu deinen Aktivitäten geben! :)\n",
-  "questionPageHelpDialog2":"Du kannst auch feedback geben, falls es nicht geklappt hat!\nAllein das du Feedback gibst ist schon toll {name} :)\n",
-  "questionPageHelpDialog3":"Die Fragen öffnen sich jeweils wenn du die vorherige beantwortet hast, am Ende kannst du noch einen kurzen Kommentar mit deinen Gedanken hinzufügen ",
-  "questionPageHelpDialog4":"Schiebe dann den Slider nach rechts um dein Feedback zu speichern :)",
-  "questionPageHelpDialog5":"Viel Erfolg! Ich hoffe wirklich, dass es dir hilft! \n",
+  "questionPageHelpDialog1": "Here you can give feedback on your activities! 😊",
+  "questionPageHelpDialog2":"You can also give feedback if it didn't work out! Just giving feedback is already great, {name} \uD83D\uDE07\uD83D\uDC96\n",
+  "questionPageHelpDialog3":"Each question opens once you've answered the previous one; at the end, you can add a short comment with your thoughts.",
+  "questionPageHelpDialog4":"Slide the slider to the right to save your feedback ✨",
+  "questionPageHelpDialog5":"Good luck! I truly hope this helps you! \uD83E\uDD1E\uD83D\uDE0A\n",
+
+  "settingsText1": "These are the settings\n",
+  "settingsText2": "In the 'Theme' section, you can adjust the appearance of the app. The theme refers to images shown on the home page, offense page, and in the pop-up. The option below lets you display the image only on the home page.",
+  "settingsText3": "The reward sound will always play when the pop-up appears\n\n",
+  "settingsText4": "In the notifications, you can choose when you want to: \n- Receive a summary in the morning\n- Receive a daily summary in the evening\n- Receive a notification before an activity and how often you want to be reminded",
+
+  "dayOverViewText1": "This is your daily overview\n",
+  "dayOverViewText2": "Here, you can see a summary of what you've accomplished today!",
+  "dayOverViewText3": "Activities that you rated particularly well will be listed here. The tree grows based on your activities, to which you have provided feedback. It starts at the point you've reached from previous days and ends with the progress you've made today :)",
+  "dayOverViewText4": "The graph shows the average of your answers, so you can see how much the day helped you on average based on your activities.",
+  "dayOverViewText5": "At the end of each day, you'll receive a notification that will guide you here, or you can tap on the calendar header in a weekly plan :) I hope this overview is helpful for you! :)",
+
+  "weekOverViewText1": "This is your weekly overview\n",
+  "weekOverViewText2": "Here, you'll see what happened this week.\n",
+  "weekOverViewText3": "At the top, you'll see how much feedback you've given, and just giving feedback means you've accomplished something! :)",
+  "weekOverViewText4": "Below, you'll find activities that you've given especially good feedback to. The tree on this page shows your progress for the entire week, starting at zero and growing depending on how much feedback you've provided, with every bit of growth counting! ;) The graph shows the average of your daily scores for this week :)",
+  "weekOverViewText5": "At the end of each week, half an hour after the daily overview, you'll receive a notification guiding you here. You can also tap the button in the bottom right corner of a weekly plan to come here :)\n\n",
+  "weekOverViewText6": "Good luck with giving feedback! I hope you can more easily find activities and things that bring you joy or help you in other ways :)",
+
 
   "generalHelp": "General Help",
 
@@ -248,8 +276,8 @@
 
   "@ThemeHelper": {
   },
-  "themeHelper_msg0": "{name}here is a list of all your weekly plans 😊",
-  "themeHelper_open_msg0": "{name}here are all the activities where you haven't given feedback yet 😉\n",
+  "themeHelper_msg0": "{name}{count, plural,  zero{Here} other{, here}} you can find a List of all your weekly plans 😊",
+  "themeHelper_open_msg0": "{name}{count, plural, zero{Here} other{, here}} are all the activities where you haven't given feedback yet 😉\n",
   "themeHelper_open_msg1": "{count, plural, =0{Currently there is nothing to answer \uD83D\uDE09} =1{{count} activity is left \uD83D\uDE09} other{{count} appointments are left \uD83D\uDE09}}",
 
 
@@ -277,10 +305,10 @@
   "weekOverView_summary": "This week you completed\n",
   "weekOverView_summary_part2": "{count, plural, =1{Task\n\n} other{Tasks\n\n}}",
   "weekOverView_leftAnswers": "{count, plural, =0{} =1{\n\n If you like, you can still give feedback on {count} activity} other{\n\n If you like, you can still give feedback on {count} activities}}",
-  "weekOverView_tooEarly": "Die Woche ist noch nicht gekommen. Schau gerne später wieder hierrein :)",
+  "weekOverView_tooEarly": "The week isn't here yet. Please come back later :)",
   "weekOverView_noAnswers": "You haven't yet evaluated any activity this week\n Please come back later 🙋♂️",
   "weekOverView_scroll": "\n\n Scroll down to get more info ;)",
-  "week_reward_message": "Thanks! \uD83D\uDE0A \n\n Ich hope this week did you good and you made progress \n\n You're doing great one week at a time \uD83D\uDCAA",
+  "week_reward_message": "Thanks! \uD83D\uDE0A \n\n I hope this week did you good and you made progress \n\n You're doing great one week at a time \uD83D\uDCAA",
   "weekly_values": "Weekly Values",
 
   "@Notifications": {
@@ -333,5 +361,40 @@
   "notEmpty": "Name mustn't ",
   "beginTime": "Starttime:",
   "endTime": "Endtime:",
-  "date": "Date"
+  "date": "Date",
+
+  "@day_Summary": {
+  },
+
+  "today_Headline1": "What's on today",
+  "today_Headline2": "Already answered today",
+
+  "today_nothingToAnswer": "There's nothing to answer today \uD83D\uDE07\nI hope you still have a great day! \uD83D\uDE0A",
+  "today_allAnswered": "Everything answered, AWESOME! \uD83C\uDF1F",
+
+  "today_hopeForGood": "And hopefully, you can still do something that feels good for you \uD83C\uDF31",
+  "today_nothingToAnswerYet": "There's nothing to answer yet, come back soon \uD83D\uDE07",
+
+  "todayHeadline": "Today",
+  "addWeek": "Add Week",
+  "addToCalendar": "Add to Smartphone Calendar",
+  "deleteActivity": "Delete Activity?",
+  "rewardSounds": "Reward Sounds",
+  "settingsSavedAutomatically": "Settings saved automatically!\uD83D\uDC4D",
+  "toNotDoIt": "(Don’t do it)",
+  "weekOverViewHeadline": "Weekly Overview",
+  "weekStart": "Week Start",
+  "weekEnd": "Week End",
+  "close": "Close",
+  "themeHelperToday": "Your Activities today {name}\uD83D\uDE07",
+  "noFeedBackOpen": "No Feedback open, awesome!👍",
+  "noEntriesYet": "No Entries yet \uD83D\uDE09",
+  "settings_pickAColor": "Pick a Color \uD83C\uDFA8",
+
+  "settings_sound_Standard": "Standard",
+  "settings_sound_gameSound": "Game Sound",
+  "settings_sound_longer": "longer Sound",
+  "settings_sound_levelUp": "Level Up",
+  "settings_sound_levelDone": "Level End",
+  "settings_sound_nothing": "No Sound"
 }

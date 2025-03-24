@@ -1,4 +1,7 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:menta_track/helper_utilities.dart';
 import 'package:menta_track/notification_helper.dart';
 import 'package:menta_track/theme_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,6 +10,7 @@ import '../generated/l10n.dart';
 import '../main.dart';
 
 ///Einstellungs-Seite
+//Color-Picker from: https://pub.dev/packages/flutter_colorpicker
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -18,8 +22,8 @@ class SettingsPage extends StatefulWidget {
 class SettingsPageState extends State<SettingsPage> {
   ///Variabeln werden zuerst mit Standard-Werten initialisiert
   bool isDarkMode = false;
-  String _theme = "nothing";
-  String _chosenAccentColor = "blue";
+  String _theme = "illustration";
+  //String _chosenAccentColor = "blue";
   bool _themeOnlyOnMainPage = false;
   String _rewardSound = "standard";
   bool _settingsChanged = false;
@@ -30,11 +34,18 @@ class SettingsPageState extends State<SettingsPage> {
   final TextEditingController _nameController = TextEditingController();
   final player = AudioPlayer();
   String audioAsset = "";
+  Color chosenColor = Colors.lightBlue;
+  MaterialColor chosenMaterialColor = Colors.lightBlue;
 
   @override
   void initState() {
     super.initState();
     _loadSettings();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if(mounted) {
+        await Utilities().checkAndShowFirstHelpDialog(context, "Settings");
+      }
+    });
   }
 
   ///Kann in andern Klassen auf die Settings-Daten zentralisiert zugreifen
@@ -42,25 +53,22 @@ class SettingsPageState extends State<SettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     bool isDarkMode = prefs.getBool("darkMode") ?? false;
     bool themeOnlyOnMainPage = prefs.getBool("themeOnlyOnMainPage") ?? false;
-    String theme = prefs.getString("theme") ?? "nothing";
-    String accentColor = prefs.getString("chosenAccentColor") ?? "blue";
-    //List<int> notificationIntervals = prefs.getStringList("notificationIntervals")?.map(int.parse).toList() ?? [15];
+    String theme = prefs.getString("theme") ?? "illustration";
     String name = prefs.getString("userName") ?? "";
-    return SettingData(name, theme, isDarkMode, themeOnlyOnMainPage, accentColor);
+    return SettingData(name, theme, isDarkMode, themeOnlyOnMainPage);
   }
-
 
   ///Lädt alle Settings aus sharedPreferences
   void _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     audioAsset = await ThemeHelper().getSound(); //Lädt hier da sonst audio verzögerung hat
+    chosenMaterialColor = await HexMaterialColor().getColorFromPreferences();
     setState(() {
       isDarkMode = prefs.getBool("darkMode") ?? false;
-      _theme = prefs.getString("theme") ?? "nothing";
+      _theme = prefs.getString("theme") ?? "illustration";
       _themeOnlyOnMainPage = prefs.getBool("themeOnlyOnMainPage") ?? false;
       _notificationIntervals = prefs.getStringList("notificationIntervals")?.map(int.parse).toList() ?? [15];
       _nameController.text = prefs.getString("userName") ?? "";
-      _chosenAccentColor = prefs.getString("chosenAccentColor") ?? "blue";
       _rewardSound = prefs.getString("soundAlert") ?? "standard";
       int morningMinutes = prefs.getInt("morningTime") ?? 07*60;
       int eveningMinutes = prefs.getInt("eveningTime") ?? 22*60;
@@ -104,6 +112,7 @@ class SettingsPageState extends State<SettingsPage> {
     });
   }
 
+  /*
   Future<void> setAccentColor(String  value) async{
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("chosenAccentColor", value);
@@ -112,15 +121,17 @@ class SettingsPageState extends State<SettingsPage> {
          MyApp.of(context).changeColor(value);
         _chosenAccentColor = value;
     });
-  }
+  }*/
 
   void saveSound(String value) async{
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("soundAlert", value);
     _settingsChanged = true;
-    audioAsset = await  ThemeHelper().getSound();
-    player.stop();
-    player.play(AssetSource(audioAsset));
+    audioAsset = await ThemeHelper().getSound();
+    if(audioAsset != "nothing"){
+      player.stop();
+      player.play(AssetSource(audioAsset));
+    }
     setState(() {
         _rewardSound = value;
     });
@@ -172,7 +183,7 @@ class SettingsPageState extends State<SettingsPage> {
 
   void removeNotification(int index) {
     setState(() {
-      if(_notificationIntervals.length > 1){
+      if(_notificationIntervals.isNotEmpty){
         _notificationIntervals.removeAt(index);
         saveNotificationIntervals();
       }
@@ -184,6 +195,50 @@ class SettingsPageState extends State<SettingsPage> {
       _notificationIntervals[index] = value.toInt();
       saveNotificationIntervals();
     });
+  }
+
+  Future showColorPicker(){
+    Color pickerColor = Color(0xff443a49);
+    MaterialColor? pickerMaterialColor = Colors.lightBlue;
+
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(S.current.settings_pickAColor),
+          content: SingleChildScrollView(
+            child: BlockPicker(
+              pickerColor: pickerColor,
+              onColorChanged:(color){
+                setState(() {
+                  pickerColor = color;
+                  pickerMaterialColor = color as MaterialColor?;
+                  MyApp.of(context).changeColorDynamic(pickerMaterialColor!);
+                });
+              },
+            ),
+          ),
+          actionsAlignment: MainAxisAlignment.spaceEvenly,
+          actions: <Widget>[
+            ElevatedButton(
+              child:  Text(S.current.cancel),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: Text(S.current.accept),
+              onPressed: () {
+                setState(() => chosenColor = pickerColor);
+                setState(() => chosenMaterialColor = pickerMaterialColor!);
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -206,14 +261,17 @@ class SettingsPageState extends State<SettingsPage> {
                 if(_notificationsChanged) NotificationHelper().loadAllNotifications(true),
               },
             ),
+          actions: [
+            Utilities().getHelpBurgerMenu(context, "Settings"),
+          ],
         ),
         body: SingleChildScrollView(
           child:Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: EdgeInsets.all(16.0),
             child: Column(
               children: [
                 ListTile(
-                  title: const Text("Name", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
+                  title: Text("Name", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
                 ),
                 ListTile(
                   title: TextField(
@@ -225,7 +283,7 @@ class SettingsPageState extends State<SettingsPage> {
                     },
                   )
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 ListTile(
                     title: Text(S.of(context).settings_theme, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center,)
                 ),
@@ -237,24 +295,33 @@ class SettingsPageState extends State<SettingsPage> {
                       isDarkMode = isDarkMode;
                       toggleDarkMode(value);
                     }
-                    ,
                   ),
                 ),
                 ListTile(
-                  title: Text(S.of(context).settings_theme),
-                  trailing: DropdownButton<String>(
-                    value: _theme,
-                    onChanged: (value) {
-                      if (value != null) {
-                        saveTheme(value);
-                      }
-                    },
-                    items: [
-                      DropdownMenuItem(value: "nothing", child: Text(S.of(context).settings_themePictures)),
-                      DropdownMenuItem(value: "mascot", child: Text("Mascot")),
-                      DropdownMenuItem(value: "illustration", child: Text("Illustration")),
-                    ],
-                  ),
+                  title: AutoSizeText(S.current.settings_theme),
+                  trailing: SizedBox(
+                    width: MediaQuery.of(context).size.width/2,
+                    child: FittedBox(
+                      fit: BoxFit.fitWidth,
+                      child: DropdownButton<String>(
+                        dropdownColor: Theme.of(context).primaryColorLight,
+                        elevation: 6,
+                        borderRadius: BorderRadius.circular(10),
+                        value: _theme,
+                        onChanged: (value) {
+                          if (value != null) {
+                            saveTheme(value);
+                          }
+                        },
+                        items: [
+                          DropdownMenuItem(value: "nothing", child: AutoSizeText(S.of(context).settings_themePictures)),
+                          DropdownMenuItem(value: "mascot", child: AutoSizeText(S.current.illustration_mascot)),
+                          DropdownMenuItem(value: "illustration", child: AutoSizeText(S.current.illustration_things)),
+                          DropdownMenuItem(value: "illustration v2", child: AutoSizeText(S.current.illustration_people),)
+                        ],
+                      ),
+                    ),
+                  )
                 ),
                 ListTile(
                   title: Text(S.of(context).settings_themeOnlyMainPage),
@@ -271,43 +338,23 @@ class SettingsPageState extends State<SettingsPage> {
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      GestureDetector(
-                        onTap: () => setAccentColor("blue"),
-                        child: Container(
-                          width: 33,
-                          height: 33,
-                          margin: EdgeInsets.symmetric(horizontal: 10),
-                          decoration: BoxDecoration(
-                            color: Colors.lightBlue,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.black, width: 1),
-                          ),
-                          child: _chosenAccentColor == "blue"
-                              ? Icon(Icons.check, color: Colors.white)
-                              : null,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => setAccentColor("orange"),
-                        child: Container(
-                          width: 33,
-                          height: 33,
-                          margin: EdgeInsets.symmetric(horizontal: 10),
-                          decoration: BoxDecoration(
-                            color: Colors.orange,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.black, width: 1),
-                          ),
-                          child: _chosenAccentColor == "orange"
-                              ? Icon(Icons.check, color: Colors.white)
-                              : null,
-                        ),
-                      ),
+                      IconButton(
+                          onPressed: () async{
+                            bool? result = await showColorPicker();
+                            if(result != null){
+                              String test = chosenMaterialColor.toHexString();
+                              HexMaterialColor().saveToPreferences(test);
+                              if(context.mounted) MyApp.of(context).changeColorDynamic(chosenMaterialColor);
+                            } else {
+                              if(context.mounted) MyApp.of(context).changeColorDynamic(chosenMaterialColor);
+                            }
+                          },
+                          icon: Icon(Icons.color_lens))
                     ],
                   ),
                 ),
                 ListTile(
-                  title: Text("Reward Sounds"),
+                  title: Text(S.current.rewardSounds),
                   trailing: DropdownButton<String>(
                       value: _rewardSound,
                       onChanged: (value) {
@@ -316,11 +363,12 @@ class SettingsPageState extends State<SettingsPage> {
                         }
                       },
                       items: [
-                        DropdownMenuItem(value: "standard", child: Text("Standard")),
-                        DropdownMenuItem(value: "classicGame", child: Text("GameSound")),
-                        DropdownMenuItem(value: "longer", child: Text("Longer")),
-                        DropdownMenuItem(value: "level-up", child: Text("Level Up")),
-                        DropdownMenuItem(value: "level", child: Text("Level End")),
+                        DropdownMenuItem(value: "standard", child: Text(S.current.settings_sound_Standard)),
+                        DropdownMenuItem(value: "classicGame", child: Text(S.current.settings_sound_gameSound)),
+                        DropdownMenuItem(value: "longer", child: Text(S.current.settings_sound_longer)),
+                        DropdownMenuItem(value: "level-up", child: Text(S.current.settings_sound_levelUp)),
+                        DropdownMenuItem(value: "level", child: Text(S.current.settings_sound_levelDone)),
+                        DropdownMenuItem(value: "nothing", child: Text(S.current.settings_sound_nothing)),
                       ],
                     ),
                   ),
@@ -378,7 +426,7 @@ class SettingsPageState extends State<SettingsPage> {
                           return Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(15),
-                              border: Border.fromBorderSide(BorderSide(width: 1, color: _chosenAccentColor == "blue" ? Colors.lightBlue : Colors.orange)),
+                              border: Border.fromBorderSide(BorderSide(width: 1, color: chosenMaterialColor)),
                             ),
                             padding: EdgeInsets.only(top: 10, left: 10, right: 10, bottom: 0),
                             margin: EdgeInsets.symmetric(vertical: 5,horizontal: 0),
@@ -411,7 +459,7 @@ class SettingsPageState extends State<SettingsPage> {
                                 Align(
                                   alignment: Alignment.centerRight ,
                                   child:IconButton(
-                                    icon:_notificationIntervals.length > 1 ? Icon(Icons.remove_circle) : SizedBox(), //Immer mindestens eine Benachrichtigung
+                                    icon:Icon(Icons.remove_circle),
                                     onPressed: () => removeNotification(index),
                                   ),
                                 ),
@@ -427,6 +475,8 @@ class SettingsPageState extends State<SettingsPage> {
                     ],
                   ),
                 ),
+                SizedBox(height: 20,),
+                Text(S.current.settingsSavedAutomatically, textAlign: TextAlign.center,)
               ],
             ),
           ),
@@ -440,9 +490,30 @@ class SettingsPageState extends State<SettingsPage> {
 class SettingData {
   final String name;
   final String theme;
-  final String accentColor;
   final bool isDarkMode;
   final bool themeOnlyOnMainPage;
 
-  SettingData(this.name, this.theme, this.isDarkMode, this.themeOnlyOnMainPage, this.accentColor);
+  SettingData(this.name, this.theme, this.isDarkMode, this.themeOnlyOnMainPage);
+}
+
+class HexMaterialColor {
+  HexMaterialColor();
+
+  Future<void> saveToPreferences(String colorHexString) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+   prefs.setString("materialHexCode", colorHexString);
+  }
+
+
+  Future<MaterialColor> getColorFromPreferences() async {
+    MaterialColor color = Colors.lightBlue;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String colorHexString = prefs.getString("materialHexCode") ?? "";
+    for(MaterialColor c in Colors.primaries){
+          if(c.toHexString() == colorHexString){
+            color = c;
+          }
+    }
+    return color;
+  }
 }

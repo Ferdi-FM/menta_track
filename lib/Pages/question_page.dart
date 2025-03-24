@@ -1,4 +1,6 @@
+import 'dart:math';
 import 'package:action_slider/action_slider.dart';
+import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,12 +16,14 @@ import '../helper_utilities.dart';
 class QuestionPage extends StatefulWidget{
   final String weekKey; ///"MM-dd-yyyy"
   final String timeBegin;  //DateTime.toIso... ("MM-dd-yyyyT012:00:00")
-  final String terminName; //DateTime.toIso...
+  final String terminName;
+  final String timeEnd; //DateTime.toIso...
 
   const QuestionPage({
     super.key,
     required this.weekKey,
     required this.timeBegin,
+    required this.timeEnd,
     required this.terminName});
 
   @override
@@ -36,12 +40,13 @@ class QuestionPageState extends State<QuestionPage> {
   DatabaseHelper databaseHelper = DatabaseHelper();
   String name = "";
 
-
-
   @override
   void initState() {
     getTermin();
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if(mounted) Utilities().checkAndShowFirstHelpDialog(context, "QuestionPage");
+    });
   }
 
   ///Holt sich den Termin und füllt die Questionpage mit den Antworten, falls er schon beantwortet wurde
@@ -61,7 +66,7 @@ class QuestionPageState extends State<QuestionPage> {
           });
         } else {
           int differenceInMinutes = termin.timeBegin.add(Duration(minutes: 10)).difference(DateTime.now()).inMinutes;
-          if(differenceInMinutes < 10 && !differenceInMinutes.isNegative){
+          if(differenceInMinutes < 15 && !differenceInMinutes.isNegative){
             isEditable = false;
             isTooEarly = true;
             slightlyTooEarly = true;
@@ -88,12 +93,11 @@ class QuestionPageState extends State<QuestionPage> {
       "comment": textEditingController.text,
       "answered": 1,
     };
-    checkIfExceptional(radioAnswers);
     databaseHelper.updateEntry(widget.weekKey, widget.timeBegin, widget.terminName, updatedValues);
     databaseHelper.updateActivities(widget.weekKey);
     if(!isBeingEdited) {
       Navigator.pop(context, "updated");
-    } else { //TODO: Lieber verlassen? Oder lieber wieder den Slider einblenden?
+    } else {
       setState(() {
         isBeingEdited = false;
         isEditable = false;
@@ -101,30 +105,19 @@ class QuestionPageState extends State<QuestionPage> {
     }
   }
 
-  ///Checkt ob etwas besonders gut beantwortet wurde
-  Future<void> checkIfExceptional(List<int> radioAnswers) async {
-    //Löscht den Eintrag falls schon vorhanden (z.B. wenn Antwort bearbeitet wird)
-    await DatabaseHelper().deleteSpecificHelpingActivity(widget.weekKey, widget.terminName, widget.timeBegin);
-
-    //Speichert den Eintrag wenn besonders gut beantwortet wurde (Könnte auf 0,1 und 5,6 checken und die Werte im Table speichern um größere Varianz beim speichern zu haben)
-    for(int i = 1; i < radioAnswers.length; i++){ //starten bei 1 um die ja/später/nein frage zu überspringen
-      if(radioAnswers[i] >= 6){
-        databaseHelper.saveHelpingActivities(
-            widget.terminName,
-            i == 1 ? "good" : i == 2 ? "calm" : i == 3 ? "help" : "",
-            radioAnswers[0] == 2 ? false : true,
-            widget.timeBegin,
-            textEditingController.text,
-            widget.weekKey);
-      }
-    }
-  }
-
   ///Öffnet das Belohnung-PopUp
   void openRewardPopUp() async{
+    List<String> messages = [
+      S.current.questionPage_rewardMsg,
+      S.current.questionPage_rewardMsg2,
+      S.current.questionPage_rewardMsg3,
+      S.current.questionPage_rewardMsg4,
+      S.current.questionPage_rewardMsg5,
+    ];
+
     String? result = await RewardPopUp().show(
         context,
-        S.of(context).questionPage_rewardMsg,
+        messages[Random().nextInt(messages.length)],
         widget.weekKey,
         false
     );
@@ -144,6 +137,12 @@ class QuestionPageState extends State<QuestionPage> {
       S.of(context).questionPage_q3,
       S.of(context).questionPage_q4
     ];
+    List<String> noQuestions = [
+      S.of(context).questionPage_q1,
+      S.current.questionPage_noQ1,
+      S.current.questionPage_noQ2,
+      S.current.questionPage_noQ3,
+    ];
     List<String> labelStart = [
       "",
       S.of(context).questionPage_a1s,
@@ -162,7 +161,7 @@ class QuestionPageState extends State<QuestionPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(questions[questionIndex], style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
+          Text(questionIndex > 0 && radioAnswers[0] == 2 ? noQuestions[questionIndex]:questions[questionIndex], style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
           SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -257,15 +256,34 @@ class QuestionPageState extends State<QuestionPage> {
                     ),
                     onPressed: () => Utilities().showHelpDialog(context, "QuestionPage", name),
                   ),
-                  //TODO: Falls Eintröge manuell hinzugefügt werden können
-                  /*MenuItemButton(
+                  MenuItemButton(
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Icon(Icons.add_to_home_screen),
+                          SizedBox(width: 10),
+                          Text(S.current.addToCalendar)
+                        ],
+                      ),
+                    ),
+                    onPressed: () async {
+                      final Event event = Event(
+                        title: widget.terminName,
+                        startDate: DateTime.parse(widget.timeBegin),
+                        endDate: DateTime.parse(widget.timeEnd),
+                      );
+                      Add2Calendar.addEvent2Cal(event);
+                    },
+                  ),
+                  MenuItemButton(
                         child: Center(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Icon(Icons.delete),
                               SizedBox(width: 10),
-                              Text("Aktivität Löschen?")
+                              Text(S.current.deleteActivity)
                             ],
                           ),
                         ),
@@ -280,7 +298,7 @@ class QuestionPageState extends State<QuestionPage> {
                           }
 
                         },
-                      )*/
+                      )
                 ],
                 builder: (BuildContext context, MenuController controller, Widget? child) {
                   return TextButton(
@@ -292,7 +310,7 @@ class QuestionPageState extends State<QuestionPage> {
                         controller.open();
                       }
                     },
-                    child: const Icon(Icons.menu, size: 30),
+                    child: Icon(Icons.menu, size: 30, color: Theme.of(context).appBarTheme.foregroundColor,),
                   );
                 }
             ),
@@ -308,7 +326,7 @@ class QuestionPageState extends State<QuestionPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SizedBox(height: 15,),
-                //!isEditable ? ÜBERSICHT ÜBER WERTE?
+                //TODO IDEE: Übersicht über Werte wenn schon beantwortet
                 ///Erste Frage (Falls Zeitpunkt gekommen ist, ansonsten Info)
                 isTooEarly ? Text(!slightlyTooEarly ?
                         S.current.questionPage_too_early1(DateTime.parse(widget.timeBegin), DateTime.parse(widget.timeBegin),0,widget.terminName) :
@@ -409,7 +427,7 @@ class QuestionPageState extends State<QuestionPage> {
                           child: !isBeingEdited ? ElevatedButton(
                               onPressed: () => Navigator.pop(context),
                               //style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColorLight),
-                              child: Text(S.of(context).back, style: TextStyle(fontSize: 16))
+                              child: AutoSizeText(S.of(context).back, style: TextStyle(fontSize: 16), maxLines: 1,)
                           ) : ElevatedButton(
                               onPressed: (){
                                 setState(() {
@@ -417,7 +435,7 @@ class QuestionPageState extends State<QuestionPage> {
                                   isBeingEdited = false;
                                 });
                               },
-                              child: Text(S.of(context).cancel, style: TextStyle(fontSize: 16))
+                              child: AutoSizeText(S.of(context).cancel, style: TextStyle(fontSize: 16), maxLines: 1,)
                           ),
                          )
                       ],
@@ -435,34 +453,3 @@ class QuestionPageState extends State<QuestionPage> {
     );
   }
 }
-
-//Alternative
-/*Anzeige von Termin
-              Material(
-                      elevation: 10,
-                      borderRadius: BorderRadius.circular(15),
-                      color: !isEditable ? Colors.lightBlueAccent.shade400 : Theme.of(context).listTileTheme.tileColor,
-                      child: Container(
-                        alignment: Alignment.center,
-                        padding: EdgeInsets.all(20),
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            //Positioned( Sieht nicht gut aus
-                            //  top: -30,
-                            //    right: -30,
-                            //    child:Icon(Icons.check, color: Colors.green, size: 36,),
-                            //),
-                            RichText(
-                              text:TextSpan(
-                                  children: [
-                                    TextSpan(text: pageTitle),
-                                  ]
-                              ),
-                              textAlign: TextAlign.start,
-                              textScaler: TextScaler.linear(1.5),
-                            ),
-                          ],
-                        )
-                      ),
-                    ),*/

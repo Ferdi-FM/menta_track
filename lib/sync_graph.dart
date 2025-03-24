@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:menta_track/database_helper.dart';
 import 'package:sqflite/sqflite.dart';
@@ -116,49 +117,63 @@ class ScrollableWeekGraphState extends State<ScrollableWeekGraph> {
                     position: LegendPosition.top,
                     alignment: ChartAlignment.center,
                     orientation: LegendItemOrientation.vertical,
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                     height: "50%",
                     legendItemBuilder: //Benötigt um die Legende mitscrollen zu lassen
                         (String name, dynamic series, dynamic point, int index) {
                       return Container(
+                          alignment: Alignment.centerLeft,
                           padding: EdgeInsets.only(left: legendOffset+ MediaQuery.of(context).size.width/20),
                           margin: EdgeInsets.only(bottom: index == 2 ? 10 : 0),
                           height: 25,
-                          width: graphList.length * 100 > MediaQuery.of(context).size.width * 0.9 ? graphList.length*100 : MediaQuery.of(context).size.width *0.9, // Breite für Scrollbarkeit
-                          child: Row(
-                              spacing: 10,
-                              children: <Widget>[
-                              Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  boxShadow: <BoxShadow>[
-                                    BoxShadow(
-                                      color: Colors.black.withAlpha(50),
-                                      blurRadius: 7,
-                                      spreadRadius: 1,
-                                      offset: Offset(3, 3)
-                                    )
-                                  ],
-                                  color: index == 0 ? Colors.green : index == 1 ? Colors.orange : index == 2 ? Colors.blue : Colors.transparent,
-                                ),
-                                width: 10,
-                                height: 10,
-                              ),
-                              FittedBox(
-                                fit: BoxFit.fitHeight,
-                                child: Text(
-                                  index == 0 ? S.current.legend_Msg0 : index == 1 ? S.current.legend_Msg1 : index == 2 ? S.current.legend_Msg2 : "",
-                                  style: TextStyle(shadows: [
-                                    Shadow(
-                                      offset:Offset(3, 3),
-                                      blurRadius: 5,
-                                      color: Colors.black.withAlpha(50),
-                                    )
-                                  ]),
-                                ),
-                              )
-                              ,
-                          ]
+                        width: graphList.length * 100 > MediaQuery.of(context).size.width * 0.9 ? graphList.length*100 : MediaQuery.of(context).size.width *0.9, // Breite für Scrollbarkeit
+                          child:  Container(
+                            width: MediaQuery.of(context).size.width * 0.6,
+                            decoration: BoxDecoration(
+                                color: Theme.of(context).listTileTheme.tileColor?.withAlpha(50),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Theme.of(context).buttonTheme.colorScheme?.primary.withAlpha(70) as Color, width: 1)
+                            ),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                              child: FittedBox(
+                                alignment: Alignment.centerLeft,
+                                child:  Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                spacing: 10,
+                                children: <Widget>[
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      boxShadow: <BoxShadow>[
+                                        BoxShadow(
+                                            color: Colors.black.withAlpha(50),
+                                            blurRadius: 7,
+                                            spreadRadius: 1,
+                                            offset: Offset(3, 3)
+                                        )
+                                      ],
+                                      color: index == 0 ? Colors.green : index == 1 ? Colors.orange : index == 2 ? Colors.blue : Colors.transparent,
+                                    ),
+                                    width: 10,
+                                    height: 10,
+                                  ),
+                                  AutoSizeText(
+                                    index == 0 ? S.current.legend_Msg0 : index == 1 ? S.current.legend_Msg1 : index == 2 ? S.current.legend_Msg2 : "",
+                                    style: TextStyle(shadows: [
+                                      Shadow(
+                                        offset:Offset(3, 3),
+                                        blurRadius: 5,
+                                        color: Colors.black.withAlpha(50),
+                                      )
+                                    ]),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ]
+                            ),
                           ),
+                          ))
                       );
                     }
                 ),

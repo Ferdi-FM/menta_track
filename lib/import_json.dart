@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -49,21 +51,17 @@ class ImportJson {
     if (result.isNotEmpty) {
       if(DateTime.parse(result.first["weekKey"]).difference(firstWeekDay).isNegative){
         firstWeekDay = DateTime.parse(result.first["weekKey"]);
-        //firstWeekDay = DateTime.parse(result.first["weekKey"]).subtract(Duration(days: 7));
       } else {
         firstWeekDay = DateTime.parse(result.first["weekKey"]).subtract(Duration(days: 7));
-        //firstWeekDay = DateTime.parse(result.first["weekKey"]); // Falls eine Überschneidung existiert, nimm die vorhandene Woche
       }
-      //firstWeekDay = DateTime.parse(firstWeekDayString);
     }
     return firstWeekDay;
   }
 
-
+  //TODO: Der Gesamte import kann vereinfacht werden, sobald die App zur Wochenplanerstellung geschrieben wurde, gerade muss noch jeder Fall beachtet werden
   ///Checkt während dem durchiterieren nach Überschneidungen, da "-7days" zur unendlichen Schleife führen würde
   Future<DateTime> checkWeekKeyRangeInLoop(DateTime firstWeekDay) async {
     String firstWeekDayString = DateFormat("yyyy-MM-dd").format(firstWeekDay);
-
     final db = await databaseHelper.database;
     String query = '''
       SELECT weekKey FROM WeeklyPlans 
@@ -94,9 +92,7 @@ class ImportJson {
     ''';
     List<Map<String, dynamic>> result = await db.rawQuery(query, [firstWeekDayString, firstWeekDayString]);
     ///Wenn der neue WeekKey in eine Bereits erkannte Zeitspanne fallen würde, wird errechnet, ob er sie einschneiden würde (isNegative) => Dann wird der weekKey auf die Woche davor gesetzt, ansonsten wird der weekKey auf die schon existente Woche gelegt
-    print("result:${result}");
     if (result.isNotEmpty) {
-      print("DIFFERENCE:${DateTime.parse(result.first["weekKey"]).difference(firstWeekDay).inDays}");
       if(DateTime.parse(result.first["weekKey"]).difference(firstWeekDay).inDays == 0) {
         firstWeekDay = DateTime.parse(result.first["weekKey"]);
       } else if(DateTime.parse(result.first["weekKey"]).difference(firstWeekDay).isNegative){
@@ -109,7 +105,6 @@ class ImportJson {
     ///Falls es wie ursprünglich gehandelt werden soll, können "checkWeekKeyRange" & "checkWeekKeyRangeInLoop" wieder verwendet werden.
     ///Dann muss jedoch Sichergestellt werden, dass in den Importierten Plänen keine Lücke, die länger als 7Tage ist, ist!!!
     else if (inLoop){
-      print("HIER DER FEHLER?");
       String testDate2 = DateFormat("yyyy-MM-dd").format(firstWeekDay.subtract(Duration(days: 7)));
       String query = '''
       SELECT weekKey FROM WeeklyPlans 
@@ -134,20 +129,15 @@ class ImportJson {
     String firstWeekDayString = DateFormat("yyyy-MM-dd").format(firstWeekDay);              //formatieren in String für die Map
 
     firstWeekDay = DateTime.parse(firstWeekDayString);                                      //Um es auf 0:00 am ersten Tag zu setzen
-    print("FIRST:${firstWeekDay}");
     firstWeekDay = await checkWeekKeyRangeVariable(firstWeekDay,false, newTerminMap);                     //Checkt das erste mal ob es in einen schon vorhanden Plan fällt
-    print("FIRST2:${firstWeekDay}");
     firstWeekDayString = DateFormat("yyyy-MM-dd").format(firstWeekDay);                     //Wandelt die transformierte Zeit in einen String zum vergleichen um
     for(int i = 0; i < terminMap.length; i++){                                              //Iteriert durch Map
       DateTime terminTime =  DateTime.parse(terminMap[i]["tB"]);
       while(terminTime.difference(firstWeekDay).inDays > 6){                                //schaut ob die Difference zum ersten Wochentag größer als 7Tage ist, wenn true setzt er die nächste woche als neue referenz
-        print("Checkt range von:${terminTime} | $firstWeekDay");
-        firstWeekDay = await checkWeekKeyRangeVariable(terminTime,true,newTerminMap);
-        print("Set To:${firstWeekDay}");//Checkt ob es sich in der neuen Range mit einem existierenden Plan überschneidet
+        firstWeekDay = await checkWeekKeyRangeVariable(terminTime,true,newTerminMap);       //Checkt ob es sich in der neuen Range mit einem existierenden Plan überschneidet
         firstWeekDayString = DateFormat("yyyy-MM-dd").format(firstWeekDay);
       }
       if(!newTerminMap.containsKey(firstWeekDayString)){//wenn die Map noch nicht den Wochenkey enthält
-        print("ADDED KEY : $firstWeekDayString");
         newTerminMap[firstWeekDayString] = [];                                              //wird er eingefügt
       }
       if(DateTime.parse(terminMap[i]["tB"]).isBefore(DateTime.parse(terminMap[i]["tE"]))){  //Wenn der Begin vor dem Ende liegt

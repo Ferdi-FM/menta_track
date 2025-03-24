@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:menta_track/Pages/day_summary.dart';
 import 'package:menta_track/Pages/settings.dart';
+import 'package:menta_track/week_creator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import '../database_helper.dart';
@@ -18,8 +19,6 @@ import 'not_answered_page.dart';
 
 //TODO: RANDOMISIERTE ANTWORTEN VERBESSERN
 
-//TODO STUDY: Erste Benachrichtigung 1 min nach schließen des Hilfe-Dialogs
-//TODO STUDY: Zweite Benachrichtigung 30 sek nach zurückkehren von Settings
 ///Startseite der Anwendung mit PageView
 
 class MainPage extends StatefulWidget {
@@ -34,6 +33,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
   NotificationHelper notificationHelper = NotificationHelper();
   final PageController _pageController = PageController(initialPage: 1);
   final GlobalKey<NotAnsweredState> _notAnsweredKey = GlobalKey<NotAnsweredState>();
+  final GlobalKey<DaySummaryState> _daySummaryKey = GlobalKey<DaySummaryState>();
   Widget themeIllustration = SizedBox();
   int selectedIndex = 1;
   int rememberAnsweredTasks = 0;
@@ -42,19 +42,18 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
   List<WeekTileData> items = [];
 
 
-
   @override
   void initState() {
     super.initState();
     loadTheme();
     loadDatabaseAndNotifications();
+    Utilities().checkAndShowFirstHelpDialog(context, "MainPageFirst");
   }
 
   ///Checkt, ob auf die Startseite zurückgekehrt wurde und ob es Änderungen in der Datenbank gab
   @override
   void didPopNext() {
     checkForChange();
-    //updateItems();
     super.didPopNext();
   }
 
@@ -74,7 +73,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
     ///Nur beim start sollen benachrichtigungen gecheckt/geladen werden
     notificationHelper.startListeningNotificationEvents();
     notificationHelper.loadAllNotifications(false);
-
   }
 
   ///Lädt die Liste neu
@@ -108,8 +106,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
     rememberAnsweredTasks = await databaseHelper.getAllTermineCount(true,true);
     rememberTotalTasks = await databaseHelper.getAllTermineCountUnconditional();
     openTasks = await DatabaseHelper().getAllTermineCount(false, true);
-    //String testKey = weekPlans[2]["weekKey"];
-    //await notificationHelper.scheduleTestNotification(testKey); //Testing
   }
 
   ///Checkt ob es Änderungen in der Datenbank gab
@@ -141,11 +137,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
     SettingData data = await SettingsPageState().getSettings();
     bool isDarkMode = data.isDarkMode;
     String name = data.name;
-    String accentColor = data.accentColor;
-
+    MaterialColor materialColor = await HexMaterialColor().getColorFromPreferences();
     setState(() { //muss vor themeHelper geladen und angewendet werden, damit textfarbe je nach darkmode richtig geladen wird
       MyApp.of(context).changeTheme(isDarkMode ? ThemeMode.dark : ThemeMode.light);
-      MyApp.of(context).changeColor(accentColor);
+      MyApp.of(context).changeColorDynamic(materialColor);
     });
 
     Widget image = SizedBox();
@@ -161,7 +156,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
   Future<void> checkForFirstStart() async {
     final prefs = await SharedPreferences.getInstance();
     if(prefs.getBool("firstStart") == null && mounted){
-      Utilities().showHelpDialog(context, "MainPageFirst");
+
+
       prefs.setBool("firstStart", true);
     }
   }
@@ -189,12 +185,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
         setState(() {
           loadTheme();
         });
+        ///Updated die anderen Seiten des PageViews
         _notAnsweredKey.currentState?.loadTheme();
-        //NotificationHelper().scheduleStudyDayNotification(); //TODO !STUDY!: 2te Benachrichtigung FÜR STUDIE
+        _daySummaryKey.currentState?.loadTheme();
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -203,7 +199,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
         canPop: false,
         onPopInvokedWithResult: (bool didPop, result) {
       if (!didPop) {
-        if(selectedIndex == 0 || selectedIndex == 2){ //Während des testen wurde die App mehrmals ausversehen geschlossen, wenn man auf der Übersichtsseite war
+        if(selectedIndex != 1){ //Während des testen wurde die App mehrmals ausversehen geschlossen, wenn man auf der Übersichtsseite war
           setState(() {
             selectedIndex = 1;
           });
@@ -213,14 +209,16 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
             curve: Curves.easeInOut,
           );
         } else {
-           SystemNavigator.pop(); //Funktioniert nicht auf IOS, in IOS soll einfach nichts gemacht werden, es ist intended, dass Apps durch den HOME-Button geschlossen werden
+           //SystemNavigator.pop(); //Funktioniert nicht auf IOS, in IOS soll einfach nichts gemacht werden, es ist intended, dass Apps durch den HOME-Button geschlossen werden
         }
       }
     },
     child: Scaffold(
       appBar: AppBar(
-        title: selectedIndex == 0 ? Text(S.of(context).unanswered) :
-        selectedIndex == 1 ? Text(S.of(context).home) :
+        title:
+        selectedIndex == 0 ? Text(S.current.unanswered) :
+        selectedIndex == 1 ? Text(S.current.todayHeadline) :
+        selectedIndex == 2 ? Text(S.current.weekOverViewHeadline) :
         Text(S.of(context).bestActivities),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
@@ -244,7 +242,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
                     onPressed: () => Utilities().showHelpDialog(
                         context,
                         selectedIndex ==  0 ? "Offen" :
-                        selectedIndex == 1 ? "MainPage" :
+                        selectedIndex == 1 ? "DayPage" :
+                        selectedIndex == 2 ? "MainPage" :
                         "ActivitySummary"),
                   ),
                   MenuItemButton(
@@ -259,6 +258,24 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
                       ),
                     ),
                     onPressed: () => openSettings(),
+                  ),
+                  if(selectedIndex == 2)MenuItemButton(
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Icon(Icons.add_task),
+                          SizedBox(width: 10),
+                          Text(S.current.addWeek)
+                        ],
+                      ),
+                    ),
+                    onPressed: () async {
+                      var result = await WeekDialog().show(context);
+                      if(result != null){
+                        updateItems();
+                      }
+                    }
                   ),
                   /// # QR-Code generator
                   //MenuItemButton(
@@ -285,46 +302,32 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
                         controller.open();
                       }
                     },
-                    child: const Icon(Icons.menu, size: 30),
+                    child: Icon(Icons.menu, size: 30, color: Theme.of(context).appBarTheme.foregroundColor,),
                   );
                 }
             ),
           ),
         ],
       ),
-      body: GestureDetector(
-        onHorizontalDragEnd: (ev) { //links und rechts swipe Logik
-          if (ev.primaryVelocity! > 0 && selectedIndex > 0) { //links
+      body:PageView(
+          controller: _pageController,
+          onPageChanged: (ev){
             setState(() {
-              selectedIndex--;
+              selectedIndex = ev;
+
             });
-            _pageController.animateToPage(
-              selectedIndex,
-              duration: Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          } else if (ev.primaryVelocity! < 0 && selectedIndex < 2) { //rechts
-            if(selectedIndex == 0){
-              if(selectedIndex+1 == 1){
-                checkForChange();
+            if(mounted){
+              switch(selectedIndex){
+                case 0: Utilities().checkAndShowFirstHelpDialog(context, "Offen");
+                case 3: Utilities().checkAndShowFirstHelpDialog(context, "ActivitySummary");
               }
             }
-            setState(() {
-              selectedIndex++;
-            });
-            _pageController.animateToPage(
-              selectedIndex,
-              duration: Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          }
-        },
-        child: PageView(
-          controller: _pageController,
-          physics: NeverScrollableScrollPhysics(), // Deaktiviert Swipe-Gesten, um eigene zu verwenden.
+          },
           children: [
             ///Seite 1 (OffenSeite)
             NotAnsweredPage(key: _notAnsweredKey,),
+            ///Seite 2 (DaySeite):
+            DaySummary(key: _daySummaryKey,),
             ///Seite 2 (Hauptseite):
             LayoutBuilder(
               builder: (context, constraints) {
@@ -405,21 +408,21 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
             ActivitySummary(),
           ],
         ),
-      ),
-      bottomNavigationBar:
-      Container(
+      bottomNavigationBar: Container(
         padding: EdgeInsets.only(top:0),
         decoration: BoxDecoration(
             color: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
             borderRadius: BorderRadius.only(topLeft: Radius.circular(15) ,topRight:Radius.circular(15) )
         ),
         child: BottomNavigationBar(
+          type: BottomNavigationBarType.shifting,
+          showUnselectedLabels: true,
           elevation: 15,
           //backgroundColor: MyApp.of(context).themeMode == ThemeMode.dark ? Colors.transparent : Theme.of(context).bottomNavigationBarTheme.backgroundColor,
           currentIndex: selectedIndex,
           onTap: (int index) {
             if(selectedIndex == 0){
-              if(index == 1){
+              if(index == 1 || index == 2){
                 checkForChange();
               }
             }
@@ -428,39 +431,43 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
             });
             _pageController.animateToPage(
               index,
-              duration: Duration(milliseconds: 300),
+              duration: Duration(milliseconds: 200),
               curve: Curves.easeInOut,
             );
           },
           items: [
             BottomNavigationBarItem(
-              icon: openTasks > 0 ? Badge(
+              backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor, //muss bei type: shifting angegeben werden!
+              icon:
+              openTasks > 0 ? Badge(
                 isLabelVisible: true,
                 label: Text(openTasks.toString()),
                 offset: Offset(8, 8),
                 backgroundColor: Theme.of(context).colorScheme.secondary,
-                child: selectedIndex == 0 ?
-                  Icon(Icons.inventory_rounded) :
-                  Icon(Icons.inventory_outlined)
-              ) : openTasks == 0 && selectedIndex == 0 ?
-                  Icon(Icons.inventory_rounded) :
-                  Icon(Icons.inventory_outlined),
+                child: selectedIndex == 0 ? Icon(Icons.inventory_rounded) : Icon(Icons.inventory_outlined)
+              ) :
+              openTasks == 0 && selectedIndex == 0 ? Icon(Icons.inventory_rounded) : Icon(Icons.inventory_outlined),
               label: S.of(context).open,
             ),
             BottomNavigationBarItem(
-              icon: selectedIndex == 1 ? Icon(Icons.home) : Icon(
-                  Icons.home_outlined),
+              icon: selectedIndex == 1 ? Icon(Icons.today) : Icon(Icons.today_outlined),
+              backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+              label:  S.current.todayHeadline
+            ),
+            BottomNavigationBarItem(
+              icon: selectedIndex == 2 ? Icon(Icons.home) : Icon(Icons.home_outlined),
+              backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
               label:  S.of(context).home,
             ),
             BottomNavigationBarItem(
-              icon: selectedIndex == 2 ? Icon(Icons.insights) : Icon(
-                  Icons.insights_outlined),
+              icon: selectedIndex == 3 ? Icon(Icons.insights) : Icon(Icons.insights_outlined),
+              backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
               label:  S.of(context).overview,
             ),
           ],
         ),
       ),
-      floatingActionButton: selectedIndex == 1 ? FloatingActionButton(
+      floatingActionButton: selectedIndex == 2 ? FloatingActionButton(
         onPressed: () async {
           var result = await Navigator.of(context).push(
             MaterialPageRoute(
@@ -470,7 +477,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
           if(result != null){
             await ImportJson().loadDummyDataForQr(result);
             updateItems();
-            NotificationHelper().loadAllNotifications(true); //Reload Benachrichtigungen
+            //Reload Benachrichtigungen
+            NotificationHelper().loadAllNotifications(true);
+            //NotificationHelper().scheduleStudyNotification();//FÜR STUDIE oder testen von benachrichtigungen
           }
         },
         backgroundColor: Theme.of(context).bottomNavigationBarTheme.selectedItemColor,

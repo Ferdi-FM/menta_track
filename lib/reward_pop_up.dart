@@ -87,7 +87,7 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
 
     //Animation für Confetti
     _confettiController = ConfettiController(
-        duration: const Duration(seconds: 2),);
+        duration: const Duration(seconds: 1),);
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _controller.forward();
@@ -101,8 +101,11 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
     String alertSound = await ThemeHelper().getSound();
     _theme = data.theme;
     _showOnlyOnMainPage = data.themeOnlyOnMainPage;
-    final player = AudioPlayer();
-    player.play(AssetSource(alertSound));
+    if(alertSound != "nothing"){
+      final player = AudioPlayer();
+      player.play(AssetSource(alertSound));
+    }
+
 
     setState(() {
       _theme;
@@ -153,7 +156,6 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
   ///Verlassen des Popups, damit context nicht async ist
   void backToPage() {
     Navigator.of(context).pop("confirmed");
-    //widget.onConfirm();//"onConfirm" ist alternative Version mit VoidCallBack
   }
 
   @override

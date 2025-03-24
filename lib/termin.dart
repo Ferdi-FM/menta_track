@@ -30,16 +30,16 @@ class Termin {
    return{
      "weekKey": weekKey,
      "terminName":terminName,
-     "timeBegin": timeBegin.toString(),
-     "timeEnd": timeEnd.toString(),
-     "question0": doneQuestion,
-     "question1": goodMean,
-     "question2": calmMean,
-     "question3": helpMean,
+     "timeBegin": timeBegin.toIso8601String(),
+     "timeEnd": timeEnd.toIso8601String(),
+     "doneQuestion": doneQuestion,
+     "goodQuestion": goodMean,
+     "calmQuestion": calmMean,
+     "helpQuestion": helpMean,
      "comment": comment,
      "answered": answered == true ? 1 : 0
    };
-}
+  }
 
   @override
   String toString() {

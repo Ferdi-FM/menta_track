@@ -323,6 +323,11 @@ class S {
     return Intl.message('Sunday', name: 'sunday', desc: '', args: []);
   }
 
+  /// `the`
+  String get den {
+    return Intl.message('the', name: 'den', desc: '', args: []);
+  }
+
   /// `Scan a QR-Code\nto import a Weekly Plan!`
   String get qr_desc {
     return Intl.message(
@@ -348,6 +353,46 @@ class S {
     return Intl.message(
       'Thank you 😊 \n\n You\'ve dealt with your emotions 🥰 \n\n That was really strong of you 💪',
       name: 'questionPage_rewardMsg',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Thanks for taking the time! 😊 \n\nReflection is an important part of growth. 💪`
+  String get questionPage_rewardMsg2 {
+    return Intl.message(
+      'Thanks for taking the time! 😊 \n\nReflection is an important part of growth. 💪',
+      name: 'questionPage_rewardMsg2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Awesome! ⭐ Great to see you sticking with it! 🥰`
+  String get questionPage_rewardMsg3 {
+    return Intl.message(
+      'Awesome! ⭐ Great to see you sticking with it! 🥰',
+      name: 'questionPage_rewardMsg3',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Thank you! 🙌 Taking time for your emotions is a valuable step. 💪`
+  String get questionPage_rewardMsg4 {
+    return Intl.message(
+      'Thank you! 🙌 Taking time for your emotions is a valuable step. 💪',
+      name: 'questionPage_rewardMsg4',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Glad you made time for this! 🌿`
+  String get questionPage_rewardMsg5 {
+    return Intl.message(
+      'Glad you made time for this! 🌿',
+      name: 'questionPage_rewardMsg5',
       desc: '',
       args: [],
     );
@@ -388,6 +433,36 @@ class S {
     return Intl.message(
       'Did it do you good?',
       name: 'questionPage_q4',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `How did you feel about not doing it?`
+  String get questionPage_noQ1 {
+    return Intl.message(
+      'How did you feel about not doing it?',
+      name: 'questionPage_noQ1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Did you feel calm or excited about not having done it?`
+  String get questionPage_noQ2 {
+    return Intl.message(
+      'Did you feel calm or excited about not having done it?',
+      name: 'questionPage_noQ2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Did it still feel good?`
+  String get questionPage_noQ3 {
+    return Intl.message(
+      'Did it still feel good?',
+      name: 'questionPage_noQ3',
       desc: '',
       args: [],
     );
@@ -478,10 +553,10 @@ class S {
     );
   }
 
-  /// `Deine Aktivität startet gleich, schau in 15min oder später nochmal vorbei um Feedback zu geben😊 👍`
+  /// `Your activity starts shortly, com back in 15min or later to give Feedback😊 👍`
   String get questionPage_slightly_too_early {
     return Intl.message(
-      'Deine Aktivität startet gleich, schau in 15min oder später nochmal vorbei um Feedback zu geben😊 👍',
+      'Your activity starts shortly, com back in 15min or later to give Feedback😊 👍',
       name: 'questionPage_slightly_too_early',
       desc: '',
       args: [],
@@ -518,7 +593,7 @@ class S {
     );
   }
 
-  /// `{count, plural,  =0{{name} ist am {date1} um {date2}\n\nDu bist zu früh dran 😊 \nAber trotzdem cool, dass du vorbeischaust 👍} other{{name} ist am {date1} um {date2}\n\nCool das du da bist 😊 Schau in kürze nochmal hier rein um Feedback zu geben 👍}}`
+  /// `{count, plural,  =0{{name} is on the {date1} at {date2}\n\nYou're too early 😊 \nBut it's still nice that you're here 👍} other{{name} is on the {date1} at {date2}\n\nBut it's still nice that you're here 😊 Come back shortly too give Feedback! 👍}}`
   String questionPage_too_early1(
     DateTime date1,
     DateTime date2,
@@ -540,9 +615,9 @@ class S {
     return Intl.plural(
       count,
       zero:
-          '$name ist am $date1String um $date2String\n\nDu bist zu früh dran 😊 \nAber trotzdem cool, dass du vorbeischaust 👍',
+          '$name is on the $date1String at $date2String\n\nYou\'re too early 😊 \nBut it\'s still nice that you\'re here 👍',
       other:
-          '$name ist am $date1String um $date2String\n\nCool das du da bist 😊 Schau in kürze nochmal hier rein um Feedback zu geben 👍',
+          '$name is on the $date1String at $date2String\n\nBut it\'s still nice that you\'re here 😊 Come back shortly too give Feedback! 👍',
       name: 'questionPage_too_early1',
       desc: '',
       args: [date1String, date2String, count, name],
@@ -641,6 +716,36 @@ class S {
     return Intl.message(
       'Notifications before Activities',
       name: 'settings_notificationsForTasks',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Mascot`
+  String get illustration_mascot {
+    return Intl.message(
+      'Mascot',
+      name: 'illustration_mascot',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Illustration Things`
+  String get illustration_things {
+    return Intl.message(
+      'Illustration Things',
+      name: 'illustration_things',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Illustration People`
+  String get illustration_people {
+    return Intl.message(
+      'Illustration People',
+      name: 'illustration_people',
       desc: '',
       args: [],
     );
@@ -876,51 +981,201 @@ class S {
     );
   }
 
-  /// `Hier kannst du Feedback zu deinen Aktivitäten geben! :)\n`
+  /// `Here you can give feedback on your activities! 😊`
   String get questionPageHelpDialog1 {
     return Intl.message(
-      'Hier kannst du Feedback zu deinen Aktivitäten geben! :)\n',
+      'Here you can give feedback on your activities! 😊',
       name: 'questionPageHelpDialog1',
       desc: '',
       args: [],
     );
   }
 
-  /// `Du kannst auch feedback geben, falls es nicht geklappt hat!\nAllein das du Feedback gibst ist schon toll {name} :)\n`
+  /// `You can also give feedback if it didn't work out! Just giving feedback is already great, {name} 😇💖\n`
   String questionPageHelpDialog2(Object name) {
     return Intl.message(
-      'Du kannst auch feedback geben, falls es nicht geklappt hat!\nAllein das du Feedback gibst ist schon toll $name :)\n',
+      'You can also give feedback if it didn\'t work out! Just giving feedback is already great, $name 😇💖\n',
       name: 'questionPageHelpDialog2',
       desc: '',
       args: [name],
     );
   }
 
-  /// `Die Fragen öffnen sich jeweils wenn du die vorherige beantwortet hast, am Ende kannst du noch einen kurzen Kommentar mit deinen Gedanken hinzufügen `
+  /// `Each question opens once you've answered the previous one; at the end, you can add a short comment with your thoughts.`
   String get questionPageHelpDialog3 {
     return Intl.message(
-      'Die Fragen öffnen sich jeweils wenn du die vorherige beantwortet hast, am Ende kannst du noch einen kurzen Kommentar mit deinen Gedanken hinzufügen ',
+      'Each question opens once you\'ve answered the previous one; at the end, you can add a short comment with your thoughts.',
       name: 'questionPageHelpDialog3',
       desc: '',
       args: [],
     );
   }
 
-  /// `Schiebe dann den Slider nach rechts um dein Feedback zu speichern :)`
+  /// `Slide the slider to the right to save your feedback ✨`
   String get questionPageHelpDialog4 {
     return Intl.message(
-      'Schiebe dann den Slider nach rechts um dein Feedback zu speichern :)',
+      'Slide the slider to the right to save your feedback ✨',
       name: 'questionPageHelpDialog4',
       desc: '',
       args: [],
     );
   }
 
-  /// `Viel Erfolg! Ich hoffe wirklich, dass es dir hilft! \n`
+  /// `Good luck! I truly hope this helps you! 🤞😊\n`
   String get questionPageHelpDialog5 {
     return Intl.message(
-      'Viel Erfolg! Ich hoffe wirklich, dass es dir hilft! \n',
+      'Good luck! I truly hope this helps you! 🤞😊\n',
       name: 'questionPageHelpDialog5',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `These are the settings\n`
+  String get settingsText1 {
+    return Intl.message(
+      'These are the settings\n',
+      name: 'settingsText1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `In the 'Theme' section, you can adjust the appearance of the app. The theme refers to images shown on the home page, offense page, and in the pop-up. The option below lets you display the image only on the home page.`
+  String get settingsText2 {
+    return Intl.message(
+      'In the \'Theme\' section, you can adjust the appearance of the app. The theme refers to images shown on the home page, offense page, and in the pop-up. The option below lets you display the image only on the home page.',
+      name: 'settingsText2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The reward sound will always play when the pop-up appears\n\n`
+  String get settingsText3 {
+    return Intl.message(
+      'The reward sound will always play when the pop-up appears\n\n',
+      name: 'settingsText3',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `In the notifications, you can choose when you want to: \n- Receive a summary in the morning\n- Receive a daily summary in the evening\n- Receive a notification before an activity and how often you want to be reminded`
+  String get settingsText4 {
+    return Intl.message(
+      'In the notifications, you can choose when you want to: \n- Receive a summary in the morning\n- Receive a daily summary in the evening\n- Receive a notification before an activity and how often you want to be reminded',
+      name: 'settingsText4',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This is your daily overview\n`
+  String get dayOverViewText1 {
+    return Intl.message(
+      'This is your daily overview\n',
+      name: 'dayOverViewText1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Here, you can see a summary of what you've accomplished today!`
+  String get dayOverViewText2 {
+    return Intl.message(
+      'Here, you can see a summary of what you\'ve accomplished today!',
+      name: 'dayOverViewText2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Activities that you rated particularly well will be listed here. The tree grows based on your activities, to which you have provided feedback. It starts at the point you've reached from previous days and ends with the progress you've made today :)`
+  String get dayOverViewText3 {
+    return Intl.message(
+      'Activities that you rated particularly well will be listed here. The tree grows based on your activities, to which you have provided feedback. It starts at the point you\'ve reached from previous days and ends with the progress you\'ve made today :)',
+      name: 'dayOverViewText3',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The graph shows the average of your answers, so you can see how much the day helped you on average based on your activities.`
+  String get dayOverViewText4 {
+    return Intl.message(
+      'The graph shows the average of your answers, so you can see how much the day helped you on average based on your activities.',
+      name: 'dayOverViewText4',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `At the end of each day, you'll receive a notification that will guide you here, or you can tap on the calendar header in a weekly plan :) I hope this overview is helpful for you! :)`
+  String get dayOverViewText5 {
+    return Intl.message(
+      'At the end of each day, you\'ll receive a notification that will guide you here, or you can tap on the calendar header in a weekly plan :) I hope this overview is helpful for you! :)',
+      name: 'dayOverViewText5',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This is your weekly overview\n`
+  String get weekOverViewText1 {
+    return Intl.message(
+      'This is your weekly overview\n',
+      name: 'weekOverViewText1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Here, you'll see what happened this week.\n`
+  String get weekOverViewText2 {
+    return Intl.message(
+      'Here, you\'ll see what happened this week.\n',
+      name: 'weekOverViewText2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `At the top, you'll see how much feedback you've given, and just giving feedback means you've accomplished something! :)`
+  String get weekOverViewText3 {
+    return Intl.message(
+      'At the top, you\'ll see how much feedback you\'ve given, and just giving feedback means you\'ve accomplished something! :)',
+      name: 'weekOverViewText3',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Below, you'll find activities that you've given especially good feedback to. The tree on this page shows your progress for the entire week, starting at zero and growing depending on how much feedback you've provided, with every bit of growth counting! ;) The graph shows the average of your daily scores for this week :)`
+  String get weekOverViewText4 {
+    return Intl.message(
+      'Below, you\'ll find activities that you\'ve given especially good feedback to. The tree on this page shows your progress for the entire week, starting at zero and growing depending on how much feedback you\'ve provided, with every bit of growth counting! ;) The graph shows the average of your daily scores for this week :)',
+      name: 'weekOverViewText4',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `At the end of each week, half an hour after the daily overview, you'll receive a notification guiding you here. You can also tap the button in the bottom right corner of a weekly plan to come here :)\n\n`
+  String get weekOverViewText5 {
+    return Intl.message(
+      'At the end of each week, half an hour after the daily overview, you\'ll receive a notification guiding you here. You can also tap the button in the bottom right corner of a weekly plan to come here :)\n\n',
+      name: 'weekOverViewText5',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Good luck with giving feedback! I hope you can more easily find activities and things that bring you joy or help you in other ways :)`
+  String get weekOverViewText6 {
+    return Intl.message(
+      'Good luck with giving feedback! I hope you can more easily find activities and things that bring you joy or help you in other ways :)',
+      name: 'weekOverViewText6',
       desc: '',
       args: [],
     );
@@ -1368,23 +1623,23 @@ class S {
     );
   }
 
-  /// `{name}here is a list of all your weekly plans 😊`
-  String themeHelper_msg0(Object name) {
+  /// `{name}{count, plural,  zero{Here} other{, here}} you can find a List of all your weekly plans 😊`
+  String themeHelper_msg0(Object name, num count) {
     return Intl.message(
-      '${name}here is a list of all your weekly plans 😊',
+      '$name${Intl.plural(count, zero: 'Here', other: ', here')} you can find a List of all your weekly plans 😊',
       name: 'themeHelper_msg0',
       desc: '',
-      args: [name],
+      args: [name, count],
     );
   }
 
-  /// `{name}here are all the activities where you haven't given feedback yet 😉\n`
-  String themeHelper_open_msg0(Object name) {
+  /// `{name}{count, plural, zero{Here} other{, here}} are all the activities where you haven't given feedback yet 😉\n`
+  String themeHelper_open_msg0(Object name, num count) {
     return Intl.message(
-      '${name}here are all the activities where you haven\'t given feedback yet 😉\n',
+      '$name${Intl.plural(count, zero: 'Here', other: ', here')} are all the activities where you haven\'t given feedback yet 😉\n',
       name: 'themeHelper_open_msg0',
       desc: '',
-      args: [name],
+      args: [name, count],
     );
   }
 
@@ -1574,10 +1829,10 @@ class S {
     );
   }
 
-  /// `Die Woche ist noch nicht gekommen. Schau gerne später wieder hierrein :)`
+  /// `The week isn't here yet. Please come back later :)`
   String get weekOverView_tooEarly {
     return Intl.message(
-      'Die Woche ist noch nicht gekommen. Schau gerne später wieder hierrein :)',
+      'The week isn\'t here yet. Please come back later :)',
       name: 'weekOverView_tooEarly',
       desc: '',
       args: [],
@@ -1604,10 +1859,10 @@ class S {
     );
   }
 
-  /// `Thanks! 😊 \n\n Ich hope this week did you good and you made progress \n\n You're doing great one week at a time 💪`
+  /// `Thanks! 😊 \n\n I hope this week did you good and you made progress \n\n You're doing great one week at a time 💪`
   String get week_reward_message {
     return Intl.message(
-      'Thanks! 😊 \n\n Ich hope this week did you good and you made progress \n\n You\'re doing great one week at a time 💪',
+      'Thanks! 😊 \n\n I hope this week did you good and you made progress \n\n You\'re doing great one week at a time 💪',
       name: 'week_reward_message',
       desc: '',
       args: [],
@@ -1819,6 +2074,246 @@ class S {
   /// `Date`
   String get date {
     return Intl.message('Date', name: 'date', desc: '', args: []);
+  }
+
+  /// `What's on today`
+  String get today_Headline1 {
+    return Intl.message(
+      'What\'s on today',
+      name: 'today_Headline1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Already answered today`
+  String get today_Headline2 {
+    return Intl.message(
+      'Already answered today',
+      name: 'today_Headline2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `There's nothing to answer today 😇\nI hope you still have a great day! 😊`
+  String get today_nothingToAnswer {
+    return Intl.message(
+      'There\'s nothing to answer today 😇\nI hope you still have a great day! 😊',
+      name: 'today_nothingToAnswer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Everything answered, AWESOME! 🌟`
+  String get today_allAnswered {
+    return Intl.message(
+      'Everything answered, AWESOME! 🌟',
+      name: 'today_allAnswered',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `And hopefully, you can still do something that feels good for you 🌱`
+  String get today_hopeForGood {
+    return Intl.message(
+      'And hopefully, you can still do something that feels good for you 🌱',
+      name: 'today_hopeForGood',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `There's nothing to answer yet, come back soon 😇`
+  String get today_nothingToAnswerYet {
+    return Intl.message(
+      'There\'s nothing to answer yet, come back soon 😇',
+      name: 'today_nothingToAnswerYet',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Today`
+  String get todayHeadline {
+    return Intl.message('Today', name: 'todayHeadline', desc: '', args: []);
+  }
+
+  /// `Add Week`
+  String get addWeek {
+    return Intl.message('Add Week', name: 'addWeek', desc: '', args: []);
+  }
+
+  /// `Add to Smartphone Calendar`
+  String get addToCalendar {
+    return Intl.message(
+      'Add to Smartphone Calendar',
+      name: 'addToCalendar',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delete Activity?`
+  String get deleteActivity {
+    return Intl.message(
+      'Delete Activity?',
+      name: 'deleteActivity',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reward Sounds`
+  String get rewardSounds {
+    return Intl.message(
+      'Reward Sounds',
+      name: 'rewardSounds',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Settings saved automatically!👍`
+  String get settingsSavedAutomatically {
+    return Intl.message(
+      'Settings saved automatically!👍',
+      name: 'settingsSavedAutomatically',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `(Don’t do it)`
+  String get toNotDoIt {
+    return Intl.message('(Don’t do it)', name: 'toNotDoIt', desc: '', args: []);
+  }
+
+  /// `Weekly Overview`
+  String get weekOverViewHeadline {
+    return Intl.message(
+      'Weekly Overview',
+      name: 'weekOverViewHeadline',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Week Start`
+  String get weekStart {
+    return Intl.message('Week Start', name: 'weekStart', desc: '', args: []);
+  }
+
+  /// `Week End`
+  String get weekEnd {
+    return Intl.message('Week End', name: 'weekEnd', desc: '', args: []);
+  }
+
+  /// `Close`
+  String get close {
+    return Intl.message('Close', name: 'close', desc: '', args: []);
+  }
+
+  /// `Your Activities today {name}😇`
+  String themeHelperToday(Object name) {
+    return Intl.message(
+      'Your Activities today $name😇',
+      name: 'themeHelperToday',
+      desc: '',
+      args: [name],
+    );
+  }
+
+  /// `No Feedback open, awesome!👍`
+  String get noFeedBackOpen {
+    return Intl.message(
+      'No Feedback open, awesome!👍',
+      name: 'noFeedBackOpen',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No Entries yet 😉`
+  String get noEntriesYet {
+    return Intl.message(
+      'No Entries yet 😉',
+      name: 'noEntriesYet',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pick a Color 🎨`
+  String get settings_pickAColor {
+    return Intl.message(
+      'Pick a Color 🎨',
+      name: 'settings_pickAColor',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Standard`
+  String get settings_sound_Standard {
+    return Intl.message(
+      'Standard',
+      name: 'settings_sound_Standard',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Game Sound`
+  String get settings_sound_gameSound {
+    return Intl.message(
+      'Game Sound',
+      name: 'settings_sound_gameSound',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `longer Sound`
+  String get settings_sound_longer {
+    return Intl.message(
+      'longer Sound',
+      name: 'settings_sound_longer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Level Up`
+  String get settings_sound_levelUp {
+    return Intl.message(
+      'Level Up',
+      name: 'settings_sound_levelUp',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Level End`
+  String get settings_sound_levelDone {
+    return Intl.message(
+      'Level End',
+      name: 'settings_sound_levelDone',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No Sound`
+  String get settings_sound_nothing {
+    return Intl.message(
+      'No Sound',
+      name: 'settings_sound_nothing',
+      desc: '',
+      args: [],
+    );
   }
 }
 

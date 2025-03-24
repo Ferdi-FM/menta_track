@@ -2,6 +2,7 @@ import 'package:action_slider/action_slider.dart';
 import 'package:confetti/confetti.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:menta_track/Pages/settings.dart';
 import 'package:menta_track/database_helper.dart';
@@ -15,6 +16,7 @@ import '../termin.dart';
 ///Tagesübersichtsseite zeigt Informationen zu einem Tag
 //Confetti package: https://pub.dev/packages/confetti
 //TODO Variation falls Termin nach endbenachrichtigung!
+
 class DayOverviewPage extends StatefulWidget {
   final String weekKey; ///braucht "yyyy-MM-dd"-Format
   final String weekDayKey; ///braucht ("dd.MM.yy") format
@@ -34,7 +36,6 @@ class DayOverviewPage extends StatefulWidget {
 class DayOverviewState extends State<DayOverviewPage> {
   DatabaseHelper databaseHelper = DatabaseHelper();
   late ConfettiController _controllerCenter;
-  //late ConfettiController _controllerConstant;
   List<RadarEntry> radarEntries = [];
   int overAllTasksThisDay = 0;
   int tasksDoneInt = 0;
@@ -53,7 +54,6 @@ class DayOverviewState extends State<DayOverviewPage> {
   void initState() {
     getTermineForDay();
     _controllerCenter = ConfettiController(duration: const Duration(seconds: 2));
-    //_controllerConstant = ConfettiController(duration: const Duration(seconds: 40));
     tooEarly = DateTime.now().isBefore(DateFormat("dd.MM.yy").parse(widget.weekDayKey));
     super.initState();
   }
@@ -61,7 +61,6 @@ class DayOverviewState extends State<DayOverviewPage> {
   @override
   void dispose() {
     _controllerCenter.dispose();
-   // _controllerConstant.dispose();
 
     super.dispose();
   }
@@ -71,7 +70,6 @@ class DayOverviewState extends State<DayOverviewPage> {
     List<Termin> termineForThisDay = await databaseHelper.getDayTermine(widget.weekDayKey); //weekKey im Format "dd.MM.yy"
     int totalTasksThisWeek = await databaseHelper.getWeekTermineCount(widget.weekKey, false);
     overAllTasksThisDay = termineForThisDay.length;
-    print(termineForThisDay);
     SettingData data = await SettingsPageState().getSettings();
     name = data.name;
 
@@ -108,21 +106,18 @@ class DayOverviewState extends State<DayOverviewPage> {
           tasksDoneInt++;
           if (t.goodMean == 6) {
             favoriteTasks = "$favoriteTasks • ${t.terminName} $negative\n";
-            //databaseHelper.saveHelpingActivities(t.terminName, "good");
           }
           if (t.calmMean == 6) {
             calmTasks = "$calmTasks • ${t.terminName} $negative\n";
-            //databaseHelper.saveHelpingActivities(t.terminName, "calm");
           }
           if (t.helpMean == 6) {
             helpingTasks = "$helpingTasks • ${t.terminName} $negative\n";
-            //databaseHelper.saveHelpingActivities(t.terminName, "help");
           }
           meanQuestion1 = meanQuestion1 + (t.goodMean); //wie gut  , +1 weil skala bei 0 beginnt
           meanQuestion2 = meanQuestion2 + (t.calmMean); //wie ruhig
           meanQuestion3 = meanQuestion3 + (t.helpMean); //wie gut getan
         } else {
-          if(DateTime.now().isAfter(t.timeEnd)){
+          if(DateTime.now().isAfter(t.timeBegin.add(Duration(minutes: 10)))){
             tasksMissed++;
           }
         }
@@ -164,8 +159,6 @@ class DayOverviewState extends State<DayOverviewPage> {
       children: [
         buildConfetti(_controllerCenter, BlastDirectionality.explosive, 0.25, 20, 0.1, false, Alignment.topRight),
         buildConfetti(_controllerCenter, BlastDirectionality.explosive, 0.25, 20, 0.1, false, Alignment.topLeft),
-        //buildConfetti(_controllerConstant, BlastDirectionality.explosive, 0.15, 2, 0.1, true, Alignment.topLeft),
-        //buildConfetti(_controllerConstant, BlastDirectionality.explosive, 0.15, 2, 0.1, true, Alignment.topRight),
       ],
     );
   }
@@ -200,104 +193,8 @@ class DayOverviewState extends State<DayOverviewPage> {
   ///Erzeugt den anzuzeigenden Text basierend auf beantworteten Aktivitäten/Zeitpunkt/etc.
   Widget getText() {
     final local = S.current;
-    /*if(DateFormat("dd.MM.yy").format(DateTime.now()) != widget.weekDayKey){
-      return RichText(
-        text: TextSpan(
-          style: TextStyle(
-            fontSize: 24,
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-          ),
-          children: <TextSpan>[
-            TextSpan(text: S.current.dayNotYetArrived(name)),
-            TextSpan(text: "\n\n", style: TextStyle(fontWeight: FontWeight.bold)),
-            TextSpan(text: local.hopeYouHadAGoodDay(name.length,name)),
-          ],
-        ),
-        textAlign: TextAlign.center,
-      );
-    }
-    if (tasksDoneInt != 0) {
-      return RichText(
-        text: TextSpan(
-          style: TextStyle(
-            fontSize: 24,
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-          ),
-          children: <TextSpan>[
-            TextSpan(
-              text: local.taskCompletedOn(DateFormat("dd.MM.yy").format(DateTime.now()) == widget.weekDayKey ? local.today : "${S.of(context).am} ${widget.weekDayKey}"
-              ),
-              style: TextStyle(fontSize: 25),
-            ),
-            TextSpan(
-              text: "$tasksDoneInt",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
-            ),
-            TextSpan(
-              text: local.tasksCompleted(tasksDoneInt),
-              style: TextStyle(fontSize: 25),
-            ),
-            TextSpan(
-              text: "\n\n${Utilities().getRandomisedEncouragement(widget.fromNotification, name)}",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
-            ),
-            if (tasksMissed > 0)
-              TextSpan(
-                text: local.tasksPendingFeedback(tasksMissed),
-                style: TextStyle(fontSize: 15),
-              ),
-          ],
-        ),
-        textAlign: TextAlign.center,
-      );
-    }
-    if (tasksDoneInt == 0) {
-      return RichText(
-        text: overAllTasksThisDay == 0
-        ? TextSpan(
-          style: TextStyle(
-            fontSize: 24,
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-          ),
-          children: <TextSpan>[
-            TextSpan(text: local.noAppointmentsOn(DateFormat("dd.MM.yy").format(DateTime.now()) == widget.weekDayKey ? local.today : "${local.am} ${widget.weekDayKey}")),
-            TextSpan(text: "\n\n", style: TextStyle(fontWeight: FontWeight.bold)),
-            TextSpan(text: local.hopeYouHadAGoodDay(name.length,name)),
-          ],
-        )
-        : (tasksMissed > 0 && overAllTasksThisDay != 0) //Wenn etwas geplant war, aber garnichts beantwortet wurde
-            ? TextSpan(
-          style: TextStyle(
-            fontSize: 24,
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-          ),
-          children: <TextSpan>[
-            if(widget.fromNotification) TextSpan(text: S.current.noFeedbackFromNotification),
-            TextSpan(
-                text: local.tasksNotAnsweredOn(overAllTasksThisDay, DateFormat("dd.MM.yy").format(DateTime.now()) == widget.weekDayKey ? local.today : "${local.am} ${widget.weekDayKey}")
-            ),
-            TextSpan(text: "\n\n"),
-            TextSpan(text: local.checkPendingFeedback),
-            TextSpan(text: "\n\n${local.hopeYouHadAGoodDay(name.length,name)}"),
-          ],
-        )
-        : tasksMissed == 0 ? TextSpan(
-            style: TextStyle(
-            fontSize: 24,
-            color: Theme.of(context).textTheme.bodyMedium?.color,
-          ),
-          children: <TextSpan>[
-            TextSpan(text: local.activity_not_there_yet(overAllTasksThisDay,name )),
-          ],
-        )
-            : TextSpan(text: local.unexpectedCaseFound),
-        textAlign: TextAlign.center,
-      );
-    }*/
 
-    print("OverallTermine: ${overAllTasksThisDay}");
     List<TextSpan> text = [];
-
     if(overAllTasksThisDay == 0){
       ///kein Termin an diesem tag
       text = [
@@ -315,11 +212,10 @@ class DayOverviewState extends State<DayOverviewPage> {
           TextSpan(text: "$tasksDoneInt",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),),
           TextSpan(text: local.tasksCompleted(tasksDoneInt),style: TextStyle(fontSize: 25),),
           TextSpan(text: "\n\n${Utilities().getRandomisedEncouragement(widget.fromNotification, name)}",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),),
-        ];
-          if(tasksMissed > 0 ){
           ///mindestens ein Termin missed
-          text.add(TextSpan(text: local.tasksPendingFeedback(tasksMissed),style: TextStyle(fontSize: 15)));
-          }
+          if(tasksMissed > 0 )TextSpan(text: local.tasksPendingFeedback(tasksMissed),style: TextStyle(fontSize: 15))
+        ];
+
       }
       if(tasksMissed > 0 && tasksDoneInt == 0){
         ///Noch keinen Termin beantwortet
@@ -390,6 +286,19 @@ class DayOverviewState extends State<DayOverviewPage> {
           }
         },
         child:  Scaffold(
+          appBar: AppBar(
+            title: Text(widget.weekDayKey),
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () {
+                leavePage();
+              },
+            ),
+            actions: [
+              Utilities().getHelpBurgerMenu(context, "DayOverView")
+            ],
+          ),
           body:  Stack(
             children: [
               ShaderMask(
@@ -517,7 +426,13 @@ class DayOverviewState extends State<DayOverviewPage> {
                               await Future.delayed(const Duration(seconds: 1));
                               controller.success();
                               controller.reset();
-                              openRewardPopUp();},
+                              HapticFeedback.lightImpact();
+                              openRewardPopUp();
+                              },
+                            stateChangeCallback:(actionsliderState1 ,actionSliderState2, actionSliderController1) {
+                              //actionSliderState2.position; //Prozent des Sliders
+                              HapticFeedback.vibrate();
+                            },
                           )
                               : ElevatedButton(
                               style: ElevatedButton.styleFrom(minimumSize: Size(200, 50),),

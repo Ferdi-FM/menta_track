@@ -45,26 +45,30 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
     WeekTileData data;
     DateTime weekKeyDateTime = DateTime.parse(weekKey);
     String subtitle = "${S.current.activities}: $allWeekTasks  ${S.current.open_singular}: $unAnsweredWeekTasks";
+    data = WeekTileData(icon: Icon(Icons.free_cancellation), title: title, weekKey: weekKey, subTitle: subtitle);
     ///aktuelle Woche
     if (DateTime.now().isAfter(weekKeyDateTime) && DateTime.now().isBefore(weekKeyDateTime.add(Duration(days: 7)))) {
-      data = WeekTileData(icon: Icon(Icons.today, color: Colors.tealAccent,), title: title, weekKey: weekKey, subTitle: subtitle);
+      if(unAnsweredWeekTasks == 0 && answeredWeekTasks > 0){
+        subtitle = S.current.noFeedBackOpen;
+      }
+      data = WeekTileData(icon: Icon(Icons.running_with_errors), title: title, weekKey: weekKey, subTitle: subtitle);
     }
     ///Liegt in der Zukunft
     else if (DateTime.now().isBefore(weekKeyDateTime)) {
       subtitle = S.current.not_yet_single;
       data = WeekTileData(icon: Icon(Icons.lock_clock), title: title, weekKey: weekKey, subTitle: subtitle);
+    } else if(unAnsweredWeekTasks != 0) {
+      data = WeekTileData(icon: Icon(Icons.free_cancellation), title: title, weekKey: weekKey, subTitle: subtitle);
     }
     ///Alles beantwortet
-    else if (allWeekTasks == answeredWeekTasks) {
+    if (allWeekTasks == answeredWeekTasks && allWeekTasks != 0) {
       subtitle = S.current.done;
       data = WeekTileData(icon: Icon(Icons.event_available, color: Colors.green), title: title, weekKey: weekKey, subTitle: subtitle);
     }
-    ///alles andere
-    else {
-      if(unAnsweredWeekTasks == 0){
-        subtitle ="Kein Feedback offen, super!👍";
-      }
-      data = WeekTileData(icon: Icon(Icons.free_cancellation), title: title, weekKey: weekKey, subTitle: subtitle);
+    if(allWeekTasks == 0){
+      subtitle = S.current.noEntriesYet;
+      data = WeekTileData(icon: Icon(DateTime.now().isBefore(weekKeyDateTime) ? Icons.lock_clock : Icons.cancel_presentation), title: title, weekKey: weekKey, subTitle: subtitle);
+
     }
     return data;
   }
@@ -103,8 +107,13 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
 
   @override
   void didChangeDependencies() {
+    Color tileColor = Theme.of(context).listTileTheme.tileColor!.withAlpha(140);
+    DateTime weekKeyDateTime = DateTime.parse(widget.item.weekKey);
+    if (DateTime.now().isAfter(weekKeyDateTime) && DateTime.now().isBefore(weekKeyDateTime.add(Duration(days: 7)))) {
+      tileColor = Theme.of(context).listTileTheme.tileColor as Color;
+    }
     _colorAnimation = ColorTween( //muss hier deklariert werden, da in initState noch kein context vorhanden ist und damit zu crash führt
-      begin: Theme.of(context).listTileTheme.tileColor ?? Colors.blueGrey,
+      begin: tileColor,
       end: Colors.grey,
     ).animate(_animationController);
     super.didChangeDependencies();
@@ -118,6 +127,11 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
 
   @override
   Widget build(BuildContext context) {
+    Color accentColor = Theme.of(context).appBarTheme.backgroundColor as Color;
+    DateTime weekKeyDateTime = DateTime.parse(widget.item.weekKey);
+    if (DateTime.now().isAfter(weekKeyDateTime) && DateTime.now().isBefore(weekKeyDateTime.add(Duration(days: 7)))) {
+      accentColor = Theme.of(context).textTheme.bodyLarge?.color ?? accentColor;
+    }
     return AnimatedBuilder(
       animation: _colorAnimation,
       builder: (context, child) {
@@ -136,13 +150,14 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
                 ),
                 child: Container(
                   decoration: BoxDecoration( //linke Seite
-                      border: Border(left: BorderSide(color: Theme.of(context).primaryColor, width: 7)),  //Borderside darf immmer nur einfarbig sein
+                      border: Border(left: BorderSide(color: widget.item.icon.color ?? accentColor, width: 7)),  //Borderside darf immmer nur einfarbig sein
                       borderRadius: BorderRadius.horizontal(left: Radius.circular(10)),
                       color: _colorAnimation.value
                   ),
                   child: ListTile(
+                    tileColor: _colorAnimation.value,
                     minTileHeight: 72,
-                    leading: Icon(widget.item.icon.icon, color: widget.item.icon.color),
+                    leading: Icon(widget.item.icon.icon, color: widget.item.icon.color ?? accentColor),
                     title: FittedBox(
                       fit: BoxFit.contain,
                       child: Text(
@@ -150,9 +165,9 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16,),
                       ) ,
                     ),
-                    subtitle: AutoSizeText(widget.item.subTitle, maxLines: 1, maxFontSize: 15,),
+                    subtitle: AutoSizeText(widget.item.subTitle, maxLines: 1, maxFontSize: 15, minFontSize: 8, softWrap: true,),
                     trailing: GestureDetector(
-                      child: Icon(Icons.delete),
+                      child: Icon(Icons.delete, color: widget.item.icon.color ?? accentColor,),
                       onTap: () => _animationController.reset(),
                       onLongPressDown: (event) {
                         _animationController.forward();

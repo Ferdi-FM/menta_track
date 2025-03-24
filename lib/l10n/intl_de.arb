@@ -3,7 +3,7 @@
   "appTitle": "Menta Track",
 
 
-  "@Basic Expersionss": {
+  "@Basic Expressions": {
   },
   "unanswered": "Unbeantwortet",
   "weeklyPlans": "Wochenpläne",
@@ -17,7 +17,7 @@
   "um": "um",
   "cancel": "Abbrechen",
   "back": "zurück",
-  "accept": "Accept",
+  "accept": "Annehmen",
   "understood": "Verstanden!",
   "save": "Speichern",
   "activities": "Aktivitäten",
@@ -61,7 +61,7 @@
   },
   "till": "bis",
 
-  "summary_no_entries": " Noch Keine Einträge",
+  "summary_no_entries": " Noch keine Einträge",
   "special_activities": "Besondere Aktivitäten:",
   "good_activities_desc": "Aktivitäten bei denen du dich gut gefühlt hast:",
   "calm_activities_desc": "Aktivitäten bei denen du dich ruhig gefühlt hast:",
@@ -74,21 +74,29 @@
   "friday": "Freitag",
   "saturday": "Samstag",
   "sunday":"Sonntag",
-
+  "den" : "den",
 
   "@qrScanner": {
   },
-  "qr_desc": "Scane einen QR-Code\num einen Wochenplan zu importieren!",
+  "qr_desc": "Scanne einen QR-Code\num einen Wochenplan zu importieren!",
   "qr_success":"QR-Code erfolgreich gescannt! 👍",
 
 
   "@Question_Page": {
   },
-  "questionPage_rewardMsg": "Danke 😊 \n\n Du hast dich mit deinen Emotionen auseinandergesetzt 🥰 \n\n Das war wirklich stark von dir 💪",
-  "questionPage_q1": "Konntest du den Termin wahrnehmen?",
-  "questionPage_q2": "Wie ist es dir bei dem Termin gegangen?",
+  "questionPage_rewardMsg": "Danke 😊 \n\n Du hast dich mit deinen Emotionen beschäftigt 🥰 \n\n Das war wirklich stark von dir 💪",
+  "questionPage_rewardMsg2": "Danke, dass du dir die Zeit genommen hast!\uD83D\uDE0A \n\nReflexion ist ein wichtiger Teil des Wachstums\uD83D\uDCAA",
+  "questionPage_rewardMsg3": "Top!\uD83C\uDF1F\n\n Schön, dass du dranbleibst Feedback zu geben!\uD83E\uDD70",
+  "questionPage_rewardMsg4": "Danke dir! \uD83D\uDE4C\n\n Sich mit den eigenen Emotionen zu beschäftigen, ist ein wichtiger Schritt\uD83D\uDCAA",
+  "questionPage_rewardMsg5": "Schön, dass du dir Zeit für Feedback genommen hast! \uD83C\uDF3F",
+  "questionPage_q1": "Konntest du die Aktivität wahrnehmen?",
+  "questionPage_q2": "Wie ist es dir dabei gegangen?",
   "questionPage_q3": "Warst du dabei aufgeregt?",
   "questionPage_q4": "Hat es dir gut getan?",
+  "questionPage_noQ1": "Wie hast du dich dabei gefühlt es nicht zu tun?",
+  "questionPage_noQ2": "Warst du ruhig oder aufgeregt es nicht zu tun?",
+  "questionPage_noQ3": "Hat es dir trotzdem gut getan?",
+
 
   "questionPage_a1s": "sehr \n schlecht",
   "questionPage_a2s": "sehr \n aufgeregt",
@@ -106,8 +114,8 @@
   "questionPage_slightly_too_early": "Deine Aktivität startet gleich, schau in 15min oder später nochmal vorbei um Feedback zu geben\uD83D\uDE0A \uD83D\uDC4D",
   "questionPage_comment": "Wenn du Lust hast kannst du hier einen kurzen Kommentar hinzufügen:",
   "questionPage_commentLabel": "Dein Feedback",
-  "questionPage_save": "Slide zum speichern",
-  "questionPage_too_early1" : "{count, plural,  =0{{name} ist am \n{date1} um {date2}\n\nDu bist zu früh dran \uD83D\uDE0A \nAber trotzdem cool, dass du vorbeischaust \uD83D\uDC4D} other{{name} ist am \n{date1} um {date2}\n\nCool das du da bist \uD83D\uDE0A Die Aktivität hat grade erst gestartet\nSchau in kürze nochmal hier rein um Feedback zu geben \uD83D\uDC4D}}",
+  "questionPage_save": "Zum Speichern wischen",
+  "questionPage_too_early1" : "{count, plural,  =0{{name} ist am \n{date1} um {date2}\n\nDu bist zu früh dran \uD83D\uDE0A \nAber trotzdem cool, dass du vorbeischaust \uD83D\uDC4D} other{{name} ist am \n{date1} um {date2}\n\nCool, dass du da bist \uD83D\uDE0A Die Aktivität hat grade erst gestartet\nSchau in kürze nochmal hier rein um Feedback zu geben \uD83D\uDC4D}}",
   "@questionPage_too_early1" : {
     "placeholders": {
       "date1": {
@@ -129,7 +137,7 @@
   "@Settings": {
   },
   "settings_name": "Dein Name",
-  "settings_theme": "Thema",
+  "settings_theme": "Bilder-Thema",
   "settings_themePictures": "Keine Bilder",
   "settings_themeOnlyMainPage": "Thema nur auf Hauptseite" ,
   "settings_darkMode": "Dark Mode",
@@ -137,16 +145,19 @@
   "settings_notifications": "{count, plural, =0{Benachrichtigung} other{Benachrichtigungen}}",
   "settings_morningNotification": "Zeitpunkt Morgens",
   "settings_eveningNotification": "Zeitpunkt Abends",
-  "settings_notificationsForTasks": "Benachrichtigungen vor Terminen",
+  "settings_notificationsForTasks": "Benachrichtigungen vor Aktivitäten",
+  "illustration_mascot": "Maskottchen",
+  "illustration_things": "Illustration Objekte" ,
+  "illustration_people": "Illustration Menschen",
 
 
   "@HelpMessages": {
   },
-  "firstStartUp_Message1": "Du hast die App gerade zum ersten mal geöffnet.\uD83D\uDC4D \n\n Sehr Cool, dass du diese App verwendest \uD83D\uDE0A \n\n Du kannst die App in den Einstellungen ein wenig anpassen wenn du Lust hast. \nTippe dazu auf die drei Strich in der oberen rechten Ecke und dann auf Einstellungen\n\n",
+  "firstStartUp_Message1": "Du hast die App gerade zum ersten mal geöffnet.\uD83D\uDC4D \n\n Sehr Cool, dass du diese App verwendest \uD83D\uDE0A \n\n Du kannst die App in den Einstellungen ein wenig anpassen wenn du Lust hast. \nTippe dazu auf die drei Striche in der oberen rechten Ecke und dann auf Einstellungen\n\n",
   "firstStartUp_Message2": "Falls du mehr Infos zu einer Seite willst findest du in dem Menü auch einen Hilfe-Button \uFE0F",
 
   "mainPageDescription": "Das ist die Startseite",
-  "mainPageInstructions": "Hier findest du alle deine gespeicherten Wochenpläne.",
+  "mainPageInstructions": "Hier findest du alle Deine gespeicherten Wochenpläne.",
   "mainPageQrScanner": "Wenn du auf die Schaltfläche unten rechts tippst, öffnet sich ein QR-Scanner. Nutze ihn um einen QR-Code von deinem Therapeuten zu scannen.",
   "mainPageTapOnPlan": "Tippe auf einen Plan, um ihn zu öffnen \uD83D\uDE0A",
   "mainPageDeleteWeek": "Um eine Woche zu löschen, halte das 'Mülleimer'-Symbol gedrückt.",
@@ -167,15 +178,35 @@
   "weekPlanTapForDayView": "Tippe auf die Kopfzeile, um eine Tagesübersicht zu öffnen.",
   "weekPlanTapForWeekView": "Tippe auf die Schaltfläche unten rechts, um die Wochenübersicht zu öffnen.",
 
-  "activitySummaryDescription": "Das ist deine übersicht über alle Wochen",
+  "activitySummaryDescription": "Das ist Deine Übersicht über alle Wochen",
   "activitySummaryGraphDescription": "Die Grafik zeigt deine Durchschnittswerte für jede Woche.",
   "activitySummaryGoodFeedback": "Die Liste unten merkt sich Aktivitäten, die du besonders gut bewertet hast. \nWenn es dir gut getan hat etwas nicht zu tun wird der Eintrag dabei Orange markiert \uD83D\uDE09",
 
-  "questionPageHelpDialog1": "Here you can give feedback on your activities! 😊",
-  "questionPageHelpDialog2":"You can also give feedback if it didn't work out! Just giving feedback is already great, {name} \uD83D\uDE07\uD83D\uDC96\n",
-  "questionPageHelpDialog3":"Each question opens once you've answered the previous one; at the end, you can add a short comment with your thoughts.",
-  "questionPageHelpDialog4":"Slide the slider to the right to save your feedback ✨",
-  "questionPageHelpDialog5":"Good luck! I truly hope this helps you! \uD83E\uDD1E\uD83D\uDE0A\n",
+  "questionPageHelpDialog1": "Hier kannst du Feedback zu deinen Aktivitäten geben! 😊\n",
+  "questionPageHelpDialog2":"Du kannst auch feedback geben, falls es nicht geklappt hat!\nAllein das du Feedback gibst ist schon toll {name} \uD83D\uDE07\uD83D\uDC96\n",
+  "questionPageHelpDialog3":"Die Fragen öffnen sich jeweils wenn du die vorherige beantwortet hast, am Ende kannst du noch einen kurzen Kommentar mit deinen Gedanken hinzufügen ",
+  "questionPageHelpDialog4":"Schiebe dann den Slider nach rechts um dein Feedback zu speichern ✨\n\nDer wachsende Baum zeigt deinen Fortschritt zur letzten Aktivität an und wächst immer mehr desto mehr Feedback du gibst\uD83D\uDE0A\n",
+  "questionPageHelpDialog5":"Viel Erfolg! Ich hoffe wirklich, dass es dir hilft! \uD83E\uDD1E\uD83D\uDE0A\n",
+
+  "settingsText1": "Das sind die Einstellungen\n",
+  "settingsText2": "Im Abschnitt Thema kannst du das Aussehen der App einstellen. Das Thema bezieht sich auf Bilder, die auf der Startseite, Offenseite und im PopUp zu sehen sind. Die Option darunter, wenn du das Bild nur auf der Startseite haben willst.",
+  "settingsText3": "Der Belohnungston wird immer beim PopUp abgespielt\n\n",
+  "settingsText4": "Bei den Benachrichtigungen kannst du bestimmen, wann du: \n- am Morgen eine Übersicht bekommen willst\n- Wann du abends eine Tagesübersicht bekommen willst\n- Wann und wie oft du vor einer Aktivität eine Nachricht erhalten willst",
+
+  "dayOverViewText1": "Das ist deine Tagesübersicht\n",
+  "dayOverViewText2": "Hier kannst du eine Zusammenfassung sehen, was du heute geschafft hast!",
+  "dayOverViewText3": "Aktivitäten, die du besonders gut bewertet hast, werden dir hier aufgelistet. Der Baum wächst je nach deinen Aktivitäten, zu denen du Feedback gegeben hast. Er startet dabei an dem Punkt, bis zu dem du an den Vortagen gekommen bist, und endet bei dem, was du am Tag hinzugewonnen hast :)",
+  "dayOverViewText4": "Der Graph zeigt dir die Durchschnittswerte deiner Antworten, sodass du aus deinen Aktivitäten ablesen kannst, wie sehr dir der Tag durchschnittlich geholfen hat.",
+  "dayOverViewText5": "Am Ende jeden Tages bekommst du eine Benachrichtigung, die dich hier hinführt, oder du kannst bei einem Wochenplan auf den Kalenderkopf tippen :) Ich hoffe, diese Übersicht ist hilfreich für dich! :)",
+
+  "weekOverViewText1": "Das ist deine Wochenübersicht\n",
+  "weekOverViewText2": "Hier wird dir angezeigt, was diese Woche so los war.\n",
+  "weekOverViewText3": "Oben siehst du, wieviel Feedback du gegeben hast, und überhaupt: Welches zu geben bedeutet schon, dass du etwas geschafft hast :)",
+  "weekOverViewText4": "Darunter findest du Aktivitäten, denen du besonders gutes Feedback gegeben hast. Der Baum auf dieser Seite zeigt dir deinen Fortschritt für die gesamte Woche, er startet bei Null und wächst je nachdem, wieviel Feedback du gegeben hast, wobei jedes Wachstum zählt! ;) Der Graph zeigt dir dann deine Durchschnittswerte der einzelnen Tage für diese Woche :)",
+  "weekOverViewText5": "Am Ende jeder Woche, eine halbe Stunde nach der Tagesübersicht, bekommst du eine Benachrichtigung, die dich hierher führt. Du kannst aber auch auf den Knopf rechts unten in einem Wochenplan tippen, um hierher zu kommen :) Viel Erfolg beim Feedback geben! Ich hoffe, du kannst so leichter Aktivitäten und Sachen finden, die dir Freude bereiten oder dir anders helfen :)\n\n",
+  "weekOverViewText6": "Viel Erfolg beim Feedback geben!\nIch hoffe du kannst so leichter Aktivitäten und Sachen finden die dir Freude bereiten oder dir anders helfen :)",
+
+  "todayHelpMessage1": "Heute Übersicht",
 
   "generalHelp": "Allgemeine Hilfe",
 
@@ -206,9 +237,9 @@
   "helper_activities2": "Tolle Leistung, mach weiter so! 🔥",
   "helper_activities3": "Richtig gut gemacht, du ziehst das durch! 🏅",
   "helper_activities4": "Weiter so! 🚀",
-  "helper_activities5": "Wirklich beeindruckend, wie du das gemeistert hast! ✨",
-  "helper_activities6": "Du verdienstt Anerkennung! 🥇",
-  "helper_activities7": "Toll, wie du dich anstrengst! 🎯",
+  "helper_activities5": "Gut gemacht! ✨",
+  "helper_activities6": "Weiter so! 🥇",
+  "helper_activities7": "Super, bleib dran! 🎯",
   "helper_activities8": "Du kommst jeden Tag einen Schritt näher an dein Ziel! 🚶‍♀️",
   "helper_activities9": "Stark, von dir! 💪",
   "helper_activities10":"Du bist auf dem richtigen Weg! 🌟",
@@ -216,15 +247,15 @@
 
   "helper_activities0_name": "Super gemacht, {name}!\nDu bist auf dem richtigen Weg! 🌟",
   "helper_activities1_name": "Stark, {name}!\nDeine harte Arbeit wird sich auszahlen! 💪",
-  "helper_activities2_name": "{name}, das hast du großartig gemacht\nWeiter so! 🎉",
-  "helper_activities3_name": "Echt toll, {name}!\nDu kommst stetig vorwärts! 🚀",
+  "helper_activities2_name": "{name},  großartig!\nWeiter so! 🎉",
+  "helper_activities3_name":  "{name}\nDu kommst stetig vorwärts! 🚀",
   "helper_activities4_name": "{name}, toller Fortschritt! ✨",
   "helper_activities5_name": "{name}, Schritt für Schritt ans Ziel! 🏅",
   "helper_activities6_name": "Richtig gut,\n{name}! 🏆",
   "helper_activities7_name": "{name}, du machst das klasse,\nBleib dran! 🔥",
-  "helper_activities8_name": "Du rockst das, {name}!\nEin Schritt nach dem anderen! 🎯",
+  "helper_activities8_name": "\nEin Schritt nach dem anderen, {name}! 🎯",
   "helper_activities9_name": "{name}, du hast was geschaft, das ist großartig! 💥",
-  "helper_activities10_name":"Fantastische Arbeit,\n{name}! 💪",
+  "helper_activities10_name":"Gut gemacht,\n{name}! 💪",
   "helper_activities11_name":"Großartige Arbeit,\n{name} 🌟",
 
 
@@ -247,21 +278,21 @@
 
   "@ThemeHelper": {
   },
-  "themeHelper_msg0": "{name} hier findest du eine Auflistung all deiner Wochenpläne 😊",
-  "themeHelper_open_msg0": "{name} hier findest du alle Termine, zu denen du noch kein Feedback gegeben hast \uD83D\uDE0A\n",
-  "themeHelper_open_msg1": "{count, plural, =0{Gerade gibt es nichts zu beantworten \uD83D\uDE09} =1{Es steht noch {count} Termin aus \uD83D\uDE09} other{Es stehen noch {count} Termine aus \uD83D\uDE09}}",
+  "themeHelper_msg0": "{name}{count, plural, zero{Hier} other{, hier}} findest du eine Liste all deiner Wochenpläne 😊",
+  "themeHelper_open_msg0": "{name}{count, plural,=0{Hier} other{, hier}} findest du alle Aktivitäten, zu denen du noch kein Feedback gegeben hast \uD83D\uDE0A\n",
+  "themeHelper_open_msg1": "{count, plural, zero{Gerade gibt es nichts zu beantworten \uD83D\uDE09} =1{Es steht noch {count} Aktivität aus \uD83D\uDE09} other{Es stehen noch {count} Aktivitäten aus \uD83D\uDE09}}",
 
 
   "@DayOverView": {
   },
   "taskCompletedOn": "Du hast {date}\n",
   "today": "heute",
-  "tasksCompleted": "{count, plural, =1{\nTermin geschafft} other{\nTermine geschafft}}",
-  "tasksPendingFeedback": "\n\n(Wenn du Lust hast, kannst du noch Feedback zu {count, plural, =1{einem Termin} other{{count} Terminen}} auf der 'Offen'-Seite geben 😊)",
-  "noAppointmentsOn": "Du hattest {date} keine Termine geplant gehabt.",
+  "tasksCompleted": "{count, plural, =1{\nAktivität geschafft} other{\nAktivitäten geschafft}}",
+  "tasksPendingFeedback": "\n\n(Wenn du Lust hast, kannst du noch Feedback zu {count, plural, =1{einer Aktivität} other{{count} Aktivitäten}} auf der 'Offen'-Seite geben 😊)",
+  "noAppointmentsOn": "Du hattest {date} keine Aktivität geplant gehabt.",
   "hopeYouHadAGoodDay": "Ich hoffe, du hast und hattest trotzdem einen schönen Tag {count, plural, zero{} other{, {name}}} 😊",
-  "noFeedbackFromNotification": "Der Tag ist vorbei, toll das du hier reinschaust,\nallein das bedeutet schon, dass du deine Situation verbessern willst\uD83D\uDC4D \n Danke dir!\uD83D\uDE09",
-  "tasksNotAnsweredOn": "Du hast\n{date}\n {count, plural, =1{deinen Termin} other{{count} Termine}}\nnoch nicht beantwortet.",
+  "noFeedbackFromNotification": "Der Tag ist vorbei, toll das du hier reinschaust,\nallein das bedeutet schon, dass du deine Situation verbessern willst\uD83D\uDC4D \n Danke dir!\uD83D\uDE09\n\n",
+  "tasksNotAnsweredOn": "Du hast {date}\n {count, plural, =1{deine Aktivität} other{{count} Aktivitäten}}\nnoch nicht beantwortet.",
   "checkPendingFeedback": "Schau auf der Startseite unter \"Offen\" oder in der \"Wochenübersicht\" nach, um Feedback zu einer Aktivität zu geben 👍",
   "dayNotYetArrived": "Der Tag ist noch nicht gekommen 😉 Trotzdem schön, dass du schon mal hier reinschaust {name} :)",
   "activity_not_there_yet": "{count, plural, =1{Die Aktivität ist} other{die Aktivitäten sind}} noch nicht gekommen 😉 Trotzdem schön, dass du schon mal hier reinschaust {name} :)",
@@ -272,9 +303,9 @@
   "@WeekOverview": {
   },
   "weekOverView_summary": "Du hast diese Woche\n",
-  "weekOverView_summary_part2": "{count, plural, =1{Termin bewältigt\n\n} other{Termine bewältigt\n\n}}",
+  "weekOverView_summary_part2": "{count, plural, =1{Aktivität bewältigt\n\n} other{Aktivitäten bewältigt\n\n}}",
   "weekOverView_leftAnswers": "{count, plural, =0{ } =1{\n\n Wenn du Lust hast kannst du noch Feedback zu {count} Aktivität geben} other{\n\n Wenn du Lust hast kannst du noch Feedback zu {count} Aktivitäten geben}}",
-  "weekOverView_tooEarly": "Die Woche ist noch nicht gekommen. Schau gerne später wieder hierrein :)",
+  "weekOverView_tooEarly": "Die Woche ist noch nicht gekommen. Schau gerne später wieder hier rein :)",
   "weekOverView_noAnswers": "Du hast diese Woche noch keine Aktivität bewertet \n komm bitte später wieder 🙋‍♂️",
   "weekOverView_scroll": "\n\n Scroll weiter um mehr Infos zu bekommen ;)",
   "week_reward_message": "Danke! \uD83D\uDE0A \n\n Ich hoffe deine Woche hat dich vorangebracht und dir geholfen \n\n Du schaffst das Woche für Woche \uD83D\uDCAA",
@@ -284,7 +315,7 @@
   "@Notifications": {
   },
   "@Start": {  },
-  "noti_start_title": "\uD83D\uDCC5 Termine am {date}",
+  "noti_start_title": "\uD83D\uDCC5 Aktivitäten am {date}",
   "@noti_start_title" : {
     "placeholders": {
       "date": {
@@ -295,17 +326,17 @@
       }
     }
   },
-  "noti_start_message": "Heute stehen folgende Termine an 🙂 \n",
-  "noti_noTasks_message":"Heute stehen keine Termine an,\nalso lehn dich zurück und\nentspann ein bisschen \uD83D\uDE42",
+  "noti_start_message": "Heute stehen folgende Aktivitäten an 🙂 \n",
+  "noti_noTasks_message":"Heute stehen keine Aktivitäten an,\nalso lehn dich zurück und\nentspann ein bisschen \uD83D\uDE42",
 
   "@Termin": {  },
   "noti_termin_messageBefore": "{terminName} steht\n in {count} Minuten an. \n Du schaffst das!🤞",
   "noti_termin_messageAt": "Es ist soweit für {terminName}!\n Viel Erfolg!🤞",
-  "noti_termin_messageAfter": "{terminName} ist vorbei.\n Ich hoffe es hat geklappt und dir geholfen 😊\nBitte klicke auf mich,\n nimm dir eine Minute\nund reflektiere den Termin\nEgal ob geschaft oder nicht,\ndas reflektieren darüber ist schon\neine tolle Leistung 🤘",
+  "noti_termin_messageAfter": "{terminName} ist vorbei.\n Ich hoffe es hat geklappt und dir geholfen 😊\nBitte klicke auf mich,\n nimm dir eine Minute\nund reflektiere die Aktivität\nEgal ob geschaft oder nicht,\ndas reflektieren darüber ist schon\neine tolle Leistung 🤘",
 
 
   "@End": {  },
-  "noti_dayEnd_title":"\uD83C\uDF89 Termin-Übersicht für den {date}",
+  "noti_dayEnd_title":"\uD83C\uDF89 Aktivitäts-Übersicht für den {date}",
   "@noti_dayEnd_title" : {
     "placeholders": {
       "date": {
@@ -329,12 +360,48 @@
   },
   "add_Entry": "Eintrag hinzufügen",
   "delete_Entry": "Aktivität löschen",
-  "delete_Termin": "Willst du den Termin:",
+  "delete_Termin": "Willst du die Aktivität:",
 
   "createTermin": "Aktivität erstellen",
   "terminName": "Aktivität Name",
   "notEmpty": "Name darf nicht leer sein",
   "beginTime": "Startzeit:",
   "endTime": "Endzeit",
-  "date": "Datum"
+  "date": "Datum",
+
+
+  "@day_Summary":{
+  },
+
+  "today_Headline1": "Heute steht an",
+  "today_Headline2": "Heute schon beantwortet",
+
+  "today_nothingToAnswer": "Heute gibts nichts zu beantworten \uD83D\uDE07\nIch hoffe du hast einen schönen Tag! \uD83D\uDE0A",
+  "today_allAnswered": "Alles beantwortet, SUPER!\uD83C\uDF1F",
+
+  "today_hopeForGood": "Und kannst trotzdem etwas machen was dir gut tut \uD83C\uDF31",
+  "today_nothingToAnswerYet": "Es gibt bisher noch nichts zu beantworten, komm in kürze wieder \uD83D\uDE07",
+
+  "todayHeadline": "Heute",
+  "addWeek": "Woche hinzufügen",
+  "addToCalendar": "Zum Smartphone\nKalender hinzufügen",
+  "deleteActivity": "Aktivität löschen?",
+  "rewardSounds": "Belohnungs Töne",
+  "settingsSavedAutomatically": "Einstellungen werden automatisch gespeichert!\uD83D\uDC4D",
+  "toNotDoIt": "(es nicht zu tun)",
+  "weekOverViewHeadline" : "Wochenübersicht",
+  "weekStart": "Wochenstart",
+  "weekEnd": "Wochenende",
+  "close": "Schließen",
+  "themeHelperToday": "Deine Aktivitäten heute {name}\uD83D\uDE07",
+  "noFeedBackOpen": "Kein Feedback offen, super!👍",
+  "noEntriesYet": "Noch keine Einträge \uD83D\uDE09",
+  "settings_pickAColor": "Wähle eine Farbe \uD83C\uDFA8",
+
+  "settings_sound_Standard": "Standard",
+  "settings_sound_gameSound": "Videospiel",
+  "settings_sound_longer": "längerer Ton",
+  "settings_sound_levelUp": "Level Up",
+  "settings_sound_levelDone": "Level geschafft",
+  "settings_sound_nothing": "Kein Ton"
 }

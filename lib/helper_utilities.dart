@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:menta_track/create_dummy_json_for_testing.dart';
 import 'package:menta_track/generated/l10n.dart';
-import 'package:menta_track/notification_helper.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 ///Klasse für alle möglichen nützlichen funktionen, die Appübergreifend genutzt werden können aber keine eigene Klasse rechtfertigen
 
@@ -32,6 +32,20 @@ class Utilities{
     }
     String checkedFormatDateString = DateFormat("yyyy-MM-dd").format(checkFormatDate);
     return checkedFormatDateString;
+  }
+
+  ///Wandelt dateTime.weekDay in einen String um
+  String getWeekdayName(DateTime dateTime) {
+    List<String> weekdays = [
+      S.current.monday,
+      S.current.tuesday,
+      S.current.wednesday,
+      S.current.thursday,
+      S.current.friday,
+      S.current.saturday,
+      S.current.sunday
+    ];
+    return weekdays[dateTime.weekday - 1]; //-1 weil index bei 0 beginnt aber weekday bei 1 beginnt
   }
 
   ///Zeigt den Dialog zum abermaligen bestätigen einer Löschung
@@ -70,11 +84,22 @@ class Utilities{
   }
 
 
+  Future<void> checkAndShowFirstHelpDialog(BuildContext context, String whichSite) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> seenPages = prefs.getStringList("seenPages") ?? [];
+
+    if (!seenPages.contains(whichSite)) {
+      if(context.mounted) showHelpDialog(context, whichSite);
+      seenPages.add(whichSite);
+      await prefs.setStringList("seenPages", seenPages);
+    }
+  }
+
+
   ///Zeigt das HilfeFenster
   // wollte nicht extra eine neue Klasse für sowas simples anlegen
   void showHelpDialog(BuildContext context, String whichSite, [String? name]) {
     TextSpan mainText;
-    print(name);
     final localizations = S.of(context);
 
     switch (whichSite) {
@@ -249,8 +274,104 @@ class Utilities{
             style: TextStyle(fontSize: 10),
         );
         break;
+      case "Settings":
+        mainText = TextSpan(
+          children: [
+            WidgetSpan(
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(S.current.settingsText1, textAlign: TextAlign.center),
+                    Text(S.current.settingsText2, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),),
+                    Text(S.current.settingsText3, textAlign: TextAlign.center),
+                    Text(S.current.settingsText4, textAlign: TextAlign.center),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          style: TextStyle(fontSize: 10),
+        );
+        break;
+      case "DayOverView":
+        mainText = TextSpan(
+          children: [
+            WidgetSpan(
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(S.current.dayOverViewText1, textAlign: TextAlign.center),
+                    Text(S.current.dayOverViewText2, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),),
+                    Text(S.current.dayOverViewText3, textAlign: TextAlign.center),
+                    Text(S.current.dayOverViewText4, textAlign: TextAlign.center),
+                    Text(S.current.dayOverViewText5, textAlign: TextAlign.center),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          style: TextStyle(fontSize: 10),
+        );
+        break;
+      case "WeekOverView":
+        mainText = TextSpan(
+          children: [
+            WidgetSpan(
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(S.current.weekOverViewText1, textAlign: TextAlign.center),
+                    Text(S.current.weekOverViewText2, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),),
+                    Text(S.current.weekOverViewText3, textAlign: TextAlign.center),
+                    Text(S.current.weekOverViewText4, textAlign: TextAlign.center),
+                    Text(S.current.weekOverViewText5, textAlign: TextAlign.center),
+                    Text(S.current.weekOverViewText6, textAlign: TextAlign.center),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          style: TextStyle(fontSize: 10),
+        );
+        break;
+      case "Today":
+        mainText = TextSpan(
+          children: [
+            WidgetSpan(
+              child: Padding(
+                padding: EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Heute Überischt", textAlign: TextAlign.center),
+                    //TODO: Heute HIlfeNachricht
+                    //Text(S.current.weekOverViewText2, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),),
+                    //Text(S.current.weekOverViewText3, textAlign: TextAlign.center),
+                    //Text(S.current.weekOverViewText4, textAlign: TextAlign.center),
+                    //Text(S.current.weekOverViewText5, textAlign: TextAlign.center),
+                    //Text(S.current.weekOverViewText6, textAlign: TextAlign.center),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          style: TextStyle(fontSize: 10),
+        );
+        break;
       default:
-        mainText = TextSpan(text: localizations.generalHelp);
+        mainText = TextSpan(children: [
+          WidgetSpan(child: Text(localizations.generalHelp))
+        ] );
         break;
     }
 
@@ -300,7 +421,6 @@ class Utilities{
                     child: TextButton(
                       onPressed: () {
                         Navigator.pop(context, "confirmed");
-                        //NotificationHelper().scheduleStudyStartNotification();//TODO !STUDY!: FÜR STUDIE
                       },
                       child: const Text("OK"),
                     ),
@@ -334,7 +454,7 @@ class Utilities{
                 ),
           actions: [
             TextButton(
-              child: Text("Schließen"),
+              child: Text(S.current.close),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -349,7 +469,6 @@ class Utilities{
     List<String> strings = [];
 
     final local = S.current;
-
 
       strings = name == "" ? [
         local.helper_activities0,
@@ -378,35 +497,6 @@ class Utilities{
         local.helper_activities10_name(name),
         local.helper_activities11_name(name),
       ];
-
-    /*else { TODO:Neutralere aussagen
-      strings = name == "" ? [
-        "Super 🎉",
-        "Toll 🌟",
-        "Großartig 🔥",
-        "Richtig gut 🏅",
-        "Weiter so! 🚀",
-        "Du verdienst Glück! 🥇",
-        "Toll, wie du dich anstrengst! 🎯",
-        "Jeder Tag ein weiterer Schritt! 🚶‍♀️",
-        "Wirklich stark! 💪",
-        "Du bist auf dem richtigen Weg! 🌟",
-        "Großartige Arbeit 🌟"
-      ] : [
-        "Super $name🎉",
-        "Toll $name🌟",
-        "Großartig $name🔥",
-        "Richtig gut $name🏅",
-        "Weiter so $name🚀",
-        "Du verdienst Glück $name🥇",
-        "Toll, dass du dich anstrengst $name🎯",
-        "Jeder Tag ein weiterer Schritt🚶",
-        "Wirklich stark $name💪",
-        "Du bist auf dem richtigen Weg $name🌟",
-        "Großartige Arbeit $name🌟"
-      ];
-    }*/
-
 
     return strings[Random().nextInt(strings.length)];
   }
@@ -440,7 +530,7 @@ class Utilities{
                   controller.open();
                 }
               },
-              child: const Icon(Icons.menu, size: 30),
+              child: Icon(Icons.menu, size: 30, color: Theme.of(context).appBarTheme.foregroundColor,),
             );
           }
       ),

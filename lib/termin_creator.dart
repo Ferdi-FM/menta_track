@@ -47,6 +47,7 @@ class TerminDialog {
     }
 
     Future<TimeOfDay?> pickTime(TimeOfDay? initialTime) async {
+      //TODO: Durch DateTime-Picker ersetzen um über Tage hinweg Termine einfügen zu können
       return await showTimePicker(
         context: context,
         initialTime: initialTime ?? TimeOfDay.now(),
@@ -108,7 +109,9 @@ class TerminDialog {
                               startTime = picked;
                               setState(() {
                                 if(startTime.isAfter(endTime)){
-                                  tileColor = Color.fromARGB(90, 220, 172, 107);
+                                  int hour = startTime.hour+1 > 23 ? 23 : startTime.hour+1;
+                                  int minute = startTime.hour+1 > 23 ? 59 : startTime.minute;
+                                  endTime = TimeOfDay(hour: hour, minute: minute);
                                 } else {
                                   tileColor = null;
                                 }
@@ -120,7 +123,7 @@ class TerminDialog {
                         ),
                         ListTile(
                           leading: Text(S.current.endTime),
-                          title: Text(endTime.format(context), textAlign: TextAlign.right,),
+                          title: Text("${endTime.format(context)}  ", textAlign: TextAlign.right,),
                           trailing: Icon(Icons.access_time),
                           onTap: () async {
                             TimeOfDay? picked = await pickTime(endTime);
@@ -160,7 +163,6 @@ class TerminDialog {
                                     navigatorKey.currentState?.pop(true);
                                     DateTime timeStart = selectedDate.add(Duration(hours: startTime.hour, minutes: startTime.minute));
                                     DateTime timeEnd = selectedDate.add(Duration(hours: endTime.hour, minutes: endTime.minute));
-                                    //print("Name: ${nameController.text}\nWeekKey: $weekKey\ntimeStart: $timeStart\ntimeEnd: $timeEnd\n");
                                     DatabaseHelper().insertSingleTermin(weekKey, nameController.text, timeStart, timeEnd);
                                   } else {
                                     setState(() {

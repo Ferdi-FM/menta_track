@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:menta_track/database_helper.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Pages/settings.dart';
@@ -23,7 +24,8 @@ class ThemeHelper {
       case "mascot":
         path = "assets/images/mascot/Mascot Cheer Transparent.png";
         break;
-      case "illustration v2": //TODO: Implement
+      case "illustration v2": //Kann einfach um neue bilder erweitert werden
+        path = "assets/images/illustrationsV2/reward ilv2.png"; //Bild von freepik "https://de.freepik.com/vektoren-kostenlos/gezeichnete-menschen-die-eine-zielerreichung-feiern_12063468.htm#fromView=keyword&page=1&position=0&uuid=2266f645-7288-4ac1-bfd8-eb5331169801&query=Arbeit+Gewinnen"
         break;
       default:
         path = "";
@@ -43,6 +45,7 @@ class ThemeHelper {
   Future<Widget> getIllustrationImage(String page) async {
     SettingData data = await SettingsPageState().getSettings();
     int unansweredCount = await DatabaseHelper().getAllTermineCount(false,true);
+
     String name = data.name;
     String? theme = data.theme;
     bool showOnlyOnMainPage = data.themeOnlyOnMainPage;
@@ -53,7 +56,7 @@ class ThemeHelper {
     switch (page) {
       case "MainPage":
         title = S.current.home;
-        message = S.current.themeHelper_msg0(name);
+        message = S.current.themeHelper_msg0(name, name.length);
         switch (theme) {
           case "illustration":
             path = "assets/images/illustrations/flat-design illustration.png";
@@ -61,7 +64,8 @@ class ThemeHelper {
           case "mascot":
             path = "assets/images/mascot/Mascot Wochenplan Transparent v2.png";
             break;
-          case "illustratv2": //TODO: Implement / Kann einfach um neue bilder erweitert werden
+          case "illustration v2": //Kann einfach um neue bilder erweitert werden
+            path = "assets/images/illustrationsV2/mainpage ilv2.png"; //Bild von pch.vector auf Freepik "https://de.freepik.com/vektoren-kostenlos/schueler-an-der-tafel-maedchen-und-junge-frau-die-grosse-bleistifte-halten-und-haende-flache-illustration-heben_11235844.htm#fromView=keyword&page=1&position=16&uuid=486f3d97-c208-4900-80bc-d66591d8aa13&query=Klassenarbeit"
             break;
         }
         break;
@@ -72,7 +76,7 @@ class ThemeHelper {
           );
         }
         title = S.current.open;
-        message =  "${S.current.themeHelper_open_msg0(name)}${S.current.themeHelper_open_msg1(unansweredCount)}";
+        message =  "${S.current.themeHelper_open_msg0(name, name.length)}${S.current.themeHelper_open_msg1(unansweredCount)}";
         switch (theme) {
           case "illustration":
             path =
@@ -81,7 +85,25 @@ class ThemeHelper {
           case "mascot":
             path = "assets/images/mascot/Mascot Klemmbrett Transparent.png";
             break;
-          case "illustratv2": //TODO: Implement
+          case "illustration v2": //Kann einfach um neue bilder erweitert werden
+            path = "assets/images/illustrationsV2/offen ilv2.png"; //"https://de.freepik.com/vektoren-kostenlos/online-umfrageanalyse-elektronische-datenerfassung-digitales-recherchetool-computergestuetzte-studie-analyst-beruecksichtigt-feedback-ergebnisse-und-analysiert-informationen_11669168.htm#fromView=search&page=1&position=15&uuid=69a60b41-f906-46c6-86ff-e9c658e5287c&query=clipboard" Bild von vectorjuice auf Freepik
+            break;
+        }
+        break;
+      case "TodayPage": //TODO: LOKALISIERNE
+        int unansweredForToday = await DatabaseHelper().getDayTermineAnswered(DateFormat("yyyy-MM-dd").format(DateTime.now()), false, true).then((result) => result.length);
+        title = S.current.todayHeadline;
+        message =  "${S.current.themeHelperToday(name == "" ? "" : ", $name")}\n${S.current.themeHelper_open_msg1(unansweredForToday)}";
+        switch (theme) {
+          case "illustration":
+            path =
+            "assets/images/illustrations/flat-design illustration today.png";
+            break;
+          case "mascot":
+            path = "assets/images/mascot/Mascot DaumenHoch Transparent.png";
+            break;
+          case "illustration v2": //Kann einfach um neue bilder erweitert werden
+            path = "assets/images/illustrationsV2/today ilv2.png"; //"https://de.freepik.com/vektoren-kostenlos/online-umfrageanalyse-elektronische-datenerfassung-digitales-recherchetool-computergestuetzte-studie-analyst-beruecksichtigt-feedback-ergebnisse-und-analysiert-informationen_11669168.htm#fromView=search&page=1&position=15&uuid=69a60b41-f906-46c6-86ff-e9c658e5287c&query=clipboard" Bild von vectorjuice auf Freepik
             break;
         }
         break;
@@ -160,6 +182,8 @@ class ThemeHelper {
     String soundKey = prefs.getString("soundAlert") ?? "";
 
     switch(soundKey){
+      case "nothing":
+        return "nothing";
       case "level-up":
         return "soundAlerts/level-up-4.mp3"; // Sound Effect by Universfield from Pixabay "https://pixabay.com/sound-effects/level-up-4-243762/"
       case "classicGame":
@@ -170,6 +194,7 @@ class ThemeHelper {
         return "soundAlerts/level-complete.wav"; //https://mixkit.co/free-sound-effects/discover/
       case"standard":
         return "soundAlerts/glockenspiel.mp3"; //Sound Effect by freesound_community from Pixabay "https://pixabay.com/sound-effects/short-success-sound-glockenspiel-treasure-video-game-6346/"
+      //Kann einfach um neue bilder erweitert werden
       default:
         return "soundAlerts/glockenspiel.mp3";  //Sound Effect by freesound_community from Pixabay "https://pixabay.com/sound-effects/short-success-sound-glockenspiel-treasure-video-game-6346/"
     }

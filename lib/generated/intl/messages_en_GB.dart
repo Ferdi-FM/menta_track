@@ -96,10 +96,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "${terminName} is on in ${count} minutens. You got this!🤞";
 
   static String m32(name) =>
-      "Du kannst auch feedback geben, falls es nicht geklappt hat!\nAllein das du Feedback gibst ist schon toll ${name} :)\n";
+      "You can also give feedback if it didn\'t work out! Just giving feedback is already great, ${name} 😇💖\n";
 
   static String m33(date1, date2, count, name) =>
-      "${Intl.plural(count, zero: '${name} ist am ${date1} um ${date2}\n\nDu bist zu früh dran 😊 \nAber trotzdem cool, dass du vorbeischaust 👍', other: '${name} ist am ${date1} um ${date2}\n\nCool das du da bist 😊 Schau in kürze nochmal hier rein um Feedback zu geben 👍')}";
+      "${Intl.plural(count, zero: '${name} is on the ${date1} at ${date2}\n\nYou\'re too early 😊 \nBut it\'s still nice that you\'re here 👍', other: '${name} is on the ${date1} at ${date2}\n\nBut it\'s still nice that you\'re here 😊 Come back shortly too give Feedback! 👍')}";
 
   static String m34(count) =>
       "${Intl.plural(count, zero: 'Notification', other: 'Notifications')}";
@@ -115,19 +115,21 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m38(count) =>
       "\n\n(If you like, you can still give feedback on ${Intl.plural(count, one: 'one activity', other: '${count} activities')} on the \'Open\' page 😊)";
 
-  static String m39(name) =>
-      "${name}here is a list of all your weekly plans 😊";
+  static String m39(name) => "Your Activities today ${name}😇";
 
-  static String m40(name) =>
-      "${name}here are all the activities where you haven\'t given feedback yet 😉\n";
+  static String m40(name, count) =>
+      "${name}${Intl.plural(count, zero: 'Here', other: ', here')} you can find a List of all your weekly plans 😊";
 
-  static String m41(count) =>
-      "${Intl.plural(count, zero: 'Currently there is nothing to answer 😉', one: '${count} activity is left 😉', other: '${count} appointments are left 😉')}";
+  static String m41(name, count) =>
+      "${name}${Intl.plural(count, zero: 'Here', other: ', here')} are all the activities where you haven\'t given feedback yet 😉\n";
 
   static String m42(count) =>
-      "${Intl.plural(count, zero: '', one: '\n\n If you like, you can still give feedback on ${count} activity', other: '\n\n If you like, you can still give feedback on ${count} activities')}";
+      "${Intl.plural(count, zero: 'Currently there is nothing to answer 😉', one: '${count} activity is left 😉', other: '${count} appointments are left 😉')}";
 
   static String m43(count) =>
+      "${Intl.plural(count, zero: '', one: '\n\n If you like, you can still give feedback on ${count} activity', other: '\n\n If you like, you can still give feedback on ${count} activities')}";
+
+  static String m44(count) =>
       "${Intl.plural(count, one: 'Task\n\n', other: 'Tasks\n\n')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -144,6 +146,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "The chart displays your average values for each week.",
     ),
     "activity_not_there_yet": m0,
+    "addToCalendar": MessageLookupByLibrary.simpleMessage(
+      "Add to Smartphone Calendar",
+    ),
+    "addWeek": MessageLookupByLibrary.simpleMessage("Add Week"),
     "am": MessageLookupByLibrary.simpleMessage("on the"),
     "appTitle": MessageLookupByLibrary.simpleMessage("Menta Track"),
     "back": MessageLookupByLibrary.simpleMessage("Back"),
@@ -156,15 +162,32 @@ class MessageLookup extends MessageLookupByLibrary {
     "checkPendingFeedback": MessageLookupByLibrary.simpleMessage(
       "Check on the home page under \'Open\' or in the \'Week Overview\' to give feedback on an activity 👍",
     ),
+    "close": MessageLookupByLibrary.simpleMessage("Close"),
     "comment": MessageLookupByLibrary.simpleMessage("Comment:"),
     "createTermin": MessageLookupByLibrary.simpleMessage("create Activity"),
     "daily_Values": MessageLookupByLibrary.simpleMessage("Daily Values"),
     "date": MessageLookupByLibrary.simpleMessage("Date"),
     "dayNotYetArrived": m1,
+    "dayOverViewText1": MessageLookupByLibrary.simpleMessage(
+      "This is your daily overview\n",
+    ),
+    "dayOverViewText2": MessageLookupByLibrary.simpleMessage(
+      "Here, you can see a summary of what you\'ve accomplished today!",
+    ),
+    "dayOverViewText3": MessageLookupByLibrary.simpleMessage(
+      "Activities that you rated particularly well will be listed here. The tree grows based on your activities, to which you have provided feedback. It starts at the point you\'ve reached from previous days and ends with the progress you\'ve made today :)",
+    ),
+    "dayOverViewText4": MessageLookupByLibrary.simpleMessage(
+      "The graph shows the average of your answers, so you can see how much the day helped you on average based on your activities.",
+    ),
+    "dayOverViewText5": MessageLookupByLibrary.simpleMessage(
+      "At the end of each day, you\'ll receive a notification that will guide you here, or you can tap on the calendar header in a weekly plan :) I hope this overview is helpful for you! :)",
+    ),
     "day_reward_message": MessageLookupByLibrary.simpleMessage(
       "Thanks! 😊 \n\n I hope the day was helpful and you felt good \n\n Just take it one day at a time 😊 💪",
     ),
     "delete": MessageLookupByLibrary.simpleMessage("Delete"),
+    "deleteActivity": MessageLookupByLibrary.simpleMessage("Delete Activity?"),
     "delete_Entry": MessageLookupByLibrary.simpleMessage("delete Activity"),
     "delete_Termin": MessageLookupByLibrary.simpleMessage(
       "Du you want to really delete:",
@@ -173,6 +196,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Do you really want to delete the Plan for:",
     ),
     "delete_week_plan2": MessageLookupByLibrary.simpleMessage("Are you sure?"),
+    "den": MessageLookupByLibrary.simpleMessage("the"),
     "displayADate": m2,
     "displayADateWithYear": m3,
     "displayATime": m4,
@@ -276,6 +300,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "iconHelp4": MessageLookupByLibrary.simpleMessage(
       "Shows you the week hasn\'t come yet",
     ),
+    "illustration_mascot": MessageLookupByLibrary.simpleMessage("Mascot"),
+    "illustration_people": MessageLookupByLibrary.simpleMessage(
+      "Illustration People",
+    ),
+    "illustration_things": MessageLookupByLibrary.simpleMessage(
+      "Illustration Things",
+    ),
     "legend_Msg0": MessageLookupByLibrary.simpleMessage(
       "How well did it go for you?",
     ),
@@ -310,6 +341,10 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "monday": MessageLookupByLibrary.simpleMessage("Monday"),
     "noAppointmentsOn": m26,
+    "noEntriesYet": MessageLookupByLibrary.simpleMessage("No Entries yet 😉"),
+    "noFeedBackOpen": MessageLookupByLibrary.simpleMessage(
+      "No Feedback open, awesome!👍",
+    ),
     "noFeedbackFromNotification": MessageLookupByLibrary.simpleMessage(
       "The day is over, it\'s great you opened this Notification,\nthat in itself proofs you\'re working to improve your Situation👍 \n Thank You!😉",
     ),
@@ -345,17 +380,17 @@ class MessageLookup extends MessageLookupByLibrary {
       "QR-Code scanned successfully! 👍",
     ),
     "questionPageHelpDialog1": MessageLookupByLibrary.simpleMessage(
-      "Hier kannst du Feedback zu deinen Aktivitäten geben! :)\n",
+      "Here you can give feedback on your activities! 😊",
     ),
     "questionPageHelpDialog2": m32,
     "questionPageHelpDialog3": MessageLookupByLibrary.simpleMessage(
-      "Die Fragen öffnen sich jeweils wenn du die vorherige beantwortet hast, am Ende kannst du noch einen kurzen Kommentar mit deinen Gedanken hinzufügen ",
+      "Each question opens once you\'ve answered the previous one; at the end, you can add a short comment with your thoughts.",
     ),
     "questionPageHelpDialog4": MessageLookupByLibrary.simpleMessage(
-      "Schiebe dann den Slider nach rechts um dein Feedback zu speichern :)",
+      "Slide the slider to the right to save your feedback ✨",
     ),
     "questionPageHelpDialog5": MessageLookupByLibrary.simpleMessage(
-      "Viel Erfolg! Ich hoffe wirklich, dass es dir hilft! \n",
+      "Good luck! I truly hope this helps you! 🤞😊\n",
     ),
     "questionPage_a0e": MessageLookupByLibrary.simpleMessage("No"),
     "questionPage_a0m": MessageLookupByLibrary.simpleMessage("Later"),
@@ -374,6 +409,15 @@ class MessageLookup extends MessageLookupByLibrary {
     "questionPage_commentLabel": MessageLookupByLibrary.simpleMessage(
       "Your Feedback",
     ),
+    "questionPage_noQ1": MessageLookupByLibrary.simpleMessage(
+      "How did you feel about not doing it?",
+    ),
+    "questionPage_noQ2": MessageLookupByLibrary.simpleMessage(
+      "Did you feel calm or excited about not having done it?",
+    ),
+    "questionPage_noQ3": MessageLookupByLibrary.simpleMessage(
+      "Did it still feel good?",
+    ),
     "questionPage_q1": MessageLookupByLibrary.simpleMessage(
       "Could you attend the appointment?",
     ),
@@ -389,9 +433,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "questionPage_rewardMsg": MessageLookupByLibrary.simpleMessage(
       "Thank you 😊 \n\n You\'ve dealt with your emotions 🥰 \n\n That was really strong of you 💪",
     ),
+    "questionPage_rewardMsg2": MessageLookupByLibrary.simpleMessage(
+      "Thanks for taking the time! 😊 \n\nReflection is an important part of growth. 💪",
+    ),
+    "questionPage_rewardMsg3": MessageLookupByLibrary.simpleMessage(
+      "Awesome! ⭐ Great to see you sticking with it! 🥰",
+    ),
+    "questionPage_rewardMsg4": MessageLookupByLibrary.simpleMessage(
+      "Thank you! 🙌 Taking time for your emotions is a valuable step. 💪",
+    ),
+    "questionPage_rewardMsg5": MessageLookupByLibrary.simpleMessage(
+      "Glad you made time for this! 🌿",
+    ),
     "questionPage_save": MessageLookupByLibrary.simpleMessage("Slide to save"),
     "questionPage_slightly_too_early": MessageLookupByLibrary.simpleMessage(
-      "Deine Aktivität startet gleich, schau in 15min oder später nochmal vorbei um Feedback zu geben😊 👍",
+      "Your activity starts shortly, com back in 15min or later to give Feedback😊 👍",
     ),
     "questionPage_too_early": MessageLookupByLibrary.simpleMessage(
       "You\'re here too early 😊 \nBut cool that you stopped by 👍",
@@ -401,9 +457,25 @@ class MessageLookup extends MessageLookupByLibrary {
     "rewardPopUp_scroll": MessageLookupByLibrary.simpleMessage(
       "\n Scroll for your progress 😉",
     ),
+    "rewardSounds": MessageLookupByLibrary.simpleMessage("Reward Sounds"),
     "saturday": MessageLookupByLibrary.simpleMessage("Saturday"),
     "save": MessageLookupByLibrary.simpleMessage("Save"),
     "settings": MessageLookupByLibrary.simpleMessage("Settings"),
+    "settingsSavedAutomatically": MessageLookupByLibrary.simpleMessage(
+      "Settings saved automatically!👍",
+    ),
+    "settingsText1": MessageLookupByLibrary.simpleMessage(
+      "These are the settings\n",
+    ),
+    "settingsText2": MessageLookupByLibrary.simpleMessage(
+      "In the \'Theme\' section, you can adjust the appearance of the app. The theme refers to images shown on the home page, offense page, and in the pop-up. The option below lets you display the image only on the home page.",
+    ),
+    "settingsText3": MessageLookupByLibrary.simpleMessage(
+      "The reward sound will always play when the pop-up appears\n\n",
+    ),
+    "settingsText4": MessageLookupByLibrary.simpleMessage(
+      "In the notifications, you can choose when you want to: \n- Receive a summary in the morning\n- Receive a daily summary in the evening\n- Receive a notification before an activity and how often you want to be reminded",
+    ),
     "settings_chooseAccent": MessageLookupByLibrary.simpleMessage(
       "Choose an accent color",
     ),
@@ -419,6 +491,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "settings_notificationsForTasks": MessageLookupByLibrary.simpleMessage(
       "Notifications before Activities",
     ),
+    "settings_pickAColor": MessageLookupByLibrary.simpleMessage(
+      "Pick a Color 🎨",
+    ),
+    "settings_sound_Standard": MessageLookupByLibrary.simpleMessage("Standard"),
+    "settings_sound_gameSound": MessageLookupByLibrary.simpleMessage(
+      "Game Sound",
+    ),
+    "settings_sound_levelDone": MessageLookupByLibrary.simpleMessage(
+      "Level End",
+    ),
+    "settings_sound_levelUp": MessageLookupByLibrary.simpleMessage("Level Up"),
+    "settings_sound_longer": MessageLookupByLibrary.simpleMessage(
+      "longer Sound",
+    ),
+    "settings_sound_nothing": MessageLookupByLibrary.simpleMessage("No Sound"),
     "settings_theme": MessageLookupByLibrary.simpleMessage("Theme"),
     "settings_themeOnlyMainPage": MessageLookupByLibrary.simpleMessage(
       "Theme only on the main page",
@@ -436,12 +523,31 @@ class MessageLookup extends MessageLookupByLibrary {
     "tasksNotAnsweredOn": m37,
     "tasksPendingFeedback": m38,
     "terminName": MessageLookupByLibrary.simpleMessage("Activity Name"),
-    "themeHelper_msg0": m39,
-    "themeHelper_open_msg0": m40,
-    "themeHelper_open_msg1": m41,
+    "themeHelperToday": m39,
+    "themeHelper_msg0": m40,
+    "themeHelper_open_msg0": m41,
+    "themeHelper_open_msg1": m42,
     "thursday": MessageLookupByLibrary.simpleMessage("Thursday"),
     "till": MessageLookupByLibrary.simpleMessage("to"),
+    "toNotDoIt": MessageLookupByLibrary.simpleMessage("(Don’t do it)"),
     "today": MessageLookupByLibrary.simpleMessage("today"),
+    "todayHeadline": MessageLookupByLibrary.simpleMessage("Today"),
+    "today_Headline1": MessageLookupByLibrary.simpleMessage("What\'s on today"),
+    "today_Headline2": MessageLookupByLibrary.simpleMessage(
+      "Already answered today",
+    ),
+    "today_allAnswered": MessageLookupByLibrary.simpleMessage(
+      "Everything answered, AWESOME! 🌟",
+    ),
+    "today_hopeForGood": MessageLookupByLibrary.simpleMessage(
+      "And hopefully, you can still do something that feels good for you 🌱",
+    ),
+    "today_nothingToAnswer": MessageLookupByLibrary.simpleMessage(
+      "There\'s nothing to answer today 😇\nI hope you still have a great day! 😊",
+    ),
+    "today_nothingToAnswerYet": MessageLookupByLibrary.simpleMessage(
+      "There\'s nothing to answer yet, come back soon 😇",
+    ),
     "tuesday": MessageLookupByLibrary.simpleMessage("Tuesday"),
     "um": MessageLookupByLibrary.simpleMessage("at"),
     "unanswered": MessageLookupByLibrary.simpleMessage("Unanswered"),
@@ -453,7 +559,29 @@ class MessageLookup extends MessageLookupByLibrary {
       "Congratulations!!! 🎉 You found a case I didn\'t think of! Great job! 😊 If possible, let your therapist or the app developer know which combination led to this case.",
     ),
     "wednesday": MessageLookupByLibrary.simpleMessage("Wednesday"),
-    "weekOverView_leftAnswers": m42,
+    "weekEnd": MessageLookupByLibrary.simpleMessage("Week End"),
+    "weekOverViewHeadline": MessageLookupByLibrary.simpleMessage(
+      "Weekly Overview",
+    ),
+    "weekOverViewText1": MessageLookupByLibrary.simpleMessage(
+      "This is your weekly overview\n",
+    ),
+    "weekOverViewText2": MessageLookupByLibrary.simpleMessage(
+      "Here, you\'ll see what happened this week.\n",
+    ),
+    "weekOverViewText3": MessageLookupByLibrary.simpleMessage(
+      "At the top, you\'ll see how much feedback you\'ve given, and just giving feedback means you\'ve accomplished something! :)",
+    ),
+    "weekOverViewText4": MessageLookupByLibrary.simpleMessage(
+      "Below, you\'ll find activities that you\'ve given especially good feedback to. The tree on this page shows your progress for the entire week, starting at zero and growing depending on how much feedback you\'ve provided, with every bit of growth counting! ;) The graph shows the average of your daily scores for this week :)",
+    ),
+    "weekOverViewText5": MessageLookupByLibrary.simpleMessage(
+      "At the end of each week, half an hour after the daily overview, you\'ll receive a notification guiding you here. You can also tap the button in the bottom right corner of a weekly plan to come here :)\n\n",
+    ),
+    "weekOverViewText6": MessageLookupByLibrary.simpleMessage(
+      "Good luck with giving feedback! I hope you can more easily find activities and things that bring you joy or help you in other ways :)",
+    ),
+    "weekOverView_leftAnswers": m43,
     "weekOverView_noAnswers": MessageLookupByLibrary.simpleMessage(
       "You haven\'t yet evaluated any activity this week\n Please come back later 🙋♂️",
     ),
@@ -463,9 +591,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "weekOverView_summary": MessageLookupByLibrary.simpleMessage(
       "This week you completed\n",
     ),
-    "weekOverView_summary_part2": m43,
+    "weekOverView_summary_part2": m44,
     "weekOverView_tooEarly": MessageLookupByLibrary.simpleMessage(
-      "Die Woche ist noch nicht gekommen. Schau gerne später wieder hierrein :)",
+      "The week isn\'t here yet. Please come back later :)",
     ),
     "weekPlanActivitiesWithExclamation": MessageLookupByLibrary.simpleMessage(
       "• Activities with an exclamation mark can still be assessed 😊",
@@ -488,8 +616,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "weekPlanTapForWeekView": MessageLookupByLibrary.simpleMessage(
       "Tapping the button on the bottom-right opens an overview for the week.",
     ),
+    "weekStart": MessageLookupByLibrary.simpleMessage("Week Start"),
     "week_reward_message": MessageLookupByLibrary.simpleMessage(
-      "Thanks! 😊 \n\n Ich hope this week did you good and you made progress \n\n You\'re doing great one week at a time 💪",
+      "Thanks! 😊 \n\n I hope this week did you good and you made progress \n\n You\'re doing great one week at a time 💪",
     ),
     "weeklyPlans": MessageLookupByLibrary.simpleMessage("Weekly Plans"),
     "weekly_values": MessageLookupByLibrary.simpleMessage("Weekly Values"),

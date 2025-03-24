@@ -1,6 +1,7 @@
 import 'package:action_slider/action_slider.dart';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:menta_track/Pages/settings.dart';
 import 'package:menta_track/fl_chart_graph.dart';
@@ -76,7 +77,7 @@ class WeekOverviewState extends State<WeekOverview> {
           overallAnswered++; //Könnte auch direkte SQL Abfrage sein, muss aber sowieso durch Tage iterieren
           String negative = "";
           if(t.doneQuestion == 2){
-            negative = "(nicht zu tun)";
+            negative = S.current.toNotDoIt;
           } else {
             negative = "";
           }
@@ -87,15 +88,12 @@ class WeekOverviewState extends State<WeekOverview> {
 
           if (t.goodMean == 6 && !favoriteTasks.contains(t.terminName)) {
             favoriteTasks = "$favoriteTasks • ${t.terminName} $negative\n";
-            //databaseHelper.saveHelpingActivities(t.terminName, "good");
           }
           if (t.calmMean == 6 && !calmTasks.contains(t.terminName)) {
             calmTasks = "$calmTasks • ${t.terminName} $negative\n";
-            //databaseHelper.saveHelpingActivities(t.terminName, "calm");
           }
           if (t.helpMean == 6 && !helpingTasks.contains(t.terminName)) {
             helpingTasks = "$helpingTasks • ${t.terminName} $negative\n";
-            //databaseHelper.saveHelpingActivities(t.terminName, "help");
           }
       }
       goodMean = goodMean/answeredCounter;
@@ -233,6 +231,20 @@ class WeekOverviewState extends State<WeekOverview> {
       }
     },
     child: Scaffold(
+      appBar: AppBar(
+        title: FittedBox(child: Text(Utilities().convertWeekKeyToDisplayPeriodString(widget.weekKey))),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor.withAlpha(150),
+        foregroundColor: Colors.white60,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            leavePage();
+          },
+        ),
+        actions: [
+          Utilities().getHelpBurgerMenu(context, "WeekOverView")
+        ],
+      ),
       body: !isListAvailable ? Center(child: CircularProgressIndicator()) : Stack(
         children: [ShaderMask(
           shaderCallback: (Rect bounds) {
@@ -261,32 +273,30 @@ class WeekOverviewState extends State<WeekOverview> {
                     ),
                     SizedBox(height: 16),
                     getText(),
-                    //if(overallAnswered > 0) Text("\n \n Scroll weiter um mehr Infos zu bekommen ;)"),
                     SizedBox(height: 20,),
-                    Column( //TODO!: In Material?!!
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if(favoritesInThisWeek)
-                          Center(
-                            child:Text(
-                              S.of(context).special_activities,
-                              style: TextStyle(color: Theme.of(context).primaryColor.withAlpha(200), fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2,
-                              ),
-                              textAlign: TextAlign.center,
+                    if(favoritesInThisWeek) Material(//zuerst favoriteAnswers.isNotEmpty, durch es ist aber immer mindestens ["","",""] was als voll gezählt wird
+                      elevation: 10,
+                      color: Theme.of(context).scaffoldBackgroundColor,
+                      borderRadius: BorderRadius.circular(15),
+                      child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            border: Border.fromBorderSide(BorderSide(width: 0.5, color: Colors.black)),
                           ),
-                        ),
-                        SizedBox(height: 0,),
-                        Padding(
                           padding: EdgeInsets.all(15),
                           child: Column(
-                            children: [
-                              for(int i = 0; i < 3; i++)...{ //favoriteComments.length
-                                Utilities().favoriteItems(i, favoriteAnswers, context),
-                              },
-                            ],
+                              children: [
+                                FittedBox(
+                                  child: Text("${S.current.special_activities}\n",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(color: Theme.of(context).primaryColor.withAlpha(200), fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: 2,)),
+                                ),
+                                for (int i = 0; i < 3; i++) ...{ //favoriteComments.length
+                                  Utilities().favoriteItems(i, favoriteAnswers, context),
+                                },
+                              ],
                           ),
-                        )
-                      ],
+                      ),
                     ),
                     SizedBox(height: 20),
                     if(overallAnswered != 0)GifProgressWidget(
@@ -296,7 +306,7 @@ class WeekOverviewState extends State<WeekOverview> {
                       forRewardPage: false,
                     ),
                     SizedBox(height: 20,),
-                    if(overallAnswered != 0)Column( //Evtl. mit sync_graph austaushen, mag aber den Style recht gerne
+                    if(overallAnswered != 0)Column(
                       children: [
                         SizedBox(height: 15,),
                         Text(
@@ -359,7 +369,12 @@ class WeekOverviewState extends State<WeekOverview> {
                         await Future.delayed(const Duration(seconds: 1));
                         controller.success();
                         controller.reset();
+                        HapticFeedback.lightImpact();
                         openRewardPopUp();
+                      },
+                      stateChangeCallback:(actionsliderState1 ,actionSliderState2, actionSliderController1) {
+                        //actionSliderState2.position; //Prozent des Sliders
+                        HapticFeedback.vibrate();
                       },
                     ) : ElevatedButton(
                         style: ElevatedButton.styleFrom(minimumSize: Size(200,50),),
