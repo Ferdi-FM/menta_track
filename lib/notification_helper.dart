@@ -109,7 +109,7 @@ class NotificationHelper{
             builder: (context) => QuestionPage(
               weekKey: weekKey,
               timeBegin: timeBegin,
-              timeEnd: timeEnd, //TODO: Sollte funktionieren, aber besser nochmal testen
+              timeEnd: timeEnd,
               terminName: terminName,
             ),
           ));
@@ -312,7 +312,7 @@ class NotificationHelper{
     hashcodes.add(termin.timeBegin.hashCode + termin.terminName.hashCode);
     ///Benachrichtigung nach dem Termin
     times.add(termin.timeEnd.add(Duration(minutes: 10)));
-    hashcodes.add(termin.timeBegin.add(Duration(minutes: 10)).hashCode + termin.terminName.hashCode); //TODO: Testen, könnte portentiell mehrmals erscheinen
+    hashcodes.add(termin.timeBegin.add(Duration(minutes: 10)).hashCode + termin.terminName.hashCode);
 
     List<String> messages = [];
     ///Benachrichtigungen aus den Einstellungen

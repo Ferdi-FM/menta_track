@@ -40,6 +40,7 @@ class DayOverviewState extends State<DayOverviewPage> {
   int _overAllTasksThisDay = 0;
   int _tasksDoneInt = 0;
   int _tasksMissed = 0;
+  int _taskNotArrived = 0;
   bool _loaded = false;
   bool _tooEarly = false;
   String _name = "";
@@ -120,6 +121,9 @@ class DayOverviewState extends State<DayOverviewPage> {
           if(DateTime.now().isAfter(t.timeBegin.add(Duration(minutes: 10)))){
             _tasksMissed++;
           }
+          if(DateTime.now().isBefore(t.timeBegin)){
+            _taskNotArrived++;
+          }
         }
       }
       _radarEntries = [
@@ -193,6 +197,7 @@ class DayOverviewState extends State<DayOverviewPage> {
   Widget getText() {
     final local = S.current;
 
+
     List<TextSpan> text = [];
     if(_overAllTasksThisDay == 0){
       ///kein Termin an diesem tag
@@ -212,9 +217,8 @@ class DayOverviewState extends State<DayOverviewPage> {
           TextSpan(text: local.tasksCompleted(_tasksDoneInt),style: TextStyle(fontSize: 25),),
           TextSpan(text: "\n\n${Utilities().getRandomisedEncouragement(widget.fromNotification, _name)}",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),),
           ///mindestens ein Termin missed
-          if(_tasksMissed > 0 )TextSpan(text: local.tasksPendingFeedback(_tasksMissed),style: TextStyle(fontSize: 15))
+          if(_tasksMissed > 0 )TextSpan(text: local.tasksPendingFeedback(_tasksMissed),style: TextStyle(fontSize: 15)),
         ];
-
       }
       if(_tasksMissed > 0 && _tasksDoneInt == 0){
         ///Noch keinen Termin beantwortet
@@ -232,7 +236,7 @@ class DayOverviewState extends State<DayOverviewPage> {
           TextSpan(text: local.activity_not_there_yet(_overAllTasksThisDay, _name)),
         ];
       }
-      if(_tasksDoneInt + _tasksMissed != _overAllTasksThisDay){
+      if(_tasksDoneInt + _tasksMissed != _overAllTasksThisDay){ //Könnte besser gelöst sein
         ///mindestens ein termin ist noch nicht gekommen
         text = [
           if(_tasksDoneInt > 0)...{
@@ -241,9 +245,12 @@ class DayOverviewState extends State<DayOverviewPage> {
             TextSpan(text: local.tasksCompleted(_tasksDoneInt),style: TextStyle(fontSize: 25),),
             TextSpan(text: "\n\n${Utilities().getRandomisedEncouragement(widget.fromNotification, _name)}",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),),
           },
+          ///Falls man von Notification kommt
+          if(widget.fromNotification && _tasksDoneInt == 0) TextSpan(text: S.current.noFeedbackFromNotification),
           ///mindestens ein Termin missed
+          if(_taskNotArrived > 0 && _tasksDoneInt > 0)TextSpan(text: local.dayOverView_activityNotArrived(_taskNotArrived),style: TextStyle(fontSize: 19)),
+          if(_taskNotArrived > 0 && _tasksDoneInt == 0) TextSpan(text: local.activity_not_there_yet(_taskNotArrived, _name)),
           if(_tasksMissed > 0 ) TextSpan(text: local.tasksPendingFeedback(_tasksMissed),style: TextStyle(fontSize: 15)),
-          TextSpan(text: local.activity_not_there_yet(_overAllTasksThisDay, _name)),
         ];
       }
     }
@@ -345,7 +352,7 @@ class DayOverviewState extends State<DayOverviewPage> {
                             ),
                           ),
                           SizedBox(height: 20),
-                          if (_endFrame != 0 && !_tooEarly && _tasksMissed != _overAllTasksThisDay)
+                          if (_endFrame != 0 && !_tooEarly && _tasksMissed + _taskNotArrived != _overAllTasksThisDay)
                             GifProgressWidget(
                               progress: _endFrame,
                               startFrame: _overAllTasksThisDay != 0 ? _startFrame : 0,
@@ -361,7 +368,7 @@ class DayOverviewState extends State<DayOverviewPage> {
                               : Text(
                             S.of(context).daily_Values,
                             style: TextStyle(
-                              color: Theme.of(context).primaryColor.withAlpha(200),
+                              color: Theme.of(context).appBarTheme.backgroundColor,
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 2,
@@ -459,8 +466,8 @@ class DayOverviewState extends State<DayOverviewPage> {
     return <RadarDataSet> [
       RadarDataSet(
         dataEntries: _radarEntries,
-        fillColor: Colors.lightBlueAccent.withValues(alpha: 0.4),
-        borderColor: Colors.blue.withValues(alpha: 0.7),
+        fillColor: Colors.lightBlueAccent.withAlpha(110),
+        borderColor: Colors.blue.withAlpha(190),
         borderWidth: 2,
       ),
       RadarDataSet( //Legt die grö0e des Graphen immer auf 7 fest

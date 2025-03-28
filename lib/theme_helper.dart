@@ -90,7 +90,7 @@ class ThemeHelper {
             break;
         }
         break;
-      case "TodayPage": //TODO: LOKALISIERNE
+      case "TodayPage":
         int unansweredForToday = await DatabaseHelper().getDayTermineAnswered(DateFormat("yyyy-MM-dd").format(DateTime.now()), false, true).then((result) => result.length);
         title = S.current.todayHeadline;
         message =  "${S.current.themeHelperToday(name == "" ? "" : ", $name")}\n${S.current.themeHelper_open_msg1(unansweredForToday)}";

@@ -47,7 +47,6 @@ class TerminDialog {
     }
 
     Future<TimeOfDay?> pickTime(TimeOfDay? initialTime) async {
-      //TODO: Durch DateTime-Picker ersetzen um über Tage hinweg Termine einfügen zu können
       return await showTimePicker(
         context: context,
         initialTime: initialTime ?? TimeOfDay.now(),

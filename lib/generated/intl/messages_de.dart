@@ -21,7 +21,7 @@ class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'de';
 
   static String m0(count, name) =>
-      "${Intl.plural(count, one: 'Die Aktivität ist', other: 'die Aktivitäten sind')} noch nicht gekommen 😉 Trotzdem schön, dass du schon mal hier reinschaust ${name} :)";
+      "${Intl.plural(count, one: '\n\nEine Aktivität ist', other: '\n\nEinige Aktivitäten sind')} noch nicht gekommen 😉\nTrotzdem schön, dass du schon mal hier bist ${name} :)";
 
   static String m1(count) =>
       "${Intl.plural(count, zero: 'gar nicht', one: 'wenig', two: 'sehr', other: 'äußerst')}";
@@ -35,124 +35,127 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m4(name) =>
       "Der Tag ist noch nicht gekommen 😉 Trotzdem schön, dass du schon mal hier reinschaust ${name} :)";
 
-  static String m5(date) => "${date}";
+  static String m5(count) =>
+      "${Intl.plural(count, one: '\n\nEine Aktivität steht heute erst noch aus 😉', other: '\n\n${count} Aktivitäten stehen erst noch bevor 😉')}";
 
   static String m6(date) => "${date}";
 
   static String m7(date) => "${date}";
 
-  static String m8(name) => "Toller Start${name}! Weiter so! 🎉";
+  static String m8(date) => "${date}";
 
-  static String m9(name) =>
+  static String m9(name) => "Toller Start${name}! Weiter so! 🎉";
+
+  static String m10(name) =>
       "Ein Viertel geschafft${name}! Das machst du fantastisch! 🌟";
 
-  static String m10(name) => "Mehr als ein Drittel geschafft${name}! 💪";
+  static String m11(name) => "Mehr als ein Drittel geschafft${name}! 💪";
 
-  static String m11(name) => "Halbzeit erreicht! Weiter so ${name}! 🔥";
+  static String m12(name) => "Halbzeit erreicht! Weiter so ${name}! 🔥";
 
-  static String m12(name) => "Drei Viertel rum ${name}! Fast geschafft! 🌟";
+  static String m13(name) => "Drei Viertel rum ${name}! Fast geschafft! 🌟";
 
-  static String m13(name) =>
+  static String m14(name) =>
       "Fast fertig ${name}! Du hast hart gearbeitet, nur noch ein bisschen mehr! 🚀";
 
-  static String m14(name) => "Gratuliere ${name}! Du hast es geschafft! 🏆🎉";
+  static String m15(name) => "Gratuliere ${name}! Du hast es geschafft! 🏆🎉";
 
-  static String m15(count) =>
+  static String m16(count) =>
       "${Intl.plural(count, zero: 'Dein Fortschritt bis zu diesem Tag 😇', other: 'Dein Fortschritt an diesem Tag 😇')}";
 
-  static String m16(adjective) =>
+  static String m17(adjective) =>
       "Aktivitäten bei denen du dich ${adjective} gefühlt hast:";
 
-  static String m17(adjective) => "Aktivitäten die dir ${adjective} haben:";
+  static String m18(adjective) => "Aktivitäten die dir ${adjective} haben:";
 
-  static String m18(name) =>
+  static String m19(name) =>
       "Super gemacht, ${name}!\nDu bist auf dem richtigen Weg! 🌟";
 
-  static String m19(name) => "Gut gemacht,\n${name}! 💪";
+  static String m20(name) => "Gut gemacht,\n${name}! 💪";
 
-  static String m20(name) => "Großartige Arbeit,\n${name} 🌟";
+  static String m21(name) => "Großartige Arbeit,\n${name} 🌟";
 
-  static String m21(name) =>
+  static String m22(name) =>
       "Stark, ${name}!\nDeine harte Arbeit wird sich auszahlen! 💪";
 
-  static String m22(name) => "${name},  großartig!\nWeiter so! 🎉";
+  static String m23(name) => "${name},  großartig!\nWeiter so! 🎉";
 
-  static String m23(name) => "${name}\nDu kommst stetig vorwärts! 🚀";
+  static String m24(name) => "${name}\nDu kommst stetig vorwärts! 🚀";
 
-  static String m24(name) => "${name}, toller Fortschritt! ✨";
+  static String m25(name) => "${name}, toller Fortschritt! ✨";
 
-  static String m25(name) => "${name}, Schritt für Schritt ans Ziel! 🏅";
+  static String m26(name) => "${name}, Schritt für Schritt ans Ziel! 🏅";
 
-  static String m26(name) => "Richtig gut,\n${name}! 🏆";
+  static String m27(name) => "Richtig gut,\n${name}! 🏆";
 
-  static String m27(name) => "${name}, du machst das klasse,\nBleib dran! 🔥";
+  static String m28(name) => "${name}, du machst das klasse,\nBleib dran! 🔥";
 
-  static String m28(name) => "\nEin Schritt nach dem anderen, ${name}! 🎯";
+  static String m29(name) => "\nEin Schritt nach dem anderen, ${name}! 🎯";
 
-  static String m29(name) =>
+  static String m30(name) =>
       "${name}, du hast was geschaft, das ist großartig! 💥";
 
-  static String m30(count, name) =>
+  static String m31(count, name) =>
       "Ich hoffe, du hast und hattest trotzdem einen schönen Tag ${Intl.plural(count, zero: '', other: ', ${name}')} 😊";
 
-  static String m31(date) =>
+  static String m32(date) =>
       "Du hattest ${date} keine Aktivität geplant gehabt.";
 
-  static String m32(date) => "🎉 Aktivitäts-Übersicht für den ${date}";
+  static String m33(date) => "🎉 Aktivitäts-Übersicht für den ${date}";
 
-  static String m33(date) => "📅 Aktivitäten am ${date}";
-
-  static String m34(terminName) =>
-      "${terminName} ist vorbei.\n Ich hoffe es hat geklappt und dir geholfen 😊\nBitte klicke auf mich,\n nimm dir eine Minute\nund reflektiere die Aktivität\nEgal ob geschaft oder nicht,\ndas reflektieren darüber ist schon\neine tolle Leistung 🤘";
+  static String m34(date) => "📅 Aktivitäten am ${date}";
 
   static String m35(terminName) =>
+      "${terminName} ist vorbei.\n Ich hoffe es hat geklappt und dir geholfen 😊\nBitte klicke auf mich,\n nimm dir eine Minute\nund reflektiere die Aktivität\nEgal ob geschaft oder nicht,\ndas reflektieren darüber ist schon\neine tolle Leistung 🤘";
+
+  static String m36(terminName) =>
       "Es ist soweit für ${terminName}!\n Viel Erfolg!🤞";
 
-  static String m36(terminName, count) =>
+  static String m37(terminName, count) =>
       "${terminName} steht\n in ${count} Minuten an. \n Du schaffst das!🤞";
 
-  static String m37(name) =>
+  static String m38(name) =>
       "Du kannst auch feedback geben, falls es nicht geklappt hat!\nAllein das du Feedback gibst ist schon toll ${name} 😇💖\n";
 
-  static String m38(count, name) =>
+  static String m39(count, name) =>
       "${Intl.plural(count, zero: 'Klasse, dass du Feedback gegeben hast${name}!!\n🥳', one: 'Schön, dass du dir die Zeit für Feedback genommen hast${name}!\n🥳', other: 'Toll, dass du reflektierst${name}!\n🥳')}";
 
-  static String m39(count, name) =>
+  static String m40(count, name) =>
       "${Intl.plural(count, zero: 'Klasse, dass dus geschafft hast${name}!!\n🥳', one: 'Schön, dass du dir die Zeit genommen hast${name}!\n🥳', other: 'Toll, dass du reflektierst${name}!\n🥳')}";
 
-  static String m40(date1, date2, count, name) =>
+  static String m41(date1, date2, count, name) =>
       "${Intl.plural(count, zero: '${name} ist am \n${date1} um ${date2}\n\nDu bist zu früh dran 😊 \nAber trotzdem cool, dass du vorbeischaust 👍', other: '${name} ist am \n${date1} um ${date2}\n\nCool, dass du da bist 😊\nDie Aktivität hat grade erst gestartet\nSchau in kürze nochmal hier rein um Feedback zu geben 👍')}";
 
-  static String m41(count) =>
+  static String m42(count) =>
       "${Intl.plural(count, zero: 'Benachrichtigung', other: 'Benachrichtigungen')}";
 
-  static String m42(date) => "Du hast ${date}\n";
+  static String m43(date) => "Du hast ${date}\n";
 
-  static String m43(count) =>
+  static String m44(count) =>
       "${Intl.plural(count, one: '\nAktivität geschafft', other: '\nAktivitäten geschafft')}";
 
-  static String m44(count, date) =>
+  static String m45(count, date) =>
       "Du hast ${date}\n ${Intl.plural(count, one: 'deine Aktivität', other: '${count} Aktivitäten')}\nnoch nicht beantwortet.";
 
-  static String m45(count) =>
+  static String m46(count) =>
       "\n\n(Wenn du Lust hast, kannst du noch Feedback zu ${Intl.plural(count, one: 'einer Aktivität', other: '${count} Aktivitäten')} auf der \'Offen\'-Seite geben 😊)";
 
-  static String m46(name) =>
+  static String m47(name) =>
       "Hier wird angezeigt was heute so geplant ist ${name}😇";
 
-  static String m47(name, count) =>
+  static String m48(name, count) =>
       "${name}${Intl.plural(count, zero: 'Hier', other: ', hier')} findest du eine Liste all deiner Wochenpläne 😊";
 
-  static String m48(name, count) =>
+  static String m49(name, count) =>
       "${name}${Intl.plural(count, zero: 'Hier', other: ', hier')} findest du alle Aktivitäten, zu denen du noch kein Feedback gegeben hast 😊\n";
 
-  static String m49(count) =>
+  static String m50(count) =>
       "${Intl.plural(count, zero: 'Gerade gibt es nichts zu beantworten 😉', one: 'Es steht noch ${count} Aktivität aus 😉', other: 'Es stehen noch ${count} Aktivitäten aus 😉')}";
 
-  static String m50(count) =>
+  static String m51(count) =>
       "${Intl.plural(count, zero: ' ', one: '\n\n Wenn du Lust hast kannst du noch Feedback zu ${count} Aktivität geben', other: '\n\n Wenn du Lust hast kannst du noch Feedback zu ${count} Aktivitäten geben')}";
 
-  static String m51(count) =>
+  static String m52(count) =>
       "${Intl.plural(count, one: 'Aktivität bewältigt\n\n', other: 'Aktivitäten bewältigt\n\n')}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
@@ -252,6 +255,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "dayOverViewText5": MessageLookupByLibrary.simpleMessage(
       "Am Ende jeden Tages bekommst du eine Benachrichtigung, die dich hier hinführt, oder du kannst bei einem Wochenplan auf den Kalenderkopf tippen :) Ich hoffe, diese Übersicht ist hilfreich für dich! :)",
     ),
+    "dayOverView_activityNotArrived": m5,
     "day_reward_message": MessageLookupByLibrary.simpleMessage(
       "Danke! 😊 \n\n Ich hoffe der Tag hat dich vorangebracht und dir gut getan \n\n Du schaffst das Tag für Tag 💪",
     ),
@@ -270,9 +274,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "wirklich löschen?",
     ),
     "den": MessageLookupByLibrary.simpleMessage("den"),
-    "displayADate": m5,
-    "displayADateWithYear": m6,
-    "displayATime": m7,
+    "displayADate": m6,
+    "displayADateWithYear": m7,
+    "displayATime": m8,
     "done": MessageLookupByLibrary.simpleMessage("Geschafft! 🏆"),
     "edit": MessageLookupByLibrary.simpleMessage("Bearbeiten"),
     "endTime": MessageLookupByLibrary.simpleMessage("Endzeit"),
@@ -293,72 +297,72 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "friday": MessageLookupByLibrary.simpleMessage("Freitag"),
     "generalHelp": MessageLookupByLibrary.simpleMessage("Allgemeine Hilfe"),
-    "gifProgress_case0": m8,
-    "gifProgress_case1": m9,
-    "gifProgress_case2": m10,
-    "gifProgress_case3": m11,
-    "gifProgress_case4": m12,
-    "gifProgress_case5": m13,
-    "gifProgress_case6": m14,
-    "gifProgress_title": m15,
+    "gifProgress_case0": m9,
+    "gifProgress_case1": m10,
+    "gifProgress_case2": m11,
+    "gifProgress_case3": m12,
+    "gifProgress_case4": m13,
+    "gifProgress_case5": m14,
+    "gifProgress_case6": m15,
+    "gifProgress_title": m16,
     "gifProgress_title_week": MessageLookupByLibrary.simpleMessage(
       "Dein Fortschritt diese Woche 😇",
     ),
     "good_activities_desc": MessageLookupByLibrary.simpleMessage(
       "Aktivitäten bei denen du dich gut gefühlt hast:",
     ),
-    "good_activities_desc_variable": m16,
+    "good_activities_desc_variable": m17,
     "help": MessageLookupByLibrary.simpleMessage("Hilfe"),
     "help_activities_desc": MessageLookupByLibrary.simpleMessage(
       "Aktivitäten die dir gut getan haben:",
     ),
-    "help_activities_desc_variable": m17,
+    "help_activities_desc_variable": m18,
     "helper_activities0": MessageLookupByLibrary.simpleMessage(
       "Das hast du wirklich großartig gemacht! 🎉",
     ),
-    "helper_activities0_name": m18,
+    "helper_activities0_name": m19,
     "helper_activities1": MessageLookupByLibrary.simpleMessage(
       "Wieder einen Fortschritt vorwärts! 🌟",
     ),
     "helper_activities10": MessageLookupByLibrary.simpleMessage(
       "Du bist auf dem richtigen Weg! 🌟",
     ),
-    "helper_activities10_name": m19,
+    "helper_activities10_name": m20,
     "helper_activities11": MessageLookupByLibrary.simpleMessage(
       "Großartige Arbeit 🌟",
     ),
-    "helper_activities11_name": m20,
-    "helper_activities1_name": m21,
+    "helper_activities11_name": m21,
+    "helper_activities1_name": m22,
     "helper_activities2": MessageLookupByLibrary.simpleMessage(
       "Tolle Leistung, mach weiter so! 🔥",
     ),
-    "helper_activities2_name": m22,
+    "helper_activities2_name": m23,
     "helper_activities3": MessageLookupByLibrary.simpleMessage(
       "Richtig gut gemacht, du ziehst das durch! 🏅",
     ),
-    "helper_activities3_name": m23,
+    "helper_activities3_name": m24,
     "helper_activities4": MessageLookupByLibrary.simpleMessage("Weiter so! 🚀"),
-    "helper_activities4_name": m24,
+    "helper_activities4_name": m25,
     "helper_activities5": MessageLookupByLibrary.simpleMessage(
       "Gut gemacht! ✨",
     ),
-    "helper_activities5_name": m25,
+    "helper_activities5_name": m26,
     "helper_activities6": MessageLookupByLibrary.simpleMessage("Weiter so! 🥇"),
-    "helper_activities6_name": m26,
+    "helper_activities6_name": m27,
     "helper_activities7": MessageLookupByLibrary.simpleMessage(
       "Super, bleib dran! 🎯",
     ),
-    "helper_activities7_name": m27,
+    "helper_activities7_name": m28,
     "helper_activities8": MessageLookupByLibrary.simpleMessage(
       "Du kommst jeden Tag einen Schritt näher an dein Ziel! 🚶‍♀️",
     ),
-    "helper_activities8_name": m28,
+    "helper_activities8_name": m29,
     "helper_activities9": MessageLookupByLibrary.simpleMessage(
       "Stark, von dir! 💪",
     ),
-    "helper_activities9_name": m29,
+    "helper_activities9_name": m30,
     "home": MessageLookupByLibrary.simpleMessage("Startseite"),
-    "hopeYouHadAGoodDay": m30,
+    "hopeYouHadAGoodDay": m31,
     "iconHelp1": MessageLookupByLibrary.simpleMessage(
       "Zeigt dir, dass du alle Aktivitäten in einer Woche bewertet hast",
     ),
@@ -411,7 +415,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Du hast noch keine Wochenpläne 🙂 \nTippe auf den Button in der Ecke rechts unten um den QR-Code scanner zu öffnen und einen Plan zu importieren 😊",
     ),
     "monday": MessageLookupByLibrary.simpleMessage("Montag"),
-    "noAppointmentsOn": m31,
+    "noAppointmentsOn": m32,
     "noEntriesYet": MessageLookupByLibrary.simpleMessage(
       "Noch keine Einträge 😉",
     ),
@@ -430,17 +434,17 @@ class MessageLookup extends MessageLookupByLibrary {
     "noti_dayEnd_message": MessageLookupByLibrary.simpleMessage(
       "Wieder ein Tag vorbei. \n Klicke auf mich um zu sehn\n was heute so los war 😊 \n",
     ),
-    "noti_dayEnd_title": m32,
+    "noti_dayEnd_title": m33,
     "noti_noTasks_message": MessageLookupByLibrary.simpleMessage(
       "Heute stehen keine Aktivitäten an,\nalso lehn dich zurück und\nentspann ein bisschen 🙂",
     ),
     "noti_start_message": MessageLookupByLibrary.simpleMessage(
       "Heute stehen folgende Aktivitäten an 🙂 \n",
     ),
-    "noti_start_title": m33,
-    "noti_termin_messageAfter": m34,
-    "noti_termin_messageAt": m35,
-    "noti_termin_messageBefore": m36,
+    "noti_start_title": m34,
+    "noti_termin_messageAfter": m35,
+    "noti_termin_messageAt": m36,
+    "noti_termin_messageBefore": m37,
     "noti_weekEnd_message": MessageLookupByLibrary.simpleMessage(
       "Super! Wieder eine Woche geschaft\n Klicke hier um deine Wochenübersicht\n anzeigen zu lassen",
     ),
@@ -459,7 +463,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "questionPageHelpDialog1": MessageLookupByLibrary.simpleMessage(
       "Hier kannst du Feedback zu deinen Aktivitäten geben! 😊\n",
     ),
-    "questionPageHelpDialog2": m37,
+    "questionPageHelpDialog2": m38,
     "questionPageHelpDialog3": MessageLookupByLibrary.simpleMessage(
       "Die Fragen öffnen sich jeweils wenn du die vorherige beantwortet hast, am Ende kannst du noch einen kurzen Kommentar mit deinen Gedanken hinzufügen ",
     ),
@@ -469,8 +473,8 @@ class MessageLookup extends MessageLookupByLibrary {
     "questionPageHelpDialog5": MessageLookupByLibrary.simpleMessage(
       "Viel Erfolg! Ich hoffe wirklich, dass es dir hilft! 🤞😊\n",
     ),
-    "questionPage_WellDone": m38,
-    "questionPage_WellDone2": m39,
+    "questionPage_WellDone": m39,
+    "questionPage_WellDone2": m40,
     "questionPage_a0e": MessageLookupByLibrary.simpleMessage("Nein"),
     "questionPage_a0m": MessageLookupByLibrary.simpleMessage("Später"),
     "questionPage_a0s": MessageLookupByLibrary.simpleMessage("Ja"),
@@ -539,7 +543,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "questionPage_too_early": MessageLookupByLibrary.simpleMessage(
       "Du bist zu früh dran 😊 \nAber trotzdem cool, dass du vorbeischaust 👍",
     ),
-    "questionPage_too_early1": m40,
+    "questionPage_too_early1": m41,
     "rewardPopUp_conf": MessageLookupByLibrary.simpleMessage("Gut gemacht! ❤️"),
     "rewardPopUp_scroll": MessageLookupByLibrary.simpleMessage(
       "\n scrolle für deinen Fortschritt 😉",
@@ -582,7 +586,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "settings_name": MessageLookupByLibrary.simpleMessage("Dein Name"),
     "settings_name_headline": MessageLookupByLibrary.simpleMessage("Name"),
-    "settings_notifications": m41,
+    "settings_notifications": m42,
     "settings_notificationsForTasks": MessageLookupByLibrary.simpleMessage(
       "Benachrichtigungen vor Aktivitäten",
     ),
@@ -615,15 +619,15 @@ class MessageLookup extends MessageLookupByLibrary {
       "Noch keine Einträge",
     ),
     "sunday": MessageLookupByLibrary.simpleMessage("Sonntag"),
-    "taskCompletedOn": m42,
-    "tasksCompleted": m43,
-    "tasksNotAnsweredOn": m44,
-    "tasksPendingFeedback": m45,
+    "taskCompletedOn": m43,
+    "tasksCompleted": m44,
+    "tasksNotAnsweredOn": m45,
+    "tasksPendingFeedback": m46,
     "terminName": MessageLookupByLibrary.simpleMessage("Aktivität Name"),
-    "themeHelperToday": m46,
-    "themeHelper_msg0": m47,
-    "themeHelper_open_msg0": m48,
-    "themeHelper_open_msg1": m49,
+    "themeHelperToday": m47,
+    "themeHelper_msg0": m48,
+    "themeHelper_open_msg0": m49,
+    "themeHelper_open_msg1": m50,
     "thursday": MessageLookupByLibrary.simpleMessage("Donnerstag"),
     "till": MessageLookupByLibrary.simpleMessage("bis"),
     "toNotDoIt": MessageLookupByLibrary.simpleMessage("(es nicht zu tun)"),
@@ -684,7 +688,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "weekOverViewText6": MessageLookupByLibrary.simpleMessage(
       "Viel Erfolg beim Feedback geben!\nIch hoffe du kannst so leichter Aktivitäten und Sachen finden die dir Freude bereiten oder dir anders helfen :)",
     ),
-    "weekOverView_leftAnswers": m50,
+    "weekOverView_leftAnswers": m51,
     "weekOverView_noAnswers": MessageLookupByLibrary.simpleMessage(
       "Du hast diese Woche noch keine Aktivität bewertet \n komm bitte später wieder 🙋‍♂️",
     ),
@@ -694,7 +698,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "weekOverView_summary": MessageLookupByLibrary.simpleMessage(
       "Du hast diese Woche\n",
     ),
-    "weekOverView_summary_part2": m51,
+    "weekOverView_summary_part2": m52,
     "weekOverView_tooEarly": MessageLookupByLibrary.simpleMessage(
       "Die Woche ist noch nicht gekommen. Schau gerne später wieder hier rein :)",
     ),

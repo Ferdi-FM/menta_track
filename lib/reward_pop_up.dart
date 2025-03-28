@@ -241,7 +241,6 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
                           width: double.infinity,  // Make the container take the full width
                           child: ElevatedButton(
                             onPressed: () => {
-                              //TODO: Zusätzlich Sound abspielen?
                               HapticFeedback.lightImpact(),
                               _buttonAnimation(),
                             },

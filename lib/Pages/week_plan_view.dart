@@ -155,7 +155,6 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
       groupedTerminNames.add(t1SafeName);
     }
 
-    //TODO: Potentiell CellWidth erhöhen, wenn 3 oder mehr sich überschneiden!
     for (Termin t in weekAppointments) {
       String title = t.terminName;
       DateTime startTime = t.timeBegin;

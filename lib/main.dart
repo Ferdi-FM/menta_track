@@ -3,7 +3,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'Pages/main_page.dart';
 import 'generated/l10n.dart';
 
-//TODO: - Aufräumen
 ///Oberste App-Seite, verwendet für Themes & Navigation
 
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();

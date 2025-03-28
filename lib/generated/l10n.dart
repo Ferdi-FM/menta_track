@@ -2603,6 +2603,18 @@ class S {
       args: [count, name],
     );
   }
+
+  /// `{count, plural, =1{\n\nOne Activity still in the future 😉} other{\n\n{count} Activities haven't arrived yet 😉}}`
+  String dayOverView_activityNotArrived(num count) {
+    return Intl.plural(
+      count,
+      one: '\n\nOne Activity still in the future 😉',
+      other: '\n\n$count Activities haven\'t arrived yet 😉',
+      name: 'dayOverView_activityNotArrived',
+      desc: '',
+      args: [count],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

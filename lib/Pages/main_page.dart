@@ -17,9 +17,6 @@ import 'activity_summary.dart';
 import 'barcode_scanner_simple.dart';
 import 'not_answered_page.dart';
 
-//TODO: RANDOMISIERTE ANTWORTEN VERBESSERN
-//TODO: Haptisches Feedback-Option testen, könnte durch async probleme Verursachen
-
 ///Startseite der Anwendung mit PageView
 
 class MainPage extends StatefulWidget {

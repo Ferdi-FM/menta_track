@@ -252,7 +252,7 @@ class DaySummaryState extends State<DaySummary> with RouteAware {
                                           final result = await openItem(_itemsNotAnswered[index], ev);
                                           if (result != null) {
                                             setState(() {
-                                              setUpPage(); //Aktuallisiert Einfach die gesamte Seite//TODO: testen
+                                              setUpPage(); //Aktuallisiert Einfach die gesamte Seite
                                             });
                                           }
                                         },

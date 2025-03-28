@@ -323,7 +323,7 @@
   "tasksNotAnsweredOn": "Du hast {date}\n {count, plural, =1{deine Aktivität} other{{count} Aktivitäten}}\nnoch nicht beantwortet.",
   "checkPendingFeedback": "Schau auf der Startseite unter \"Offen\" oder in der \"Wochenübersicht\" nach, um Feedback zu einer Aktivität zu geben 👍",
   "dayNotYetArrived": "Der Tag ist noch nicht gekommen 😉 Trotzdem schön, dass du schon mal hier reinschaust {name} :)",
-  "activity_not_there_yet": "{count, plural, =1{Die Aktivität ist} other{die Aktivitäten sind}} noch nicht gekommen 😉 Trotzdem schön, dass du schon mal hier reinschaust {name} :)",
+  "activity_not_there_yet": "{count, plural, =1{\n\nEine Aktivität ist} other{\n\nEinige Aktivitäten sind}} noch nicht gekommen 😉\nTrotzdem schön, dass du schon mal hier bist {name} :)",
   "unexpectedCaseFound": "Glückwunsch!!! 🎉 Du hast einen Fall gefunden, an den ich nicht gedacht habe! Gut gemacht! 😊 Falls möglich, sag deinem Therapeuten oder Entwickler der App, welche Kombination zu diesem Fall geführt hat.",
   "daily_Values": "Tägliche Werte",
   "day_reward_message": "Danke! \uD83D\uDE0A \n\n Ich hoffe der Tag hat dich vorangebracht und dir gut getan \n\n Du schaffst das Tag für Tag \uD83D\uDCAA",
@@ -440,6 +440,6 @@
   "settings_Infos_dataProtection": "Die App erhebt keine deiner Daten, sie sind komplett sicher und privat!\nDer einzige Weg, wie sie jemand einsehen kann ist, wenn du dein Handy herzeigst 😇",
 
   "questionPage_WellDone": "{count, plural, =0{Klasse, dass du Feedback gegeben hast{name}!!\n\uD83E\uDD73} =1{Schön, dass du dir die Zeit für Feedback genommen hast{name}!\n\uD83E\uDD73} other{Toll, dass du reflektierst{name}!\n\uD83E\uDD73}}",
-  "questionPage_WellDone2": "{count, plural, =0{Klasse, dass dus geschafft hast{name}!!\n\uD83E\uDD73} =1{Schön, dass du dir die Zeit genommen hast{name}!\n\uD83E\uDD73} other{Toll, dass du reflektierst{name}!\n\uD83E\uDD73}}"
-
+  "questionPage_WellDone2": "{count, plural, =0{Klasse, dass dus geschafft hast{name}!!\n\uD83E\uDD73} =1{Schön, dass du dir die Zeit genommen hast{name}!\n\uD83E\uDD73} other{Toll, dass du reflektierst{name}!\n\uD83E\uDD73}}",
+  "dayOverView_activityNotArrived" : "{count, plural, =1{\n\nEine Aktivität steht heute erst noch aus \uD83D\uDE09} other{\n\n{count} Aktivitäten stehen erst noch bevor \uD83D\uDE09}}"
 }
