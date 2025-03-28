@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:menta_track/Pages/question_page.dart';
+import 'package:menta_track/Pages/settings.dart';
 import 'package:menta_track/database_helper.dart';
 import '../answered_tile.dart';
 import '../generated/l10n.dart';
@@ -20,13 +22,16 @@ class DaySummary extends StatefulWidget {
   DaySummaryState createState() => DaySummaryState();
 }
 
-class DaySummaryState extends State<DaySummary> {
-  List<TerminData> itemsAnswered = [];
-  List<TerminData> itemsNotAnswered = [];
-  bool loaded = false;
-  Widget themeIllustration = SizedBox();
-  bool noActivities = false;
-  int activitiesTillNow = 0;
+class DaySummaryState extends State<DaySummary> with RouteAware {
+  List<TerminData> _itemsAnswered = [];
+  List<TerminData> _itemsNotAnswered = [];
+  Widget _themeIllustration = SizedBox();
+  bool _noActivities = false;
+  int _activitiesTillNow = 0;
+  int _rememberAnsweredTasks = 0;
+  int _rememberUnAnsweredTasks = 0;
+
+  bool hapticFeedback = false;
 
   @override
   void initState() {
@@ -34,18 +39,45 @@ class DaySummaryState extends State<DaySummary> {
     super.initState();
   }
 
+  ///Checkt, ob auf die Startseite zurückgekehrt wurde und ob es Änderungen in der Datenbank gab
+  @override
+  void didPopNext() {
+    if(mounted) checkForChange();
+    super.didPopNext();
+  }
+
+  ///Subscribed zu dem Routeobserver
+  @override
+  void didChangeDependencies() {
+    if (ModalRoute.of(context)?.isCurrent == true) {
+      routeObserver.subscribe(this, ModalRoute.of(context) as PageRoute);
+    }
+    super.didChangeDependencies();
+  }
+
+  ///Checkt ob es Änderungen in der Datenbank gab
+  Future<void> checkForChange() async {
+    int newAnswered = await DatabaseHelper().getDayTermineAnswered(DateFormat("yyyy-MM-dd").format(DateTime.now()), true).then((result) => result.length);
+    int newUnAnswered = await DatabaseHelper().getDayTermineAnswered(DateFormat("yyyy-MM-dd").format(DateTime.now()), false).then((result) => result.length);
+    if(newAnswered != _rememberAnsweredTasks || newUnAnswered != _rememberUnAnsweredTasks) setUpPage();
+  }
+
   ///Lädt alle Aktivitäten aus der Datenbank für diesen Tag und fügt sie in eine Liste ein
   Future<List<TerminData>> loadTasks(bool answered) async {
     List<TerminData> items = [];
     List<Termin> tasks = await DatabaseHelper().getDayTermineAnswered(DateFormat("yyyy-MM-dd").format(DateTime.now()), answered);
-
+    if(answered) {
+      _rememberAnsweredTasks = tasks.length;
+    } else {
+      _rememberUnAnsweredTasks = tasks.length;
+    }
     for (Termin t in tasks) {
       String terminName = t.terminName;
       String weekKey = t.weekKey;
       String timeBegin = t.timeBegin.toIso8601String();
       String timeEnd = t.timeEnd.toIso8601String();
       bool isAfterNow = DateTime.now().isAfter(t.timeBegin);
-      if(isAfterNow) activitiesTillNow += 1;
+      if(isAfterNow) _activitiesTillNow += 1;
       TerminData data = TerminData(
           icon: answered ? Icons.check_circle_outline_outlined : isAfterNow ? Icons.help_outline : Icons.pending_actions_outlined,
           terminName: terminName,
@@ -82,30 +114,35 @@ class DaySummaryState extends State<DaySummary> {
         );
       },
     ));
-    //TODO: Checken ob Termin gelöscht wurde
   }
 
   ///lädt thema und items und updatet den State
   void setUpPage() async {
-    loadTheme();
-    itemsNotAnswered = await loadTasks(false);
-    itemsAnswered = await loadTasks(true);
-    if(itemsNotAnswered.length + itemsAnswered.length == 0){
-      noActivities = true;
+    _itemsNotAnswered = await loadTasks(false);
+    _itemsAnswered = await loadTasks(true);
+    if(_itemsNotAnswered.length + _itemsAnswered.length == 0){
+      _noActivities = true;
     }
-    setState(() {
-      loaded = true; //damit wenn nicht geladen ein ladesymbol angezeigt werden kann
-      noActivities;
-    });
+    if(mounted){ //Hat wenn schnell durch bottomNavigationBar geclickt wurde teilweise zu "setState() called after dispose()" geführt
+      loadTheme();
+      setState(() {
+        _noActivities;
+      });
+    }
+
   }
 
   ///lädt das App-Theme
   void loadTheme() async {
     Widget image = SizedBox();
-    if (mounted) image = await ThemeHelper().getIllustrationImage("TodayPage"); //mounted redundant, kann wrsch. entfernt werden
-    setState(() {
-      themeIllustration = image;
-    });
+    hapticFeedback = await SettingsPageState().getHapticFeedback();
+    //Zur sicherheit, da durch await ThemeHelper teilweise setState nach dispose() aufgerufen wurde
+    if(mounted) image = await ThemeHelper().getIllustrationImage("TodayPage");
+    if (mounted) {
+      setState(() {
+        _themeIllustration = image;
+      });
+    }
   }
 
   @override
@@ -129,22 +166,20 @@ class DaySummaryState extends State<DaySummary> {
             child:SingleChildScrollView(
                 child:  Column(
                     children: [
-                      themeIllustration,
+                      _themeIllustration,
                       Text(S.current.today_Headline1, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).appBarTheme.backgroundColor)),
-                      itemsNotAnswered.isNotEmpty
+                      _itemsNotAnswered.isNotEmpty
                           ? Column(
-                          children: List.generate(itemsNotAnswered.length, (index) {
+                          children: List.generate(_itemsNotAnswered.length, (index) {
                           return AnsweredTile(
                             answered: false,
-                            item: itemsNotAnswered[index],
+                            item: _itemsNotAnswered[index],
                             onItemTap: (ev) async {
-                              final result = await openItem(itemsNotAnswered[index], ev);
+                              if(hapticFeedback) HapticFeedback.lightImpact();
+                              final result = await openItem(_itemsNotAnswered[index], ev);
                               if (result != null) {
                                 setState(() {
                                   setUpPage(); //Aktuallisiert Einfach die gesamte Seite
-                                  //itemsAnswered.add(itemsNotAnswered[index]); //TODO: testen
-                                  //itemsNotAnswered.removeAt(index);
-                                  //loadTheme(); //Updated Anzeige in Überschrift
                                 });
                               }
                               },
@@ -153,19 +188,20 @@ class DaySummaryState extends State<DaySummary> {
                           )
                       ) : Container(
                         padding: EdgeInsets.all(40),
-                        child: noActivities
+                        child: _noActivities
                               ? Text(S.current.today_nothingToAnswer)
                               : Text(S.current.today_allAnswered),
                         ),
                         SizedBox(height: 20,),
                         Text(S.current.today_Headline2, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).appBarTheme.backgroundColor), textAlign: TextAlign.center,),
-                        itemsAnswered.isNotEmpty ? Column(
-                            children: List.generate(itemsAnswered.length, (index){
+                        _itemsAnswered.isNotEmpty ? Column(
+                            children: List.generate(_itemsAnswered.length, (index){
                             return AnsweredTile(
                               answered: true,
-                              item: itemsAnswered[index],
+                              item: _itemsAnswered[index],
                               onItemTap: (ev) async {
-                                final result = await openItem(itemsAnswered[index], ev);
+                                if(hapticFeedback) HapticFeedback.lightImpact();
+                                final result = await openItem(_itemsAnswered[index], ev);
                                 if (result != null) {
                                   setUpPage(); //Aktuallisiert Einfach die gesamte Seite
                                 }
@@ -175,10 +211,10 @@ class DaySummaryState extends State<DaySummary> {
                             )
                         ) : Container(
                           padding: EdgeInsets.all(40),
-                          child: noActivities
+                          child: _noActivities
                               ? Text(S.current.today_hopeForGood)
-                              : activitiesTillNow > 0
-                              ? Text(S.current.themeHelper_open_msg1(itemsNotAnswered.length))
+                              : _activitiesTillNow > 0
+                              ? Text(S.current.themeHelper_open_msg1(_itemsNotAnswered.length))
                               : Text(S.current.today_nothingToAnswerYet, textAlign: TextAlign.center,),
                         ),
                       ],
@@ -187,7 +223,7 @@ class DaySummaryState extends State<DaySummary> {
           ) : Row(
                   ///Landscape Layout
                   children: [
-                    if (themeIllustration is! SizedBox)SizedBox(width: MediaQuery.of(context).size.width*0.5,child: themeIllustration)
+                    if (_themeIllustration is! SizedBox)SizedBox(width: MediaQuery.of(context).size.width*0.5,child: _themeIllustration)
                     else SizedBox(width: 80,),
                     SizedBox(width: MediaQuery.of(context).size.width*0.5,
                         child: ShaderMask(
@@ -205,20 +241,18 @@ class DaySummaryState extends State<DaySummary> {
                               children: [
                                 SizedBox(height: 10,),
                                 Text(S.current.today_Headline1, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).appBarTheme.backgroundColor),),
-                                itemsNotAnswered.isNotEmpty
+                                _itemsNotAnswered.isNotEmpty
                                     ? Column(
-                                    children: List.generate(itemsNotAnswered.length, (index) {
+                                    children: List.generate(_itemsNotAnswered.length, (index) {
                                       return AnsweredTile(
                                         answered: false,
-                                        item: itemsNotAnswered[index],
+                                        item: _itemsNotAnswered[index],
                                         onItemTap: (ev) async {
-                                          final result = await openItem(itemsNotAnswered[index], ev);
+                                          if(hapticFeedback) HapticFeedback.lightImpact();
+                                          final result = await openItem(_itemsNotAnswered[index], ev);
                                           if (result != null) {
                                             setState(() {
-                                              setUpPage(); //Aktuallisiert Einfach die gesamte Seite
-                                              //itemsAnswered.add(itemsNotAnswered[index]); //TODO: testen
-                                              //itemsNotAnswered.removeAt(index);
-                                              //loadTheme(); //Updated Anzeige in Überschrift
+                                              setUpPage(); //Aktuallisiert Einfach die gesamte Seite//TODO: testen
                                             });
                                           }
                                         },
@@ -228,19 +262,20 @@ class DaySummaryState extends State<DaySummary> {
                                 )
                                 : Container(
                               padding: EdgeInsets.all(40),
-                              child: noActivities
+                              child: _noActivities
                                   ? Text(S.current.today_nothingToAnswer)
                                   : Text(S.current.today_allAnswered),
                             ),
                             SizedBox(height: 20,),
                             Text(S.current.today_Headline2, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).appBarTheme.backgroundColor),),
-                            itemsAnswered.isNotEmpty ? Column(
-                                children: List.generate(itemsAnswered.length, (index){
+                            _itemsAnswered.isNotEmpty ? Column(
+                                children: List.generate(_itemsAnswered.length, (index){
                                   return AnsweredTile(
                                     answered: true,
-                                    item: itemsAnswered[index],
+                                    item: _itemsAnswered[index],
                                     onItemTap: (ev) async {
-                                      final result = await openItem(itemsAnswered[index], ev);
+                                      if(hapticFeedback) HapticFeedback.lightImpact();
+                                      final result = await openItem(_itemsAnswered[index], ev);
                                       if (result != null) {
                                         setUpPage(); //Aktuallisiert Einfach die gesamte Seite
                                       }
@@ -250,10 +285,10 @@ class DaySummaryState extends State<DaySummary> {
                                 )
                             ) : Container(
                               padding: EdgeInsets.all(40),
-                              child: noActivities
+                              child: _noActivities
                                   ? Text(S.current.today_hopeForGood)
-                                  : activitiesTillNow > 0
-                                  ? Text(S.current.themeHelper_open_msg1(itemsNotAnswered.length))
+                                  : _activitiesTillNow > 0
+                                  ? Text(S.current.themeHelper_open_msg1(_itemsNotAnswered.length))
                                   : Text(S.current.today_nothingToAnswerYet, textAlign: TextAlign.center,),
                             ),
                             SizedBox(height: 10,)
@@ -262,7 +297,7 @@ class DaySummaryState extends State<DaySummary> {
                       ),
                     )
                     ),
-                    if (themeIllustration is! SizedBox)
+                    if (_themeIllustration is! SizedBox)
                       SizedBox(
                         width: 0,
                       )

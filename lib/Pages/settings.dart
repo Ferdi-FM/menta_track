@@ -21,21 +21,20 @@ class SettingsPage extends StatefulWidget {
 
 class SettingsPageState extends State<SettingsPage> {
   ///Variabeln werden zuerst mit Standard-Werten initialisiert
-  bool isDarkMode = false;
+  bool _isDarkMode = false;
   String _theme = "illustration";
-  //String _chosenAccentColor = "blue";
   bool _themeOnlyOnMainPage = false;
+  bool _hapticFeedback = false;
   String _rewardSound = "standard";
   bool _settingsChanged = false;
-  TimeOfDay morningTime = TimeOfDay(hour: 07, minute: 00);
-  TimeOfDay eveningTime = TimeOfDay(hour: 22, minute: 00);
+  TimeOfDay _morningTime = TimeOfDay(hour: 07, minute: 00);
+  TimeOfDay _eveningTime = TimeOfDay(hour: 22, minute: 00);
   List<int> _notificationIntervals = [15];
   bool _notificationsChanged = false; //damit nicht jedesmal alles neu geplant wird
   final TextEditingController _nameController = TextEditingController();
-  final player = AudioPlayer();
-  String audioAsset = "";
-  Color chosenColor = Colors.lightBlue;
-  MaterialColor chosenMaterialColor = Colors.lightBlue;
+  final _player = AudioPlayer();
+  String _audioAsset = "";
+  MaterialColor _chosenMaterialColor = Colors.lightBlue;
 
   @override
   void initState() {
@@ -53,27 +52,30 @@ class SettingsPageState extends State<SettingsPage> {
     final prefs = await SharedPreferences.getInstance();
     bool isDarkMode = prefs.getBool("darkMode") ?? false;
     bool themeOnlyOnMainPage = prefs.getBool("themeOnlyOnMainPage") ?? false;
+    bool hapticFeedBack = prefs.getBool("hapticFeedback") ?? false;
     String theme = prefs.getString("theme") ?? "illustration";
     String name = prefs.getString("userName") ?? "";
-    return SettingData(name, theme, isDarkMode, themeOnlyOnMainPage);
+
+    return SettingData(name, theme, isDarkMode, themeOnlyOnMainPage, hapticFeedBack);
   }
 
   ///Lädt alle Settings aus sharedPreferences
   void _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
-    audioAsset = await ThemeHelper().getSound(); //Lädt hier da sonst audio verzögerung hat
-    chosenMaterialColor = await HexMaterialColor().getColorFromPreferences();
+    _audioAsset = await ThemeHelper().getSound(); //Lädt hier da sonst audio verzögerung hat
+    _chosenMaterialColor = await HexMaterialColor().getColorFromPreferences();
     setState(() {
-      isDarkMode = prefs.getBool("darkMode") ?? false;
+      _isDarkMode = prefs.getBool("darkMode") ?? false;
       _theme = prefs.getString("theme") ?? "illustration";
       _themeOnlyOnMainPage = prefs.getBool("themeOnlyOnMainPage") ?? false;
+      _hapticFeedback = prefs.getBool("hapticFeedback") ?? false;
       _notificationIntervals = prefs.getStringList("notificationIntervals")?.map(int.parse).toList() ?? [15];
       _nameController.text = prefs.getString("userName") ?? "";
       _rewardSound = prefs.getString("soundAlert") ?? "standard";
       int morningMinutes = prefs.getInt("morningTime") ?? 07*60;
       int eveningMinutes = prefs.getInt("eveningTime") ?? 22*60;
-      morningTime = TimeOfDay(hour: morningMinutes  ~/ 60, minute:  morningMinutes  % 60) ;
-      eveningTime = TimeOfDay(hour: eveningMinutes  ~/ 60, minute:  eveningMinutes  % 60) ;
+      _morningTime = TimeOfDay(hour: morningMinutes  ~/ 60, minute:  morningMinutes  % 60) ;
+      _eveningTime = TimeOfDay(hour: eveningMinutes  ~/ 60, minute:  eveningMinutes  % 60) ;
     });
   }
 
@@ -88,8 +90,8 @@ class SettingsPageState extends State<SettingsPage> {
     await prefs.setBool("darkMode", val);
     _settingsChanged = true;
     setState(() {
-      isDarkMode = val;
-      ThemeMode mode = isDarkMode ? ThemeMode.dark : ThemeMode.light;
+      _isDarkMode = val;
+      ThemeMode mode = _isDarkMode ? ThemeMode.dark : ThemeMode.light;
       MyApp.of(context).changeTheme(mode);
     });
   }
@@ -112,25 +114,28 @@ class SettingsPageState extends State<SettingsPage> {
     });
   }
 
-  /*
-  Future<void> setAccentColor(String  value) async{
+  Future<void> setHapticCheckbox(bool value) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString("chosenAccentColor", value);
+    await prefs.setBool("hapticFeedback", value);
     _settingsChanged = true;
     setState(() {
-         MyApp.of(context).changeColor(value);
-        _chosenAccentColor = value;
+      _hapticFeedback = value;
     });
-  }*/
+  }
+
+  Future<bool> getHapticFeedback() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool("hapticFeedback") ?? false;
+  }
 
   void saveSound(String value) async{
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("soundAlert", value);
     _settingsChanged = true;
-    audioAsset = await ThemeHelper().getSound();
-    if(audioAsset != "nothing"){
-      player.stop();
-      player.play(AssetSource(audioAsset));
+    _audioAsset = await ThemeHelper().getSound();
+    if(_audioAsset != "nothing"){
+      _player.stop();
+      _player.play(AssetSource(_audioAsset));
     }
     setState(() {
         _rewardSound = value;
@@ -147,14 +152,14 @@ class SettingsPageState extends State<SettingsPage> {
 
   Future<void> saveNotificationTime(bool isMorning) async {
     final prefs = await SharedPreferences.getInstance();
-    TimeOfDay initialTime = isMorning ? morningTime : eveningTime;
+    TimeOfDay initialTime = isMorning ? _morningTime : _eveningTime;
     final TimeOfDay? picked = await pickTime(initialTime);
     if (picked != null) {
       setState(() {
         if (isMorning) {
-          morningTime = picked;
+          _morningTime = picked;
         } else {
-          eveningTime = picked;
+          _eveningTime = picked;
         }
       });
 
@@ -230,8 +235,7 @@ class SettingsPageState extends State<SettingsPage> {
             ElevatedButton(
               child: Text(S.current.accept),
               onPressed: () {
-                setState(() => chosenColor = pickerColor);
-                setState(() => chosenMaterialColor = pickerMaterialColor!);
+                setState(() => _chosenMaterialColor = pickerMaterialColor!);
                 Navigator.of(context).pop(true);
               },
             ),
@@ -271,7 +275,7 @@ class SettingsPageState extends State<SettingsPage> {
             child: Column(
               children: [
                 ListTile(
-                  title: Text("Name", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
+                  title: Text(S.current.settings_name_headline, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
                 ),
                 ListTile(
                   title: TextField(
@@ -287,91 +291,203 @@ class SettingsPageState extends State<SettingsPage> {
                 ListTile(
                     title: Text(S.of(context).settings_theme, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center,)
                 ),
-                ListTile(
-                  title: Text(S.of(context).settings_darkMode),
-                  trailing: Switch(
-                    value: isDarkMode,
-                    onChanged: (value){
-                      isDarkMode = isDarkMode;
-                      toggleDarkMode(value);
-                    }
-                  ),
-                ),
-                ListTile(
-                  title: AutoSizeText(S.current.settings_theme),
-                  trailing: SizedBox(
-                    width: MediaQuery.of(context).size.width/2,
-                    child: FittedBox(
-                      fit: BoxFit.fitWidth,
-                      child: DropdownButton<String>(
-                        dropdownColor: Theme.of(context).primaryColorLight,
-                        elevation: 6,
-                        borderRadius: BorderRadius.circular(10),
-                        value: _theme,
-                        onChanged: (value) {
-                          if (value != null) {
-                            saveTheme(value);
-                          }
-                        },
-                        items: [
-                          DropdownMenuItem(value: "nothing", child: AutoSizeText(S.of(context).settings_themePictures)),
-                          DropdownMenuItem(value: "mascot", child: AutoSizeText(S.current.illustration_mascot)),
-                          DropdownMenuItem(value: "illustration", child: AutoSizeText(S.current.illustration_things)),
-                          DropdownMenuItem(value: "illustration v2", child: AutoSizeText(S.current.illustration_people),)
+                ///Dark Mode
+                Container(
+                    color: Theme.of(context).listTileTheme.tileColor,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                      child:  Row(
+                        children: [
+                          Expanded(
+                            flex: 4, 
+                            child: Text(S.of(context).settings_darkMode),
+                          ),
+                          Spacer(flex: 1),
+                          Expanded(
+                            flex: 2, 
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: Switch(
+                                  value: _isDarkMode,
+                                  onChanged: (value){
+                                    _isDarkMode = _isDarkMode;
+                                    toggleDarkMode(value);
+                                  }
+                              ),
+                            ),
+                          )
                         ],
                       ),
-                    ),
-                  )
+                    )
                 ),
-                ListTile(
-                  title: Text(S.of(context).settings_themeOnlyMainPage),
-                  trailing: Checkbox(
-                    value: _themeOnlyOnMainPage,
-                    onChanged: (value){
-                      _themeOnlyOnMainPage = value!;
-                      setThemeCheckbox(_themeOnlyOnMainPage);
-                    }),
+                ///Bilder Thema
+                Container(
+                    color: Theme.of(context).listTileTheme.tileColor,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                      child:  Row(
+                        children: [
+                          Expanded(
+                            flex: 3, 
+                            child: Text(S.current.settings_theme),
+                          ),
+                          Spacer(flex: 1), 
+                          Expanded(
+                            flex: 4,
+                            child: FittedBox(
+                              child: DropdownButton<String>(
+                                dropdownColor: Theme.of(context).primaryColorLight,
+                                elevation: 6,
+                                borderRadius: BorderRadius.circular(10),
+                                value: _theme,
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    saveTheme(value);
+                                  }
+                                },
+                                items: [
+                                  DropdownMenuItem(value: "nothing", child: AutoSizeText(S.of(context).settings_themePictures)),
+                                  DropdownMenuItem(value: "mascot", child: AutoSizeText(S.current.illustration_mascot)),
+                                  DropdownMenuItem(value: "illustration", child: AutoSizeText(S.current.illustration_things)),
+                                  DropdownMenuItem(value: "illustration v2", child: AutoSizeText(S.current.illustration_people),)
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    )
                 ),
-                ListTile(
-                  title: Text(S.of(context).settings_chooseAccent),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      IconButton(
-                          onPressed: () async{
-                            bool? result = await showColorPicker();
-                            if(result != null){
-                              String test = chosenMaterialColor.toHexString();
-                              HexMaterialColor().saveToPreferences(test);
-                              if(context.mounted) MyApp.of(context).changeColorDynamic(chosenMaterialColor);
-                            } else {
-                              if(context.mounted) MyApp.of(context).changeColorDynamic(chosenMaterialColor);
-                            }
-                          },
-                          icon: Icon(Icons.color_lens))
-                    ],
-                  ),
+                ///Thema nur auf Hauptseite
+                Container(
+                    color: Theme.of(context).listTileTheme.tileColor,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                      child:  Row(
+                        children: [
+                          Expanded(
+                            flex: 4, 
+                            child: Text(S.of(context).settings_themeOnlyMainPage),
+                          ),
+                          Spacer(flex: 1), 
+                          Expanded(
+                            flex: 2, 
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: Checkbox(
+                                  value: _themeOnlyOnMainPage,
+                                  onChanged: (value){
+                                    _themeOnlyOnMainPage = value!;
+                                    setThemeCheckbox(_themeOnlyOnMainPage);
+                                  }
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    )
                 ),
-                ListTile(
-                  title: Text(S.current.rewardSounds),
-                  trailing: DropdownButton<String>(
-                      value: _rewardSound,
-                      onChanged: (value) {
-                        if (value != null) {
-                          saveSound(value);
-                        }
-                      },
-                      items: [
-                        DropdownMenuItem(value: "standard", child: Text(S.current.settings_sound_Standard)),
-                        DropdownMenuItem(value: "classicGame", child: Text(S.current.settings_sound_gameSound)),
-                        DropdownMenuItem(value: "longer", child: Text(S.current.settings_sound_longer)),
-                        DropdownMenuItem(value: "level-up", child: Text(S.current.settings_sound_levelUp)),
-                        DropdownMenuItem(value: "level", child: Text(S.current.settings_sound_levelDone)),
-                        DropdownMenuItem(value: "nothing", child: Text(S.current.settings_sound_nothing)),
-                      ],
-                    ),
-                  ),
+                ///Farbauswahl
+                Container(
+                    color: Theme.of(context).listTileTheme.tileColor,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                      child:  Row(
+                        children: [
+                          Expanded(
+                            flex: 4, 
+                            child: Text(S.of(context).settings_chooseAccent),
+                          ),
+                          Spacer(flex: 1), 
+                          Expanded(
+                            flex: 2, 
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                  onPressed: () async{
+                                    bool? result = await showColorPicker();
+                                    if(result != null){
+                                      String test = _chosenMaterialColor.toHexString();
+                                      HexMaterialColor().saveToPreferences(test);
+                                      if(context.mounted) MyApp.of(context).changeColorDynamic(_chosenMaterialColor);
+                                    } else {
+                                      if(context.mounted) MyApp.of(context).changeColorDynamic(_chosenMaterialColor);
+                                    }
+                                  },
+                                  child: Icon(Icons.color_lens, size: 32)
+                              ),
+                            )
+                          )
+                        ],
+                      ),
+                    )
+                ),
+                Container(
+                    color: Theme.of(context).listTileTheme.tileColor,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                      child:  Row(
+                        children: [
+                          Expanded(
+                            flex: 3, 
+                            child: Text(S.current.rewardSounds),
+                          ),
+                          Spacer(flex: 1), 
+                          Expanded(
+                            flex: 4,
+                            child: FittedBox(
+                              child: DropdownButton<String>(
+                                dropdownColor: Theme.of(context).primaryColorLight,
+                                elevation: 6,
+                                borderRadius: BorderRadius.circular(10),
+                                value: _rewardSound,
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    saveSound(value);
+                                  }
+                                },
+                                items: [
+                                  DropdownMenuItem(value: "standard", child: Text(S.current.settings_sound_Standard)),
+                                  DropdownMenuItem(value: "classicGame", child: Text(S.current.settings_sound_gameSound)),
+                                  DropdownMenuItem(value: "longer", child: Text(S.current.settings_sound_longer)),
+                                  DropdownMenuItem(value: "level-up", child: Text(S.current.settings_sound_levelUp)),
+                                  DropdownMenuItem(value: "level", child: Text(S.current.settings_sound_levelDone)),
+                                  DropdownMenuItem(value: "nothing", child: Text(S.current.settings_sound_nothing)),
+                                ],
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    )
+                ),
+                Container(
+                    color: Theme.of(context).listTileTheme.tileColor,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                      child:  Row(
+                        children: [
+                          Expanded(
+                            flex: 3, 
+                            child: Text(S.current.settings_hapticFeedback),
+                          ),
+                          Spacer(flex: 1), 
+                          Expanded(
+                            flex: 2, 
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: Checkbox(
+                                  value: _hapticFeedback,
+                                  onChanged: (value){
+                                    _hapticFeedback = value!;
+                                    setHapticCheckbox(_hapticFeedback);
+                                  }),),
+                          )
+                        ],
+                      ),
+                    )
+                ),
+                ///Notification Einstellungen
                 SizedBox(height: 20),
                 ListTile(
                   title: Text(S.current.settings_notifications(1),style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
@@ -386,7 +502,7 @@ class SettingsPageState extends State<SettingsPage> {
                             right: -10,
                             child:TextButton(
                               onPressed: () => saveNotificationTime(true),
-                              child: Text(morningTime.format(context), textAlign: TextAlign.right,),
+                              child: Text(_morningTime.format(context), textAlign: TextAlign.right,),
                             ),
                           )
                         ]
@@ -403,7 +519,7 @@ class SettingsPageState extends State<SettingsPage> {
                             right: -10,
                             child:TextButton(
                               onPressed: () => saveNotificationTime(false),
-                              child: Text(eveningTime.format(context), textAlign: TextAlign.right,),
+                              child: Text(_eveningTime.format(context), textAlign: TextAlign.right,),
                             ),
                           )
                         ]
@@ -426,7 +542,7 @@ class SettingsPageState extends State<SettingsPage> {
                           return Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(15),
-                              border: Border.fromBorderSide(BorderSide(width: 1, color: chosenMaterialColor)),
+                              border: Border.fromBorderSide(BorderSide(width: 1, color: _chosenMaterialColor)),
                             ),
                             padding: EdgeInsets.only(top: 10, left: 10, right: 10, bottom: 0),
                             margin: EdgeInsets.symmetric(vertical: 5,horizontal: 0),
@@ -458,8 +574,8 @@ class SettingsPageState extends State<SettingsPage> {
                                 ),
                                 Align(
                                   alignment: Alignment.centerRight ,
-                                  child:IconButton(
-                                    icon:Icon(Icons.remove_circle),
+                                  child: TextButton(
+                                    child:Icon(Icons.remove_circle, size: 28,),
                                     onPressed: () => removeNotification(index),
                                   ),
                                 ),
@@ -468,15 +584,18 @@ class SettingsPageState extends State<SettingsPage> {
                           );
                         },
                       ),
-                      IconButton(
-                        icon: Icon(Icons.add_alert),
+                      TextButton(
                         onPressed: addNotification,
+                        child: Icon(Icons.add_alert, size: 28,),
                       ),
                     ],
                   ),
                 ),
                 SizedBox(height: 20,),
-                Text(S.current.settingsSavedAutomatically, textAlign: TextAlign.center,)
+                Text(S.current.settingsSavedAutomatically, textAlign: TextAlign.center,),
+                SizedBox(height: 20,),
+                Text(S.current.settings_Infos, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(S.current.settings_Infos_dataProtection)
               ],
             ),
           ),
@@ -492,8 +611,9 @@ class SettingData {
   final String theme;
   final bool isDarkMode;
   final bool themeOnlyOnMainPage;
+  final bool hapticFeedback;
 
-  SettingData(this.name, this.theme, this.isDarkMode, this.themeOnlyOnMainPage);
+  SettingData(this.name, this.theme, this.isDarkMode, this.themeOnlyOnMainPage, this.hapticFeedback);
 }
 
 class HexMaterialColor {

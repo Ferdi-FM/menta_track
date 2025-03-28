@@ -71,6 +71,31 @@
   "good_activities_desc": "Activities where you felt good:",
   "calm_activities_desc": "Activities where you felt calm:",
   "help_activities_desc": "Activities that helped you:",
+  "good_activities_desc_variable": "Activities where you felt {adjective}:",
+  "calm_activities_desc_variable": "Activities where you felt {adjective}:",
+  "help_activities_desc_variable": "Activities that made you feel {adjective}:",
+  "buttonDisplay" : "{count, plural, =0{not} =1{few} =2{good} other{better}}",
+  "buttonTimeDisplay" : "{count, plural, =0{last week} =1{last month} other{all time}}",
+
+  "activity_filter": "Filter",
+  "activity_filter_desc1": "Filter by:",
+  "activity_filter_desc2": "good, calm, helpful \uD83D\uDE0A",
+
+
+  "activity_good_adjective1" : "bad",
+  "activity_good_adjective2" : "okay",
+  "activity_good_adjective3" : "good",
+  "activity_good_adjective4" : "better",
+
+  "activity_calm_adjective1" : "restless",
+  "activity_calm_adjective2" : "okay",
+  "activity_calm_adjective3" : "calm",
+  "activity_calm_adjective4" : "very calm",
+
+  "activity_help_adjective1" : "not helpful",
+  "activity_help_adjective2" : "slightly helpful",
+  "activity_help_adjective3" : "helpful",
+  "activity_help_adjective4" : "very helpful",
 
   "monday": "Monday",
   "tuesday": "Tuesday",
@@ -210,6 +235,8 @@
   "weekOverViewText5": "At the end of each week, half an hour after the daily overview, you'll receive a notification guiding you here. You can also tap the button in the bottom right corner of a weekly plan to come here :)\n\n",
   "weekOverViewText6": "Good luck with giving feedback! I hope you can more easily find activities and things that bring you joy or help you in other ways :)",
 
+  "todayHelpMessage1": "Today Overview",
+  "todayHelpMessage2": "This is your overview for today.\nYou can see what still needs to be done today and what feedback you've already given \uD83D\uDC4D\n\nHopefully, this helps you a little with structuring your day \uD83E\uDD70",
 
   "generalHelp": "General Help",
 
@@ -391,10 +418,19 @@
   "noEntriesYet": "No Entries yet \uD83D\uDE09",
   "settings_pickAColor": "Pick a Color \uD83C\uDFA8",
 
+  "settings_name_headline": "Name",
+  "settings_hapticFeedback": "Haptic Feedback",
+
   "settings_sound_Standard": "Standard",
   "settings_sound_gameSound": "Game Sound",
   "settings_sound_longer": "longer Sound",
   "settings_sound_levelUp": "Level Up",
   "settings_sound_levelDone": "Level End",
-  "settings_sound_nothing": "No Sound"
+  "settings_sound_nothing": "No Sound",
+
+  "settings_Infos": "Additional Infos",
+  "settings_Infos_dataProtection": "The App doesnt collect and share any of your data, it's completly privat!\nThe only way someome can see your data is when you show them your smartphone 😇",
+
+  "questionPage_WellDone": "{count, plural, =0{Great job giving feedback{name}!!\n\uD83E\uDD73} =1{Nice that you took the time for feedback{name}!\n\uD83E\uDD73} other{Awesome that you're reflecting{name}!\n\uD83E\uDD73}}",
+  "questionPage_WellDone2": "{count, plural, =0{Klasse, dass du's geschafft hast{name}!!\n\uD83E\uDD73} =1{Schön, dass du dir die Zeit genommen hast{name}!\n\uD83E\uDD73} other{Toll, dass du reflektierst{name}!\n\uD83E\uDD73}}"
 }

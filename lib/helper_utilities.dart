@@ -97,7 +97,7 @@ class Utilities{
 
 
   ///Zeigt das HilfeFenster
-  // wollte nicht extra eine neue Klasse für sowas simples anlegen
+  //Die Texte sind etwas seltsam aufgebaut, hat so vom Style und den Möglichkeiten aber am besten gepasst
   void showHelpDialog(BuildContext context, String whichSite, [String? name]) {
     TextSpan mainText;
     final localizations = S.of(context);
@@ -147,7 +147,7 @@ class Utilities{
                     SizedBox(height: 3),
                     Row(
                       children: [
-                        Icon(Icons.today, size: 30, color: Colors.tealAccent,),
+                        Icon(Icons.today, size: 30),
                         SizedBox(width: 10),
                         Expanded(
                           child: Text(
@@ -343,7 +343,7 @@ class Utilities{
           style: TextStyle(fontSize: 10),
         );
         break;
-      case "Today":
+      case "DayPage":
         mainText = TextSpan(
           children: [
             WidgetSpan(
@@ -353,13 +353,8 @@ class Utilities{
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("Heute Überischt", textAlign: TextAlign.center),
-                    //TODO: Heute HIlfeNachricht
-                    //Text(S.current.weekOverViewText2, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold),),
-                    //Text(S.current.weekOverViewText3, textAlign: TextAlign.center),
-                    //Text(S.current.weekOverViewText4, textAlign: TextAlign.center),
-                    //Text(S.current.weekOverViewText5, textAlign: TextAlign.center),
-                    //Text(S.current.weekOverViewText6, textAlign: TextAlign.center),
+                    //Text(S.current.todayHelpMessage1, textAlign: TextAlign.center),
+                    Text(S.current.todayHelpMessage2, textAlign: TextAlign.center)
                   ],
                 ),
               ),
@@ -434,6 +429,39 @@ class Utilities{
     );
   }
 
+  ///Manuelle Funktion, da die .arb datei diesen Syntax nicht checkt und die einzelenen wörter für Variabeln hält
+  ///  "activity_adjective": "{count, plural, =0{garnicht} =1{weniger} =2{eher weniger} =3{neutral} =4{eher gut} =5{gut} =6{besonders gut} other{unbekannt}}",
+  List<String> getActivityAdjective(int index){
+    switch(index){
+      case 0:
+        return [
+          S.current.activity_good_adjective1,
+          S.current.activity_calm_adjective1,
+          S.current.activity_help_adjective1,
+        ];
+      case 1:
+        return [
+          S.current.activity_good_adjective2,
+          S.current.activity_calm_adjective2,
+          S.current.activity_help_adjective2
+        ];
+      case 5:
+        return [
+          S.current.activity_good_adjective3,
+          S.current.activity_calm_adjective3,
+          S.current.activity_help_adjective3
+        ];
+      case 6:
+        return [
+          S.current.activity_good_adjective4,
+          S.current.activity_calm_adjective4,
+          S.current.activity_help_adjective4
+        ];
+      default:
+        return ["","",""];
+    }
+  }
+
 
   /// Funktion, die den QR-Code in einem Dialog anzeigt
   void showQrCode(BuildContext context) {
@@ -442,7 +470,9 @@ class Utilities{
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("QR Code"),
-          content:  RepaintBoundary(
+          content:  SizedBox(
+            width: 400,
+                  height: 400,
                   child: Padding(
                     padding: EdgeInsets.all(0),
                     child: QrImageView(

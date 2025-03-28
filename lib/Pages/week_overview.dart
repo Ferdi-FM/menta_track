@@ -374,7 +374,7 @@ class WeekOverviewState extends State<WeekOverview> {
                       },
                       stateChangeCallback:(actionsliderState1 ,actionSliderState2, actionSliderController1) {
                         //actionSliderState2.position; //Prozent des Sliders
-                        HapticFeedback.vibrate();
+                        HapticFeedback.lightImpact();
                       },
                     ) : ElevatedButton(
                         style: ElevatedButton.styleFrom(minimumSize: Size(200,50),),

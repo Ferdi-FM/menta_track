@@ -36,25 +36,25 @@ class DayOverviewPage extends StatefulWidget {
 class DayOverviewState extends State<DayOverviewPage> {
   DatabaseHelper databaseHelper = DatabaseHelper();
   late ConfettiController _controllerCenter;
-  List<RadarEntry> radarEntries = [];
-  int overAllTasksThisDay = 0;
-  int tasksDoneInt = 0;
-  int tasksMissed = 0;
-  bool loaded = false;
-  bool tooEarly = false;
-  String name = "";
+  List<RadarEntry> _radarEntries = [];
+  int _overAllTasksThisDay = 0;
+  int _tasksDoneInt = 0;
+  int _tasksMissed = 0;
+  bool _loaded = false;
+  bool _tooEarly = false;
+  String _name = "";
 
-  double startFrame = 0;
-  double endFrame = 0;
+  double _startFrame = 0;
+  double _endFrame = 0;
 
-  List<String> favoriteAnswers = [];
-  bool noFavorites = false;
+  List<String> _favoriteAnswers = [];
+  bool _noFavorites = false;
 
   @override
   void initState() {
     getTermineForDay();
-    _controllerCenter = ConfettiController(duration: const Duration(seconds: 2));
-    tooEarly = DateTime.now().isBefore(DateFormat("dd.MM.yy").parse(widget.weekDayKey));
+    _controllerCenter = ConfettiController(duration: const Duration(seconds: 1));
+    _tooEarly = DateTime.now().isBefore(DateFormat("dd.MM.yy").parse(widget.weekDayKey));
     super.initState();
   }
 
@@ -69,9 +69,9 @@ class DayOverviewState extends State<DayOverviewPage> {
   void getTermineForDay() async{
     List<Termin> termineForThisDay = await databaseHelper.getDayTermine(widget.weekDayKey); //weekKey im Format "dd.MM.yy"
     int totalTasksThisWeek = await databaseHelper.getWeekTermineCount(widget.weekKey, false);
-    overAllTasksThisDay = termineForThisDay.length;
+    _overAllTasksThisDay = termineForThisDay.length;
     SettingData data = await SettingsPageState().getSettings();
-    name = data.name;
+    _name = data.name;
 
     DateTime date = DateFormat('dd.MM.yy').parse(widget.weekDayKey);
     date = DateTime(date.year, date.month, date.day, 0 , 1 ); //Sucht termine in dieser Woche bevor dem Tag  //DateTime.now().hour, DateTime.now().minute
@@ -86,7 +86,7 @@ class DayOverviewState extends State<DayOverviewPage> {
     int tasksUntilThisDay = maps.length;
 
     if(termineForThisDay.isNotEmpty) {
-      tasksDoneInt = 0;
+      _tasksDoneInt = 0;
       int meanQuestion1 = 0;
       int meanQuestion2 = 0;
       int meanQuestion3 = 0;
@@ -103,7 +103,7 @@ class DayOverviewState extends State<DayOverviewPage> {
         }
 
         if (t.answered) {
-          tasksDoneInt++;
+          _tasksDoneInt++;
           if (t.goodMean == 6) {
             favoriteTasks = "$favoriteTasks • ${t.terminName} $negative\n";
           }
@@ -118,31 +118,30 @@ class DayOverviewState extends State<DayOverviewPage> {
           meanQuestion3 = meanQuestion3 + (t.helpMean); //wie gut getan
         } else {
           if(DateTime.now().isAfter(t.timeBegin.add(Duration(minutes: 10)))){
-            tasksMissed++;
+            _tasksMissed++;
           }
         }
       }
-      radarEntries = [
+      _radarEntries = [
         //wie gut ging es dir
-        RadarEntry(value: meanQuestion1 / tasksDoneInt +1),
+        RadarEntry(value: meanQuestion1 / _tasksDoneInt +1),
         //wie gut hat es getan
-        RadarEntry(value: meanQuestion3 / tasksDoneInt +1),
+        RadarEntry(value: meanQuestion3 / _tasksDoneInt +1),
         //wie ruhig warst du
-        RadarEntry(value: meanQuestion2 / tasksDoneInt +1),
+        RadarEntry(value: meanQuestion2 / _tasksDoneInt +1),
 
       ];
-      favoriteAnswers = [favoriteTasks.trimRight(), calmTasks.trimRight(), helpingTasks.trimRight()]; //.trimRight() entfernt letztes \n, if(favoriteTasks != "") favoriteAnswers.add(...) geht nicht, da die Tasks den Comments zugeordnet werden müssen, wenn nur calmTaks da wären, würden diese sonst den favoriteComment zugeordnet werden
-      if (favoriteTasks == "" && calmTasks == "" && helpingTasks == "") noFavorites = true;//schaut ob sie leer sind, damit kein leeres Material angezeigt wird
+      _favoriteAnswers = [favoriteTasks.trimRight(), calmTasks.trimRight(), helpingTasks.trimRight()]; //.trimRight() entfernt letztes \n, if(favoriteTasks != "") favoriteAnswers.add(...) geht nicht, da die Tasks den Comments zugeordnet werden müssen, wenn nur calmTaks da wären, würden diese sonst den favoriteComment zugeordnet werden
+      if (favoriteTasks == "" && calmTasks == "" && helpingTasks == "") _noFavorites = true;//schaut ob sie leer sind, damit kein leeres Material angezeigt wird
     } else {
-      noFavorites = true;
+      _noFavorites = true;
     }
-    startFrame = tasksUntilThisDay/totalTasksThisWeek;
-    endFrame = (tasksUntilThisDay + tasksDoneInt)/totalTasksThisWeek;
-
+    _startFrame = tasksUntilThisDay/totalTasksThisWeek;
+    _endFrame = (tasksUntilThisDay + _tasksDoneInt)/totalTasksThisWeek;
     setState(() {
-      tasksDoneInt;
-      overAllTasksThisDay;
-      loaded = true;
+      _tasksDoneInt;
+      _overAllTasksThisDay;
+      _loaded = true;
       _controllerCenter.play();
       //_controllerConstant.play();
     });
@@ -150,7 +149,7 @@ class DayOverviewState extends State<DayOverviewPage> {
 
   ///Erstellt die Confetti Widgets
   Widget buildConfettiWidgets() {
-    if (overAllTasksThisDay == 0 || tasksDoneInt == 0 || !widget.fromNotification) {
+    if (_overAllTasksThisDay == 0 || _tasksDoneInt == 0 || !widget.fromNotification) {
       return SizedBox(); // Wenn eine der Bedingungen nicht erfüllt ist, kein Confetti anzeigen
     }
 
@@ -195,65 +194,65 @@ class DayOverviewState extends State<DayOverviewPage> {
     final local = S.current;
 
     List<TextSpan> text = [];
-    if(overAllTasksThisDay == 0){
+    if(_overAllTasksThisDay == 0){
       ///kein Termin an diesem tag
       text = [
         TextSpan(text: local.noAppointmentsOn(DateFormat("dd.MM.yy").format(DateTime.now()) == widget.weekDayKey ? local.today : "${local.am} ${widget.weekDayKey}")),
         TextSpan(text: "\n\n", style: TextStyle(fontWeight: FontWeight.bold)),
-        TextSpan(text: local.hopeYouHadAGoodDay(name.length,name)),
+        TextSpan(text: local.hopeYouHadAGoodDay(_name.length,_name)),
       ];
     }
-    if(overAllTasksThisDay != 0){
+    if(_overAllTasksThisDay != 0){
       ///Es gab termine
-      if(tasksDoneInt != 0){
+      if(_tasksDoneInt != 0){
         ///Es wurde mindestens ein Termin beantwortet
         text = [
           TextSpan(text: local.taskCompletedOn(DateFormat("dd.MM.yy").format(DateTime.now()) == widget.weekDayKey ? local.today : "${S.of(context).am} ${widget.weekDayKey}"),style: TextStyle(fontSize: 25),),
-          TextSpan(text: "$tasksDoneInt",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),),
-          TextSpan(text: local.tasksCompleted(tasksDoneInt),style: TextStyle(fontSize: 25),),
-          TextSpan(text: "\n\n${Utilities().getRandomisedEncouragement(widget.fromNotification, name)}",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),),
+          TextSpan(text: "$_tasksDoneInt",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),),
+          TextSpan(text: local.tasksCompleted(_tasksDoneInt),style: TextStyle(fontSize: 25),),
+          TextSpan(text: "\n\n${Utilities().getRandomisedEncouragement(widget.fromNotification, _name)}",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),),
           ///mindestens ein Termin missed
-          if(tasksMissed > 0 )TextSpan(text: local.tasksPendingFeedback(tasksMissed),style: TextStyle(fontSize: 15))
+          if(_tasksMissed > 0 )TextSpan(text: local.tasksPendingFeedback(_tasksMissed),style: TextStyle(fontSize: 15))
         ];
 
       }
-      if(tasksMissed > 0 && tasksDoneInt == 0){
+      if(_tasksMissed > 0 && _tasksDoneInt == 0){
         ///Noch keinen Termin beantwortet
         text = [
           if(widget.fromNotification) TextSpan(text: S.current.noFeedbackFromNotification),
-          TextSpan(text: local.tasksNotAnsweredOn(overAllTasksThisDay, DateFormat("dd.MM.yy").format(DateTime.now()) == widget.weekDayKey ? local.today : "${local.am} ${widget.weekDayKey}")),
+          TextSpan(text: local.tasksNotAnsweredOn(_overAllTasksThisDay, DateFormat("dd.MM.yy").format(DateTime.now()) == widget.weekDayKey ? local.today : "${local.am} ${widget.weekDayKey}")),
           TextSpan(text: "\n\n"),
           TextSpan(text: local.checkPendingFeedback),
-          TextSpan(text: "\n\n${local.hopeYouHadAGoodDay(name.length,name)}"),
+          TextSpan(text: "\n\n${local.hopeYouHadAGoodDay(_name.length,_name)}"),
         ];
       }
-      if(tasksMissed == 0 && tasksDoneInt == 0){
+      if(_tasksMissed == 0 && _tasksDoneInt == 0){
         ///die Aktivität ist noch nicht gekommen
         text = [
-          TextSpan(text: local.activity_not_there_yet(overAllTasksThisDay, name)),
+          TextSpan(text: local.activity_not_there_yet(_overAllTasksThisDay, _name)),
         ];
       }
-      if(tasksDoneInt + tasksMissed != overAllTasksThisDay){
+      if(_tasksDoneInt + _tasksMissed != _overAllTasksThisDay){
         ///mindestens ein termin ist noch nicht gekommen
         text = [
-          if(tasksDoneInt > 0)...{
+          if(_tasksDoneInt > 0)...{
             TextSpan(text: local.taskCompletedOn(DateFormat("dd.MM.yy").format(DateTime.now()) == widget.weekDayKey ? local.today : "${S.of(context).am}\n${widget.weekDayKey}"),style: TextStyle(fontSize: 25),),
-            TextSpan(text: "$tasksDoneInt",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),),
-            TextSpan(text: local.tasksCompleted(tasksDoneInt),style: TextStyle(fontSize: 25),),
-            TextSpan(text: "\n\n${Utilities().getRandomisedEncouragement(widget.fromNotification, name)}",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),),
+            TextSpan(text: "$_tasksDoneInt",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),),
+            TextSpan(text: local.tasksCompleted(_tasksDoneInt),style: TextStyle(fontSize: 25),),
+            TextSpan(text: "\n\n${Utilities().getRandomisedEncouragement(widget.fromNotification, _name)}",style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),),
           },
           ///mindestens ein Termin missed
-          if(tasksMissed > 0 ) TextSpan(text: local.tasksPendingFeedback(tasksMissed),style: TextStyle(fontSize: 15)),
-          TextSpan(text: local.activity_not_there_yet(overAllTasksThisDay, name)),
+          if(_tasksMissed > 0 ) TextSpan(text: local.tasksPendingFeedback(_tasksMissed),style: TextStyle(fontSize: 15)),
+          TextSpan(text: local.activity_not_there_yet(_overAllTasksThisDay, _name)),
         ];
       }
     }
     if(DateTime.now().isBefore(DateFormat("dd.MM.yy").parse(widget.weekDayKey))){
       ///Der Tag ist noch nicht gekommen
       text = [
-        TextSpan(text: S.current.dayNotYetArrived(name)),
+        TextSpan(text: S.current.dayNotYetArrived(_name)),
         TextSpan(text: "\n\n", style: TextStyle(fontWeight: FontWeight.bold)),
-        TextSpan(text: local.hopeYouHadAGoodDay(name.length,name)),
+        TextSpan(text: local.hopeYouHadAGoodDay(_name.length,_name)),
       ];
     }
     if(text.isNotEmpty){
@@ -313,7 +312,7 @@ class DayOverviewState extends State<DayOverviewPage> {
                 blendMode: BlendMode.dstIn,
                 child: SingleChildScrollView(
                   // ignore: avoid_unnecessary_containers
-                  child: loaded ? Container(
+                  child: _loaded ? Container(
                     child: Padding(
                       padding: EdgeInsets.all(25),
                       child: Column(
@@ -321,9 +320,9 @@ class DayOverviewState extends State<DayOverviewPage> {
                         children: [
                           SizedBox(height: MediaQuery.of(context).size.height*0.07,),
                           SizedBox(height: MediaQuery.of(context).size.height*0.03,),
-                          loaded ? getText() : SizedBox(width: MediaQuery.of(context).size.width,),
+                          _loaded ? getText() : SizedBox(width: MediaQuery.of(context).size.width,),
                           SizedBox(height: 20,),
-                          if (!noFavorites) Material(//zuerst favoriteAnswers.isNotEmpty, durch es ist aber immer mindestens ["","",""] was als voll gezählt wird
+                          if (!_noFavorites) Material(//zuerst favoriteAnswers.isNotEmpty, durch es ist aber immer mindestens ["","",""] was als voll gezählt wird
                             elevation: 10,
                             color: Theme.of(context).scaffoldBackgroundColor,
                             borderRadius: BorderRadius.circular(15),
@@ -339,25 +338,25 @@ class DayOverviewState extends State<DayOverviewPage> {
                                     child: Text("${S.current.special_activities}\n", textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
                                   ),
                                   for (int i = 0; i < 3; i++) ...{ //favoriteComments.length
-                                    Utilities().favoriteItems(i, favoriteAnswers, context),
+                                    Utilities().favoriteItems(i, _favoriteAnswers, context),
                                   },
                                 ],
                               ),
                             ),
                           ),
                           SizedBox(height: 20),
-                          if (endFrame != 0 && !tooEarly && tasksMissed != overAllTasksThisDay)
+                          if (_endFrame != 0 && !_tooEarly && _tasksMissed != _overAllTasksThisDay)
                             GifProgressWidget(
-                              progress: endFrame,
-                              startFrame: overAllTasksThisDay != 0 ? startFrame : 0,
+                              progress: _endFrame,
+                              startFrame: _overAllTasksThisDay != 0 ? _startFrame : 0,
                               finished: () => {},
-                              termineForThisDay: overAllTasksThisDay,
+                              termineForThisDay: _overAllTasksThisDay,
                               forRewardPage: false,
                             ),
                           SizedBox(
                             height: 40,
                           ),
-                          (overAllTasksThisDay == 0|| tasksDoneInt == 0)
+                          (_overAllTasksThisDay == 0|| _tasksDoneInt == 0)
                               ? SizedBox()
                               : Text(
                             S.of(context).daily_Values,
@@ -369,12 +368,12 @@ class DayOverviewState extends State<DayOverviewPage> {
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          (overAllTasksThisDay == 0|| tasksDoneInt == 0)
+                          (_overAllTasksThisDay == 0|| _tasksDoneInt == 0)
                               ? SizedBox()
                               : SizedBox(
                             height: 30,
                           ),
-                          (overAllTasksThisDay == 0|| tasksDoneInt == 0)
+                          (_overAllTasksThisDay == 0|| _tasksDoneInt == 0)
                               ? SizedBox()
                               : Padding(
                             padding: EdgeInsets.all(10),
@@ -393,15 +392,15 @@ class DayOverviewState extends State<DayOverviewPage> {
                                     /// case 0 ist oben, case 1 ist unten links, case 2 ist unten rechts
                                       case 0: //Wie gut hast du dich gefühlt
                                         return RadarChartTitle(
-                                          text: "${S.of(context).legend_Msg0}\n ${radarEntries[0].value.toString().substring(0, 3)}/7",
+                                          text: "${S.of(context).legend_Msg0}\n ${_radarEntries[0].value.toString().substring(0, 3)}/7",
                                         );
                                       case 1: //Wie ruhig warst du
                                         return RadarChartTitle(
-                                            text: "${radarEntries[1].value.toString().substring(0, 3)}/7 \n ${S.of(context).legend_Msg2_clip}",
+                                            text: "${_radarEntries[1].value.toString().substring(0, 3)}/7 \n ${S.of(context).legend_Msg2_clip}",
                                             angle: 0);
                                       case 2: //Wie sehr hat es geholfen?
                                         return RadarChartTitle(
-                                            text: "${radarEntries[2].value.toString().substring(0, 3)}/7 \n ${S.of(context).legend_Msg1_clip}",
+                                            text: "${_radarEntries[2].value.toString().substring(0, 3)}/7 \n ${S.of(context).legend_Msg1_clip}",
                                             angle: 0);
                                       default:
                                         return RadarChartTitle(text: "");
@@ -431,7 +430,7 @@ class DayOverviewState extends State<DayOverviewPage> {
                               },
                             stateChangeCallback:(actionsliderState1 ,actionSliderState2, actionSliderController1) {
                               //actionSliderState2.position; //Prozent des Sliders
-                              HapticFeedback.vibrate();
+                              HapticFeedback.lightImpact();
                             },
                           )
                               : ElevatedButton(
@@ -459,7 +458,7 @@ class DayOverviewState extends State<DayOverviewPage> {
   List<RadarDataSet> showingDataSets() {
     return <RadarDataSet> [
       RadarDataSet(
-        dataEntries: radarEntries,
+        dataEntries: _radarEntries,
         fillColor: Colors.lightBlueAccent.withValues(alpha: 0.4),
         borderColor: Colors.blue.withValues(alpha: 0.7),
         borderWidth: 2,

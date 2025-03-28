@@ -288,6 +288,208 @@ class S {
     );
   }
 
+  /// `Activities where you felt {adjective}:`
+  String good_activities_desc_variable(Object adjective) {
+    return Intl.message(
+      'Activities where you felt $adjective:',
+      name: 'good_activities_desc_variable',
+      desc: '',
+      args: [adjective],
+    );
+  }
+
+  /// `Activities where you felt {adjective}:`
+  String calm_activities_desc_variable(Object adjective) {
+    return Intl.message(
+      'Activities where you felt $adjective:',
+      name: 'calm_activities_desc_variable',
+      desc: '',
+      args: [adjective],
+    );
+  }
+
+  /// `Activities that made you feel {adjective}:`
+  String help_activities_desc_variable(Object adjective) {
+    return Intl.message(
+      'Activities that made you feel $adjective:',
+      name: 'help_activities_desc_variable',
+      desc: '',
+      args: [adjective],
+    );
+  }
+
+  /// `{count, plural, =0{not} =1{few} =2{good} other{better}}`
+  String buttonDisplay(num count) {
+    return Intl.plural(
+      count,
+      zero: 'not',
+      one: 'few',
+      two: 'good',
+      other: 'better',
+      name: 'buttonDisplay',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `{count, plural, =0{last week} =1{last month} other{all time}}`
+  String buttonTimeDisplay(num count) {
+    return Intl.plural(
+      count,
+      zero: 'last week',
+      one: 'last month',
+      other: 'all time',
+      name: 'buttonTimeDisplay',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `Filter`
+  String get activity_filter {
+    return Intl.message('Filter', name: 'activity_filter', desc: '', args: []);
+  }
+
+  /// `Filter by:`
+  String get activity_filter_desc1 {
+    return Intl.message(
+      'Filter by:',
+      name: 'activity_filter_desc1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `good, calm, helpful 😊`
+  String get activity_filter_desc2 {
+    return Intl.message(
+      'good, calm, helpful 😊',
+      name: 'activity_filter_desc2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `bad`
+  String get activity_good_adjective1 {
+    return Intl.message(
+      'bad',
+      name: 'activity_good_adjective1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `okay`
+  String get activity_good_adjective2 {
+    return Intl.message(
+      'okay',
+      name: 'activity_good_adjective2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `good`
+  String get activity_good_adjective3 {
+    return Intl.message(
+      'good',
+      name: 'activity_good_adjective3',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `better`
+  String get activity_good_adjective4 {
+    return Intl.message(
+      'better',
+      name: 'activity_good_adjective4',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `restless`
+  String get activity_calm_adjective1 {
+    return Intl.message(
+      'restless',
+      name: 'activity_calm_adjective1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `okay`
+  String get activity_calm_adjective2 {
+    return Intl.message(
+      'okay',
+      name: 'activity_calm_adjective2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `calm`
+  String get activity_calm_adjective3 {
+    return Intl.message(
+      'calm',
+      name: 'activity_calm_adjective3',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `very calm`
+  String get activity_calm_adjective4 {
+    return Intl.message(
+      'very calm',
+      name: 'activity_calm_adjective4',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `not helpful`
+  String get activity_help_adjective1 {
+    return Intl.message(
+      'not helpful',
+      name: 'activity_help_adjective1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `slightly helpful`
+  String get activity_help_adjective2 {
+    return Intl.message(
+      'slightly helpful',
+      name: 'activity_help_adjective2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `helpful`
+  String get activity_help_adjective3 {
+    return Intl.message(
+      'helpful',
+      name: 'activity_help_adjective3',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `very helpful`
+  String get activity_help_adjective4 {
+    return Intl.message(
+      'very helpful',
+      name: 'activity_help_adjective4',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Monday`
   String get monday {
     return Intl.message('Monday', name: 'monday', desc: '', args: []);
@@ -1176,6 +1378,26 @@ class S {
     return Intl.message(
       'Good luck with giving feedback! I hope you can more easily find activities and things that bring you joy or help you in other ways :)',
       name: 'weekOverViewText6',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Today Overview`
+  String get todayHelpMessage1 {
+    return Intl.message(
+      'Today Overview',
+      name: 'todayHelpMessage1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This is your overview for today.\nYou can see what still needs to be done today and what feedback you've already given 👍\n\nHopefully, this helps you a little with structuring your day 🥰`
+  String get todayHelpMessage2 {
+    return Intl.message(
+      'This is your overview for today.\nYou can see what still needs to be done today and what feedback you\'ve already given 👍\n\nHopefully, this helps you a little with structuring your day 🥰',
+      name: 'todayHelpMessage2',
       desc: '',
       args: [],
     );
@@ -2256,6 +2478,26 @@ class S {
     );
   }
 
+  /// `Name`
+  String get settings_name_headline {
+    return Intl.message(
+      'Name',
+      name: 'settings_name_headline',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Haptic Feedback`
+  String get settings_hapticFeedback {
+    return Intl.message(
+      'Haptic Feedback',
+      name: 'settings_hapticFeedback',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Standard`
   String get settings_sound_Standard {
     return Intl.message(
@@ -2313,6 +2555,52 @@ class S {
       name: 'settings_sound_nothing',
       desc: '',
       args: [],
+    );
+  }
+
+  /// `Additional Infos`
+  String get settings_Infos {
+    return Intl.message(
+      'Additional Infos',
+      name: 'settings_Infos',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The App doesnt collect and share any of your data, it's completly privat!\nThe only way someome can see your data is when you show them your smartphone 😇`
+  String get settings_Infos_dataProtection {
+    return Intl.message(
+      'The App doesnt collect and share any of your data, it\'s completly privat!\nThe only way someome can see your data is when you show them your smartphone 😇',
+      name: 'settings_Infos_dataProtection',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `{count, plural, =0{Great job giving feedback{name}!!\n🥳} =1{Nice that you took the time for feedback{name}!\n🥳} other{Awesome that you're reflecting{name}!\n🥳}}`
+  String questionPage_WellDone(num count, Object name) {
+    return Intl.plural(
+      count,
+      zero: 'Great job giving feedback$name!!\n🥳',
+      one: 'Nice that you took the time for feedback$name!\n🥳',
+      other: 'Awesome that you\'re reflecting$name!\n🥳',
+      name: 'questionPage_WellDone',
+      desc: '',
+      args: [count, name],
+    );
+  }
+
+  /// `{count, plural, =0{Klasse, dass du's geschafft hast{name}!!\n🥳} =1{Schön, dass du dir die Zeit genommen hast{name}!\n🥳} other{Toll, dass du reflektierst{name}!\n🥳}}`
+  String questionPage_WellDone2(num count, Object name) {
+    return Intl.plural(
+      count,
+      zero: 'Klasse, dass du\'s geschafft hast$name!!\n🥳',
+      one: 'Schön, dass du dir die Zeit genommen hast$name!\n🥳',
+      other: 'Toll, dass du reflektierst$name!\n🥳',
+      name: 'questionPage_WellDone2',
+      desc: '',
+      args: [count, name],
     );
   }
 }

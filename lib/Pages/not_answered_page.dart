@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:menta_track/Pages/question_page.dart';
 import 'package:menta_track/Pages/settings.dart';
 import 'package:menta_track/database_helper.dart';
@@ -18,17 +19,39 @@ class NotAnsweredPage extends StatefulWidget {
   NotAnsweredState createState() => NotAnsweredState();
 }
 
-class NotAnsweredState extends State<NotAnsweredPage> {
-  List<TerminData> itemsNotAnswered = [];
-  bool loaded = false;
-  Widget themeIllustration = SizedBox();
+class NotAnsweredState extends State<NotAnsweredPage> with RouteAware {
+  List<TerminData> _itemsNotAnswered = [];
+  Widget _themeIllustration = SizedBox();
   bool _showOnlyOnMainPage = false;
-  String name = "";
+  bool _hapticFeedback = false;
+  int _rememberUnAnsweredTasks = 0;
 
   @override
   void initState() {
     setUpPage();
     super.initState();
+  }
+
+  ///Checkt, ob auf die Startseite zurückgekehrt wurde und ob es Änderungen in der Datenbank gab
+  @override
+  void didPopNext() {
+    if(mounted)checkForChange();
+    super.didPopNext();
+  }
+
+  ///Subscribed zu dem Routeobserver
+  @override
+  void didChangeDependencies() {
+    if (ModalRoute.of(context)?.isCurrent == true) {
+      routeObserver.subscribe(this, ModalRoute.of(context) as PageRoute);
+    }
+    super.didChangeDependencies();
+  }
+
+  ///Checkt ob es Änderungen in der Datenbank gab
+  Future<void> checkForChange() async {
+    int newUnAnsweredTasks = await DatabaseHelper().getAllTermineCount(false, true);
+    if(newUnAnsweredTasks != _rememberUnAnsweredTasks) setUpPage();
   }
 
   ///Lädt alle unbeantworteten Aktivitäten aus der Datenbank und fügt sie in eine Liste ein
@@ -40,6 +63,11 @@ class NotAnsweredState extends State<NotAnsweredPage> {
         where: "answered = ? AND (datetime(timeBegin) < datetime(CURRENT_TIMESTAMP))",
         whereArgs: [0]
     );
+    if(maps.isNotEmpty) {
+      _rememberUnAnsweredTasks = maps.length;
+    } else {
+      _rememberUnAnsweredTasks = 0;
+    }
     for (Map<String, dynamic> map in maps) {
       String terminName = map["terminName"];
       String weekKey = map["weekKey"];
@@ -58,6 +86,7 @@ class NotAnsweredState extends State<NotAnsweredPage> {
 
   ///Öffnet ein Item via ScaleAnimation, diese lässt die Seite aus dem Listelement "herauswachsen"
   dynamic openItem(TerminData data, var ev) async {
+    if(_hapticFeedback) HapticFeedback.lightImpact();
     Offset pos = ev.globalPosition;
     return await navigatorKey.currentState?.push(
         PageRouteBuilder(
@@ -87,23 +116,24 @@ class NotAnsweredState extends State<NotAnsweredPage> {
   ///lädt thema und items und updatet den State
   void setUpPage() async {
     loadTheme();
-    itemsNotAnswered = await loadNotAnswered();
-    setState(() {
-      loaded = true; //damit wenn nicht geladen ein ladesymbol angezeigt werden kann
-    });
+    _itemsNotAnswered = await loadNotAnswered();
 
   }
 
   ///lädt das App-Theme
   void loadTheme() async {
     SettingData data = await SettingsPageState().getSettings();
-    name = data.name;
     _showOnlyOnMainPage = data.themeOnlyOnMainPage;
+    _hapticFeedback = await SettingsPageState().getHapticFeedback();
+    setState(() {
+
+    });
     Widget image = SizedBox();
     if (mounted) image = await ThemeHelper().getIllustrationImage("OpenPage"); //mounted redundant, kann wrsch. entfernt werden
     setState(() {
-      themeIllustration = image;
+      _themeIllustration = image;
       _showOnlyOnMainPage;
+      _hapticFeedback;
     });
   }
 
@@ -116,7 +146,7 @@ class NotAnsweredState extends State<NotAnsweredPage> {
           bool isPortrait = constraints.maxWidth < 600;
           return isPortrait ? Column(
             children: [
-              themeIllustration,
+              _themeIllustration,
               Expanded(
                 child: ShaderMask(
                   shaderCallback: (Rect bounds) {
@@ -133,16 +163,16 @@ class NotAnsweredState extends State<NotAnsweredPage> {
                     ).createShader(bounds);
                   },
                   blendMode: BlendMode.dstIn,
-                  child: itemsNotAnswered.isNotEmpty ? ListView.builder(
-                    itemCount: itemsNotAnswered.length,
+                  child: _itemsNotAnswered.isNotEmpty ? ListView.builder(
+                    itemCount: _itemsNotAnswered.length,
                     itemBuilder: (context, index) {
                       return NotAnsweredTile(
-                        item: itemsNotAnswered[index],
+                        item: _itemsNotAnswered[index],
                         onItemTap: (ev) async {
-                          final result = await openItem(itemsNotAnswered[index], ev);
+                          final result = await openItem(_itemsNotAnswered[index], ev);
                           if (result != null) {
                             setState(() {
-                              itemsNotAnswered.removeAt(index);
+                              _itemsNotAnswered.removeAt(index);
                             });
                           }
                         },
@@ -157,8 +187,8 @@ class NotAnsweredState extends State<NotAnsweredPage> {
             ],
           ) : Row( ///Landscape Layout
             children: [
-              if(themeIllustration is! SizedBox) Expanded(
-                  child: themeIllustration
+              if(_themeIllustration is! SizedBox) Expanded(
+                  child: _themeIllustration
               ) else SizedBox(width: 80,),
               Expanded(
                 child: ShaderMask(
@@ -177,16 +207,16 @@ class NotAnsweredState extends State<NotAnsweredPage> {
                   },
                   blendMode: BlendMode.dstIn,
                   child: ListView.builder(
-                    itemCount: itemsNotAnswered.length,
+                    itemCount: _itemsNotAnswered.length,
                     itemBuilder: (context, index) {
                       return NotAnsweredTile(
-                        item: itemsNotAnswered[index],
+                        item: _itemsNotAnswered[index],
                         onItemTap: (ev) async {
-                          final result = await openItem(itemsNotAnswered[index], ev);
+                          final result = await openItem(_itemsNotAnswered[index], ev);
                           if (result != null) {
                             setState(() {
                               //Teilweise seltsames Verhalten und aufgerufen, bevor QuestionPage gepopt ist?
-                              itemsNotAnswered.removeAt(index);
+                              _itemsNotAnswered.removeAt(index);
                             });
                           }
                         },
@@ -195,7 +225,7 @@ class NotAnsweredState extends State<NotAnsweredPage> {
                   ),
                 ),
               ),
-              if(themeIllustration is! SizedBox) SizedBox(width: 0,) else SizedBox(width: 80,), //Zusätzlicher Abstand, falls keine illustration gewählt wurde
+              if(_themeIllustration is! SizedBox) SizedBox(width: 0,) else SizedBox(width: 80,), //Zusätzlicher Abstand, falls keine illustration gewählt wurde
             ],
           );
         },

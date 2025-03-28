@@ -1,6 +1,10 @@
+import 'dart:collection';
+
 import 'package:add_2_calendar/add_2_calendar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:menta_track/Pages/settings.dart';
 import 'package:menta_track/Pages/week_overview.dart';
 import 'package:menta_track/helper_utilities.dart';
 import 'package:menta_track/database_helper.dart';
@@ -17,12 +21,12 @@ import 'day_overview.dart';
 
 class WeekPlanView extends StatefulWidget {
   final String weekKey;
-  final int? scrollToSpecificHour;
+  final DateTime? scrollToSpecificDayAndHour;
 
   const WeekPlanView({
     super.key,
     required this.weekKey,
-    this.scrollToSpecificHour,
+    this.scrollToSpecificDayAndHour,
   });
 
   @override
@@ -35,11 +39,19 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
   List<TimePlannerTask> tasks = [];
   bool updated = false;
   int rememberAnsweredTasks = 0;
+  bool hapticFeedback = false;
+  int scrollToSpecificDay = 0;
+  int scrollToSpecificHour = 0;
 
   @override
   void initState() {
     setUpCalendar(widget.weekKey);
+    loadTheme();
     super.initState();
+  }
+
+  void loadTheme() async{
+    hapticFeedback = await SettingsPageState().getHapticFeedback();
   }
 
   ///Falls eine Benachrichtigung geöffnet wird, wenn man bereits auf der WeekPlanView-Seite ist, wird so beim zurückkehren die Seite geupdated
@@ -74,9 +86,13 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
   ///Setup vom Kalendar und den Einträgen
   void setUpCalendar(String weekKey) async{
     DatabaseHelper databaseHelper = DatabaseHelper();
-
     calendarStart = DateTime.parse(weekKey);
     calendarHeaders = [];
+
+    if(widget.scrollToSpecificDayAndHour != null){
+      scrollToSpecificHour = widget.scrollToSpecificDayAndHour!.hour;
+      scrollToSpecificDay = widget.scrollToSpecificDayAndHour!.difference(calendarStart).inDays;
+    }
 
     ///Erstellt die Köpfe der einzelnen Spalten
     for(int i = 0; i < 7;i++){
@@ -93,44 +109,50 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
     }
 
     List<Termin> weekAppointments = await databaseHelper.getWeeklyPlan(widget.weekKey);
-    // Liste für die Gruppen von überschneidenden Terminen
+    // Liste für Gruppen von überschneidenden Terminen
     List<List<String>> overlapGroups = [];
-    // Set, um bereits gruppierte Termine zu verfolgen
     Set<String> groupedTerminNames = {};
 
-    // Funktion um zu überprüfen ob zwei Termine sich überschneiden
+    // Funktion, um zu überprüfen, ob zwei Termine sich überschneiden
     bool isOverlapping(Termin t1, Termin t2) {
       return t1.timeBegin.isBefore(t2.timeEnd) && t1.timeEnd.isAfter(t2.timeBegin);
     }
 
     // Gruppierung der Termine
     for (var t1 in weekAppointments) {
-      //SafeName, als einzigartige Identifikation
       String t1SafeName = "${t1.terminName}${t1.timeBegin.toIso8601String()}";
       if (groupedTerminNames.contains(t1SafeName)) continue;
 
-      //Wenn t1 noch in keiner Gruppe ist wird neue Gruppe erstellt
+      // Neue Gruppe mit t1 starten
       List<String> currentGroup = [t1SafeName];
+      Queue<Termin> toCheck = Queue.of([t1]);
 
-      //Vergleicht alle termine mit t1 und überspringt wenn er gleich ist, oder schon in einer gruppe ist
-      for (var t2 in weekAppointments) {
-        String t2SafeName =  "${t2.terminName}${t2.timeBegin.toIso8601String()}";
-        if (t1 == t2 || groupedTerminNames.contains(t2SafeName)) continue;
+      while (toCheck.isNotEmpty) {
+        var current = toCheck.removeFirst();
+        String currentSafeName = "${current.terminName}${current.timeBegin.toIso8601String()}"; //Unique String zum Vergleichen
 
-        //wenn sich die termine überschneiden wird t2 der aktuellen gruppe hinzugefügt und als schon gruppiert markiert (dem set hinzugefügt
-        if (isOverlapping(t1, t2)) {
-          currentGroup.add(t2SafeName);
-          groupedTerminNames.add(t2SafeName);
+        for (var t2 in weekAppointments) {
+          String t2SafeName = "${t2.terminName}${t2.timeBegin.toIso8601String()}";
+
+          if (groupedTerminNames.contains(t2SafeName) || currentSafeName == t2SafeName) continue;
+
+          if (isOverlapping(current, t2)) {
+            if(!currentGroup.contains(t2SafeName)){
+              currentGroup.add(t2SafeName);
+            }
+            groupedTerminNames.add(t2SafeName);
+            toCheck.add(t2);
+          }
         }
       }
 
-      // Termin selbst als gruppiert markieren
-      groupedTerminNames.add(t1SafeName);
-
-      // Gruppe nur hinzufügen, wenn sie mindestens zwei Termine enthält
+      // Gruppe nur hinzufügen, wenn sie mehr als einen Termin enthält
       if (currentGroup.length > 1) {
         overlapGroups.add(currentGroup);
       }
+
+      // Ursprünglichen Termin als verarbeitet markieren
+      groupedTerminNames.add(t1SafeName);
     }
 
     //TODO: Potentiell CellWidth erhöhen, wenn 3 oder mehr sich überschneiden!
@@ -159,7 +181,8 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
   }
 
   ///Tap auf einen Kalenderkopf
-  void clickOnCalendarHeader(String dateString){
+  Future<void> clickOnCalendarHeader(String dateString) async {
+    if(await SettingsPageState().getHapticFeedback()) HapticFeedback.lightImpact();
     String weekDayKey = dateString;
     navigatorKey.currentState?.push(MaterialPageRoute(
       builder: (context) => DayOverviewPage(
@@ -257,23 +280,23 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
                   Positioned(
                       top: 1,
                       left: 5,
-                      child: Text(DateFormat("HH:mm").format(startTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic, fontSize: duration/10 < 10 ? duration/10 : 9,),), //Ursprünglich 7 : 9
+                      child: Text(DateFormat("HH:mm").format(startTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic, fontSize: duration/8 < 10 ? duration/8 : 9,),), //Ursprünglich 7 : 9
                   ),
                   Positioned(
                     bottom: 1,
                     left: 5,
-                    child: Text(DateFormat("HH:mm").format(endTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic,  fontSize: duration/10 < 10 ? duration/10 : 9),), //${DateFormat("HH:mm").format(startTime)} -
+                    child: Text(DateFormat("HH:mm").format(endTime), style: TextStyle(fontWeight: FontWeight.w200, color: Colors.black87, fontStyle: FontStyle.italic,  fontSize: duration/8 < 10 ? duration/8 : 9),), //${DateFormat("HH:mm").format(startTime)} -
                   ),
                   Container(
                     height: textheight.toDouble(),
                     alignment: Alignment.center,
-                    margin: EdgeInsets.only(left: 10, right: 10, bottom: 14, top: 10), //Ursprünglich 8 : 12
+                    margin: EdgeInsets.only(left: 10, right: 10, bottom: 12, top: 10), //Ursprünglich 8 : 12
                       child: Text(
                           overflow: TextOverflow.ellipsis,
                           maxLines: (duration/30).toInt(),
                           title,
                           style: TextStyle(
-                            fontSize: 10, //Ursprünglich 11
+                            fontSize: duration > 30 ? 10 : duration/7, //Ursprünglich 11
                             color: Colors.black,
                           ),
                           textAlign: TextAlign.center,
@@ -307,6 +330,7 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
                       ),
                     ),
                     onPressed: (){
+                      if(hapticFeedback) HapticFeedback.lightImpact();
                       navigatorKey.currentState?.push(MaterialPageRoute(
                         builder: (context) =>
                             WeekOverview(
@@ -391,7 +415,8 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
                   use24HourFormat: true,
                   setTimeOnAxis: true,
                   currentTimeAnimation: true,
-                  animateToDefinedHour: widget.scrollToSpecificHour,
+                  animateToDefinedHour: scrollToSpecificHour,
+                  animateToDefinedDay: scrollToSpecificDay,
                   style: TimePlannerStyle(
                     cellHeight: 60,
                     cellWidth:  isPortrait ? 125 : ((MediaQuery.of(context).size.width - 60)/7).toInt(), //leider nur wenn neu gebuildet wird

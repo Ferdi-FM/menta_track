@@ -5,6 +5,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:menta_track/Pages/settings.dart';
 import 'package:menta_track/database_helper.dart';
 import 'package:menta_track/main.dart';
 import 'package:menta_track/reward_pop_up.dart';
@@ -35,18 +36,29 @@ class QuestionPageState extends State<QuestionPage> {
   TextEditingController textEditingController = TextEditingController();
   bool isEditable = false;
   bool isBeingEdited = false;
+  bool hapticFeedback = false;
   late bool isTooEarly = false;
   late bool slightlyTooEarly = false;
   DatabaseHelper databaseHelper = DatabaseHelper();
+  //Widget _themeIllustration = SizedBox();
   String name = "";
 
   @override
   void initState() {
     getTermin();
+    loadTheme();
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if(mounted) Utilities().checkAndShowFirstHelpDialog(context, "QuestionPage");
-    });
+
+  }
+
+  void loadTheme() async{
+    hapticFeedback = await SettingsPageState().getHapticFeedback();
+    //Falls man eine eigene Illustration für die FeedbackSeite einabauen wollte
+    //Widget image = SizedBox();
+    //if(mounted) image = await ThemeHelper().getRewardImage();
+    //setState(() {
+    //  _themeIllustration = image;
+    //});
   }
 
   ///Holt sich den Termin und füllt die Questionpage mit den Antworten, falls er schon beantwortet wurde
@@ -196,6 +208,7 @@ class QuestionPageState extends State<QuestionPage> {
                             value: index,
                             groupValue: radioAnswers[questionIndex],
                             onChanged: !isEditable ? null : (value) {
+                              if(hapticFeedback) HapticFeedback.lightImpact();
                               setState(() {
                                 radioAnswers[questionIndex] = value as int;
                               });
@@ -315,7 +328,6 @@ class QuestionPageState extends State<QuestionPage> {
                 }
             ),
           )
-          //Utilities().getHelpBurgerMenu(context, "WeekPlanView", widget.weekKey)
         ],
       ),
       body: GestureDetector(
@@ -325,8 +337,16 @@ class QuestionPageState extends State<QuestionPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: 15,),
-                //TODO IDEE: Übersicht über Werte wenn schon beantwortet
+                //if(!isEditable && !isTooEarly) Column(
+                //  spacing: 15,
+                //  children: [
+                //    //Kontext abhängig, wird aber nur minimal angepasst, sodass "Nein" Antworten nicht als anders auffallen
+                //    if(radioAnswers[0] == 0) Text(S.current.questionPage_WellDone2(Random().nextInt(3),name != "" ? " $name":""), textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.lightGreen),),
+                //    if(radioAnswers[0] != 0) Text(S.current.questionPage_WellDone(Random().nextInt(3),name != "" ? " $name":""), textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.lightGreen),),
+                //    _illustrationImage
+                //  ],
+                //),
+                SizedBox(height: 20),
                 ///Erste Frage (Falls Zeitpunkt gekommen ist, ansonsten Info)
                 isTooEarly ? Text(!slightlyTooEarly ?
                         S.current.questionPage_too_early1(DateTime.parse(widget.timeBegin), DateTime.parse(widget.timeBegin),0,widget.terminName) :
@@ -379,9 +399,8 @@ class QuestionPageState extends State<QuestionPage> {
                               HapticFeedback.lightImpact();
                               openRewardPopUp();
                             },
-                            stateChangeCallback:(actionsliderState1 ,actionSliderState2, actionSliderController1) {
-                               //actionSliderState2.position; //Prozent des Sliders
-                              HapticFeedback.vibrate();
+                            stateChangeCallback:(actionSliderState1 ,actionSliderState2, actionSliderController1) {
+                              HapticFeedback.lightImpact();
                             },
                           ),
                         SizedBox(height: 16,),
@@ -406,6 +425,7 @@ class QuestionPageState extends State<QuestionPage> {
                         if(!isTooEarly) !isBeingEdited ? Expanded(
                           child: ElevatedButton(
                               onPressed: (){
+                                if(hapticFeedback) HapticFeedback.lightImpact();
                                 setState(() {
                                   isEditable = true;
                                   isBeingEdited = true;
@@ -416,7 +436,8 @@ class QuestionPageState extends State<QuestionPage> {
                           ),
                         ): Expanded(
                           child: ElevatedButton(
-                              onPressed: (){
+                              onPressed: () {
+                                  if(hapticFeedback) HapticFeedback.lightImpact();
                                   saveAnswers();
                               },
                               style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).buttonTheme.colorScheme?.primary.withAlpha(80)),
@@ -425,15 +446,20 @@ class QuestionPageState extends State<QuestionPage> {
                         ),
                          Expanded(
                           child: !isBeingEdited ? ElevatedButton(
-                              onPressed: () => Navigator.pop(context),
+                              onPressed: () {
+                                if(hapticFeedback) HapticFeedback.lightImpact();
+                                Navigator.pop(context);
+                              },
                               //style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColorLight),
                               child: AutoSizeText(S.of(context).back, style: TextStyle(fontSize: 16), maxLines: 1,)
                           ) : ElevatedButton(
                               onPressed: (){
+                                if(hapticFeedback) HapticFeedback.lightImpact();
                                 setState(() {
                                   isEditable = false;
                                   isBeingEdited = false;
                                 });
+                                getTermin();
                               },
                               child: AutoSizeText(S.of(context).cancel, style: TextStyle(fontSize: 16), maxLines: 1,)
                           ),
@@ -453,3 +479,16 @@ class QuestionPageState extends State<QuestionPage> {
     );
   }
 }
+
+/* Falls eigenes Theme eingebaut werden soll
+    Text(
+      "Wie ist es dir gegangen :   ${radioAnswers[1]}\n"
+      "Wie ruhig warst du :   ${radioAnswers[2]}\n"
+      "Wie sehr hat es geolfen :   ${radioAnswers[3]}\n",
+      style: TextStyle(fontSize: 20),
+    )
+    if(!isEditable && !isTooEarly && _themeIllustration != SizedBox()) SizedBox(
+      height: MediaQuery.of(context).size.width/3,
+      width: MediaQuery.of(context).size.width/3,
+      child: _themeIllustration,
+    ),*/

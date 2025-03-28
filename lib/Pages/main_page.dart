@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:menta_track/Pages/day_summary.dart';
 import 'package:menta_track/Pages/settings.dart';
 import 'package:menta_track/week_creator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import '../database_helper.dart';
 import '../generated/l10n.dart';
@@ -18,6 +18,7 @@ import 'barcode_scanner_simple.dart';
 import 'not_answered_page.dart';
 
 //TODO: RANDOMISIERTE ANTWORTEN VERBESSERN
+//TODO: Haptisches Feedback-Option testen, könnte durch async probleme Verursachen
 
 ///Startseite der Anwendung mit PageView
 
@@ -34,12 +35,13 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
   final PageController _pageController = PageController(initialPage: 1);
   final GlobalKey<NotAnsweredState> _notAnsweredKey = GlobalKey<NotAnsweredState>();
   final GlobalKey<DaySummaryState> _daySummaryKey = GlobalKey<DaySummaryState>();
-  Widget themeIllustration = SizedBox();
-  int selectedIndex = 1;
-  int rememberAnsweredTasks = 0;
-  int rememberTotalTasks = 0;
-  int openTasks = 0;
-  List<WeekTileData> items = [];
+  Widget _themeIllustration = SizedBox();
+  bool _hapticFeedback = false;
+  int _selectedIndex = 1;
+  int _rememberAnsweredTasks = 0;
+  int _rememberTotalTasks = 0;
+  int _openTasks = 0;
+  final List<WeekTileData> _items = [];
 
 
   @override
@@ -47,7 +49,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
     super.initState();
     loadTheme();
     loadDatabaseAndNotifications();
-    Utilities().checkAndShowFirstHelpDialog(context, "MainPageFirst");
+    checkForFirstStart();
   }
 
   ///Checkt, ob auf die Startseite zurückgekehrt wurde und ob es Änderungen in der Datenbank gab
@@ -68,7 +70,6 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
 
   ///prüft die Datenbank auf Einträge, lädt sie in die Listenansicht und plant Notifications (TO_DO?: Datenbankeintrag mit „Notificationssheduled“ zur WeeklyPlans-Table hinzufügen, damit keine tatsächlichen Benachrichtigungen geprüft werden müssen, der Nachteil ist, dass es nur indirekt überprüft wird)
   void loadDatabaseAndNotifications()  {
-    checkForFirstStart();
     updateItems();
     ///Nur beim start sollen benachrichtigungen gecheckt/geladen werden
     notificationHelper.startListeningNotificationEvents();
@@ -77,7 +78,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
 
   ///Lädt die Liste neu
   Future<void> updateItems() async {
-    items.clear();
+    _items.clear();
     Database db = await databaseHelper.database;
     String query = '''
       SELECT 
@@ -98,21 +99,22 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
     }
 
     ///Sortiert die Wochen, sodass die aktuellste oben angezeigt wird
-    items.sort((a, b) {
+    _items.sort((a, b) {
       DateTime dateA = DateTime.parse(a.weekKey);
       DateTime dateB = DateTime.parse(b.weekKey);
       return dateB.compareTo(dateA);
     });
-    rememberAnsweredTasks = await databaseHelper.getAllTermineCount(true,true);
-    rememberTotalTasks = await databaseHelper.getAllTermineCountUnconditional();
-    openTasks = await DatabaseHelper().getAllTermineCount(false, true);
+    _rememberAnsweredTasks = await databaseHelper.getAllTermineCount(true,true);
+    _rememberTotalTasks = await databaseHelper.getAllTermineCountUnconditional();
+    _openTasks = await databaseHelper.getAllTermineCount(false, true);
   }
 
   ///Checkt ob es Änderungen in der Datenbank gab
   Future<void> checkForChange() async {
     int newRememberAnsweredTasks = await databaseHelper.getAllTermineCount(true,true);
+    int newOpenTasks = await databaseHelper.getAllTermineCount(false, true);
     int newRememberTotalTasks = await databaseHelper.getAllTermineCountUnconditional();
-    if(rememberAnsweredTasks != newRememberAnsweredTasks || rememberTotalTasks != newRememberTotalTasks){
+    if(_openTasks != newOpenTasks || _rememberAnsweredTasks != newRememberAnsweredTasks || _rememberTotalTasks != newRememberTotalTasks){
       updateItems();
     }
   }
@@ -120,8 +122,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
   ///Fügt der Liste einen Eintrag hinzu
   void addEntry(WeekTileData data) {
     setState(() {
-      if (!items.contains(data)) {
-        items.add(data);
+      if (!_items.contains(data)) {
+        _items.add(data);
       }
     });
   }
@@ -136,30 +138,28 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
   void loadTheme() async {
     SettingData data = await SettingsPageState().getSettings();
     bool isDarkMode = data.isDarkMode;
-    String name = data.name;
+    _hapticFeedback = data.hapticFeedback;
     MaterialColor materialColor = await HexMaterialColor().getColorFromPreferences();
-    setState(() { //muss vor themeHelper geladen und angewendet werden, damit textfarbe je nach darkmode richtig geladen wird
+    //muss vor themeHelper geladen und angewendet werden, damit textfarbe je nach darkmode richtig geladen wird
+    setState(() {
       MyApp.of(context).changeTheme(isDarkMode ? ThemeMode.dark : ThemeMode.light);
       MyApp.of(context).changeColorDynamic(materialColor);
+      _hapticFeedback;
     });
 
     Widget image = SizedBox();
     if(mounted) image = await ThemeHelper().getIllustrationImage("MainPage");
     setState(() {
       MyApp.of(context).changeTheme(isDarkMode ? ThemeMode.dark : ThemeMode.light);
-      themeIllustration = image;
-      name;
+      _themeIllustration = image;
     });
   }
 
   ///Checkt nach erstem Start und zeigt ein Tutorial an
   Future<void> checkForFirstStart() async {
-    final prefs = await SharedPreferences.getInstance();
-    if(prefs.getBool("firstStart") == null && mounted){
-
-
-      prefs.setBool("firstStart", true);
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if(mounted) await Utilities().checkAndShowFirstHelpDialog(context, "MainPageFirst");
+    });
   }
 
   ///Öffnet die Settings-Seite und schaut ob eine Einstellung verändert wurde
@@ -199,12 +199,12 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
         canPop: false,
         onPopInvokedWithResult: (bool didPop, result) {
       if (!didPop) {
-        if(selectedIndex != 1){ //Während des testen wurde die App mehrmals ausversehen geschlossen, wenn man auf der Übersichtsseite war
+        if(_selectedIndex != 1){ //Während des testen wurde die App mehrmals ausversehen geschlossen, wenn man auf der Übersichtsseite war
           setState(() {
-            selectedIndex = 1;
+            _selectedIndex = 1;
           });
           _pageController.animateToPage(
-            selectedIndex,
+            _selectedIndex,
             duration: Duration(milliseconds: 300),
             curve: Curves.easeInOut,
           );
@@ -216,9 +216,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
     child: Scaffold(
       appBar: AppBar(
         title:
-        selectedIndex == 0 ? Text(S.current.unanswered) :
-        selectedIndex == 1 ? Text(S.current.todayHeadline) :
-        selectedIndex == 2 ? Text(S.current.weekOverViewHeadline) :
+        _selectedIndex == 0 ? Text(S.current.unanswered) :
+        _selectedIndex == 1 ? Text(S.current.todayHeadline) :
+        _selectedIndex == 2 ? Text(S.current.weekOverViewHeadline) :
         Text(S.of(context).bestActivities),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(15)),
@@ -241,9 +241,9 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
                     ),
                     onPressed: () => Utilities().showHelpDialog(
                         context,
-                        selectedIndex ==  0 ? "Offen" :
-                        selectedIndex == 1 ? "DayPage" :
-                        selectedIndex == 2 ? "MainPage" :
+                        _selectedIndex ==  0 ? "Offen" :
+                        _selectedIndex == 1 ? "DayPage" :
+                        _selectedIndex == 2 ? "MainPage" :
                         "ActivitySummary"),
                   ),
                   MenuItemButton(
@@ -259,7 +259,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
                     ),
                     onPressed: () => openSettings(),
                   ),
-                  if(selectedIndex == 2)MenuItemButton(
+                  if(_selectedIndex == 2)MenuItemButton(
                     child: Center(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -313,11 +313,11 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
           controller: _pageController,
           onPageChanged: (ev){
             setState(() {
-              selectedIndex = ev;
+              _selectedIndex = ev;
 
             });
             if(mounted){
-              switch(selectedIndex){
+              switch(_selectedIndex){
                 case 0: Utilities().checkAndShowFirstHelpDialog(context, "Offen");
                 case 3: Utilities().checkAndShowFirstHelpDialog(context, "ActivitySummary");
               }
@@ -336,10 +336,10 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
                   slivers: [
                     // Das Bild als "Sliver" für das Scrollen
                     SliverToBoxAdapter(
-                        child: themeIllustration
+                        child: _themeIllustration
                     ),
                     // Der ListView als Sliver
-                    if(items.isEmpty)SliverToBoxAdapter(
+                    if(_items.isEmpty)SliverToBoxAdapter(
                       child: Container(
                         padding: EdgeInsets.all(40),
                         child: Text(S.current.mainPage_noEntries_text, textAlign: TextAlign.center,),
@@ -349,23 +349,23 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
                       delegate: SliverChildBuilderDelegate(
                             (context, index) {
                           return WeekTile(
-                            item: items[index],
+                            item: _items[index],
                             onDeleteTap: () async {
-                              deleteItem(items[index].weekKey);
+                              deleteItem(_items[index].weekKey);
                               setState(() {
-                                items.removeAt(index);
+                                _items.removeAt(index);
                               });
                             },
                           );
                         },
-                        childCount: items.length,
+                        childCount: _items.length,
                       ),
                     ),
                   ],
                 ) : Row( ///Horizontales Layout
                   children: [
-                    if(themeIllustration is! SizedBox) Expanded(
-                        child: themeIllustration
+                    if(_themeIllustration is! SizedBox) Expanded(
+                        child: _themeIllustration
                     ) else SizedBox(width: 80,),
                     Expanded(
                       child: ShaderMask(
@@ -384,14 +384,14 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
                         },
                         blendMode: BlendMode.dstIn,
                         child: ListView.builder(
-                          itemCount: items.length,
+                          itemCount: _items.length,
                           itemBuilder: (context, index) {
                             return WeekTile(
-                              item: items[index],
+                              item: _items[index],
                               onDeleteTap: () async {
-                                deleteItem(items[index].weekKey);
+                                deleteItem(_items[index].weekKey);
                                 setState(() {
-                                  items.removeAt(index);
+                                  _items.removeAt(index);
                                 });
                               },
                             );
@@ -399,7 +399,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
                         ),
                       ),
                     ),
-                    if(themeIllustration is! SizedBox) SizedBox(width: 0,) else SizedBox(width: 80,),
+                    if(_themeIllustration is! SizedBox) SizedBox(width: 0,) else SizedBox(width: 80,),
                   ],
                 );
               },
@@ -419,15 +419,16 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
           showUnselectedLabels: true,
           elevation: 15,
           //backgroundColor: MyApp.of(context).themeMode == ThemeMode.dark ? Colors.transparent : Theme.of(context).bottomNavigationBarTheme.backgroundColor,
-          currentIndex: selectedIndex,
-          onTap: (int index) {
-            if(selectedIndex == 0){
+          currentIndex: _selectedIndex,
+          onTap: (int index) async {
+            if(_hapticFeedback) HapticFeedback.lightImpact();
+            if(_selectedIndex == 0){
               if(index == 1 || index == 2){
                 checkForChange();
               }
             }
             setState(() {
-              selectedIndex = index;
+              _selectedIndex = index;
             });
             _pageController.animateToPage(
               index,
@@ -439,36 +440,37 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
             BottomNavigationBarItem(
               backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor, //muss bei type: shifting angegeben werden!
               icon:
-              openTasks > 0 ? Badge(
+              _openTasks > 0 ? Badge(
                 isLabelVisible: true,
-                label: Text(openTasks.toString()),
+                label: Text(_openTasks.toString()),
                 offset: Offset(8, 8),
                 backgroundColor: Theme.of(context).colorScheme.secondary,
-                child: selectedIndex == 0 ? Icon(Icons.inventory_rounded) : Icon(Icons.inventory_outlined)
+                child: _selectedIndex == 0 ? Icon(Icons.inventory_rounded) : Icon(Icons.inventory_outlined)
               ) :
-              openTasks == 0 && selectedIndex == 0 ? Icon(Icons.inventory_rounded) : Icon(Icons.inventory_outlined),
+              _openTasks == 0 && _selectedIndex == 0 ? Icon(Icons.inventory_rounded) : Icon(Icons.inventory_outlined),
               label: S.of(context).open,
             ),
             BottomNavigationBarItem(
-              icon: selectedIndex == 1 ? Icon(Icons.today) : Icon(Icons.today_outlined),
+              icon: _selectedIndex == 1 ? Icon(Icons.today) : Icon(Icons.today_outlined),
               backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
               label:  S.current.todayHeadline
             ),
             BottomNavigationBarItem(
-              icon: selectedIndex == 2 ? Icon(Icons.home) : Icon(Icons.home_outlined),
+              icon: _selectedIndex == 2 ? Icon(Icons.home) : Icon(Icons.home_outlined),
               backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
               label:  S.of(context).home,
             ),
             BottomNavigationBarItem(
-              icon: selectedIndex == 3 ? Icon(Icons.insights) : Icon(Icons.insights_outlined),
+              icon: _selectedIndex == 3 ? Icon(Icons.insights) : Icon(Icons.insights_outlined),
               backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
               label:  S.of(context).overview,
             ),
           ],
         ),
       ),
-      floatingActionButton: selectedIndex == 2 ? FloatingActionButton(
+      floatingActionButton: _selectedIndex == 2 ? FloatingActionButton(
         onPressed: () async {
+          if(_hapticFeedback) HapticFeedback.lightImpact();
           var result = await Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => BarcodeScannerSimple(),

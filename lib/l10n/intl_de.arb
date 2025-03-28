@@ -61,11 +61,38 @@
   },
   "till": "bis",
 
-  "summary_no_entries": " Noch keine Einträge",
+  "summary_no_entries": "Noch keine Einträge",
   "special_activities": "Besondere Aktivitäten:",
   "good_activities_desc": "Aktivitäten bei denen du dich gut gefühlt hast:",
   "calm_activities_desc": "Aktivitäten bei denen du dich ruhig gefühlt hast:",
   "help_activities_desc": "Aktivitäten die dir gut getan haben:",
+  "good_activities_desc_variable": "Aktivitäten bei denen du dich {adjective} gefühlt hast:",
+  "calm_activities_desc_variable": "Aktivitäten bei denen du dich {adjective} gefühlt hast:",
+  "help_activities_desc_variable": "Aktivitäten die dir {adjective} haben:",
+  "buttonDisplay" : "{count, plural, =0{gar nicht} =1{wenig} =2{sehr} other{äußerst}}",
+  "buttonTimeDisplay" : "{count, plural, =0{letzte\nWoche} =1{letzten\nMonat} other{gesamte\nZeit}}",
+
+  "activity_filter": "Filter",
+  "activity_filter_desc1": "Filtere dannach was",
+  "activity_filter_desc2": "gut, ruhig, hilfreich war \uD83D\uDE0A",
+
+
+
+
+  "activity_good_adjective1" : "äußerst schlecht",
+  "activity_good_adjective2" : "eher schlecht",
+  "activity_good_adjective3" : "sehr gut",
+  "activity_good_adjective4" : "besonders gut",
+
+  "activity_calm_adjective1" : "äußerst aufgeregt",
+  "activity_calm_adjective2" : "aher aufgeregt",
+  "activity_calm_adjective3" : "sehr ruhig",
+  "activity_calm_adjective4" : "besonders ruhig",
+
+  "activity_help_adjective1" : "gar nicht geholfen",
+  "activity_help_adjective2" : "sehr wenig geholfen",
+  "activity_help_adjective3" : "sehr geholfen",
+  "activity_help_adjective4" : "besonders geholfen",
 
   "monday": "Montag",
   "tuesday": "Dienstag",
@@ -115,7 +142,7 @@
   "questionPage_comment": "Wenn du Lust hast kannst du hier einen kurzen Kommentar hinzufügen:",
   "questionPage_commentLabel": "Dein Feedback",
   "questionPage_save": "Zum Speichern wischen",
-  "questionPage_too_early1" : "{count, plural,  =0{{name} ist am \n{date1} um {date2}\n\nDu bist zu früh dran \uD83D\uDE0A \nAber trotzdem cool, dass du vorbeischaust \uD83D\uDC4D} other{{name} ist am \n{date1} um {date2}\n\nCool, dass du da bist \uD83D\uDE0A Die Aktivität hat grade erst gestartet\nSchau in kürze nochmal hier rein um Feedback zu geben \uD83D\uDC4D}}",
+  "questionPage_too_early1" : "{count, plural,  =0{{name} ist am \n{date1} um {date2}\n\nDu bist zu früh dran \uD83D\uDE0A \nAber trotzdem cool, dass du vorbeischaust \uD83D\uDC4D} other{{name} ist am \n{date1} um {date2}\n\nCool, dass du da bist \uD83D\uDE0A\nDie Aktivität hat grade erst gestartet\nSchau in kürze nochmal hier rein um Feedback zu geben \uD83D\uDC4D}}",
   "@questionPage_too_early1" : {
     "placeholders": {
       "date1": {
@@ -165,7 +192,7 @@
 
   "iconHelp1": "Zeigt dir, dass du alle Aktivitäten in einer Woche bewertet hast",
   "iconHelp2": "Zeigt dir, dass noch Aktivitäten bewertet werden können",
-  "iconHelp3": "Zeigt dir, die aktuelle Woche",
+  "iconHelp3": "Zeigt dir, in hervorgehobener Farbe, die aktuelle Woche",
   "iconHelp4":"Zeigt dir, dass die Woche noch nicht gekommen ist",
 
   "unansweredActivities": "Auf dieser Seite findest du Aktivitäten, zu denen du noch kein Feedback gegeben hast \uD83D\uDE0A",
@@ -207,6 +234,7 @@
   "weekOverViewText6": "Viel Erfolg beim Feedback geben!\nIch hoffe du kannst so leichter Aktivitäten und Sachen finden die dir Freude bereiten oder dir anders helfen :)",
 
   "todayHelpMessage1": "Heute Übersicht",
+  "todayHelpMessage2": "Das ist Deine Übersicht für den heutigen Tag.\n Du kannst sehen was heute noch ansteht und zu was du schon Feedback gegeben hast \uD83D\uDC4D\n\n Hoffentlich hilft dir das ein wenig beim strukturieren deines Tags \uD83E\uDD70",
 
   "generalHelp": "Allgemeine Hilfe",
 
@@ -393,15 +421,25 @@
   "weekStart": "Wochenstart",
   "weekEnd": "Wochenende",
   "close": "Schließen",
-  "themeHelperToday": "Deine Aktivitäten heute {name}\uD83D\uDE07",
+  "themeHelperToday": "Hier wird angezeigt was heute so geplant ist {name}\uD83D\uDE07",
   "noFeedBackOpen": "Kein Feedback offen, super!👍",
   "noEntriesYet": "Noch keine Einträge \uD83D\uDE09",
   "settings_pickAColor": "Wähle eine Farbe \uD83C\uDFA8",
+
+  "settings_name_headline": "Name",
+  "settings_hapticFeedback": "Haptisches Feedback",
 
   "settings_sound_Standard": "Standard",
   "settings_sound_gameSound": "Videospiel",
   "settings_sound_longer": "längerer Ton",
   "settings_sound_levelUp": "Level Up",
   "settings_sound_levelDone": "Level geschafft",
-  "settings_sound_nothing": "Kein Ton"
+  "settings_sound_nothing": "Kein Ton",
+
+  "settings_Infos": "Weitere Infos",
+  "settings_Infos_dataProtection": "Die App erhebt keine deiner Daten, sie sind komplett sicher und privat!\nDer einzige Weg, wie sie jemand einsehen kann ist, wenn du dein Handy herzeigst 😇",
+
+  "questionPage_WellDone": "{count, plural, =0{Klasse, dass du Feedback gegeben hast{name}!!\n\uD83E\uDD73} =1{Schön, dass du dir die Zeit für Feedback genommen hast{name}!\n\uD83E\uDD73} other{Toll, dass du reflektierst{name}!\n\uD83E\uDD73}}",
+  "questionPage_WellDone2": "{count, plural, =0{Klasse, dass dus geschafft hast{name}!!\n\uD83E\uDD73} =1{Schön, dass du dir die Zeit genommen hast{name}!\n\uD83E\uDD73} other{Toll, dass du reflektierst{name}!\n\uD83E\uDD73}}"
+
 }

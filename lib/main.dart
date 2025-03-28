@@ -75,7 +75,6 @@ class MyAppState extends State<MyApp> {
         ),
         primaryColor: accentColorTwo,
         appBarTheme: AppBarTheme(color: accentColorOne.shade400, foregroundColor: Colors.black87, iconTheme: IconThemeData(color: Colors.black87)),
-
         scaffoldBackgroundColor: Colors.blueGrey.shade800,
         listTileTheme: ListTileThemeData(
           tileColor: Colors.grey.shade600,
@@ -87,6 +86,11 @@ class MyAppState extends State<MyApp> {
           selectedItemColor: accentColorOne.shade400,
           unselectedItemColor: Colors.white70,
           enableFeedback: true
+        ),
+        iconButtonTheme: IconButtonThemeData(
+          style: IconButton.styleFrom(
+            foregroundColor: accentColorOne.shade300
+          )
         ),
         useMaterial3: true,
       ),

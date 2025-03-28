@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:menta_track/helper_utilities.dart';
 import 'package:menta_track/week_tile_data.dart';
 import 'package:sqflite/sqflite.dart';
+import 'Pages/settings.dart';
 import 'Pages/week_plan_view.dart';
 import 'database_helper.dart';
 import 'generated/l10n.dart';
@@ -29,6 +31,7 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
   late AnimationController _animationController;
   late Animation<Color?> _colorAnimation;
   bool pressedLongEnough = false;
+  bool hapticFeedback = false;
   Color? iconColor;
 
 
@@ -98,11 +101,15 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
   @override
   void initState() {
     super.initState();
+    loadTheme();
     _animationController = AnimationController(
       vsync: this,
       duration: Duration(milliseconds: 300),
     );
+  }
 
+  void loadTheme() async{
+    hapticFeedback = await SettingsPageState().getHapticFeedback();
   }
 
   @override
@@ -139,8 +146,8 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
           margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
           elevation: 10,
           child: GestureDetector(
-            onTapUp: (ev){
-              //widget.onTap();
+            onTapUp: (ev) {
+              if(hapticFeedback) HapticFeedback.lightImpact();
               openItem(widget.item.weekKey);
             },
             child: Container(//color: _colorAnimation.value
@@ -173,6 +180,7 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
                         _animationController.forward();
                       },
                       onLongPress: () async {
+                        if(hapticFeedback) HapticFeedback.lightImpact();
                         bool? ans = await Utilities().showDeleteDialog(widget.item.title,true,context);
                         if(ans == true){
                           _animationController.reset(); //reset weil sonst das vorherige ListItem gefärbt ist
@@ -180,8 +188,6 @@ class WeekTileState extends State<WeekTile> with SingleTickerProviderStateMixin 
                         } else {
                           _animationController.reverse();
                         }
-                      },
-                      onLongPressUp: () async {
                       },
                     ),
                   ),

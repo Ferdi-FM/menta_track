@@ -31,10 +31,12 @@ class NotificationHelper{
               channelKey: "termin_Notifications",
               channelName: "Termin Notifications",
               channelDescription: "Channel for Notifications",
-              importance: NotificationImportance.High,
+              importance: NotificationImportance.Max,
               defaultPrivacy: NotificationPrivacy.Private,
               defaultColor: Colors.deepPurple,
-              ledColor: Colors.deepPurple)
+              ledColor: Colors.deepPurple,
+              criticalAlerts: true
+          )
         ],
         debug: true);
     bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
@@ -86,10 +88,19 @@ class NotificationHelper{
     switch(siteToOpen){
       case "WeekPlanView":
         if(weekKey != null){
-          navigatorKey.currentState?.push(MaterialPageRoute(
-            builder: (context) => WeekPlanView(
-                weekKey: weekKey),
-          ));
+          if(timeBegin != null){
+            navigatorKey.currentState?.push(MaterialPageRoute(
+              builder: (context) => WeekPlanView(
+                  weekKey: weekKey,
+                  scrollToSpecificDayAndHour: DateTime.parse(timeBegin),),
+            ));
+          } else {
+            navigatorKey.currentState?.push(MaterialPageRoute(
+              builder: (context) => WeekPlanView(
+                  weekKey: weekKey),
+            ));
+          }
+          
         }
         return;
       case "QuestionPage":
@@ -294,14 +305,14 @@ class NotificationHelper{
     ///Benachrichtigungen aus den Einstellungen
     for(int k in notificationTimeList){
       times.add(termin.timeBegin.subtract(Duration(minutes: k))); //Benachrichtigung variabel anpassbar
-      hashcodes.add(termin.timeBegin.subtract(Duration(minutes: k)).hashCode);
+      hashcodes.add(termin.timeBegin.subtract(Duration(minutes: k)).hashCode + termin.terminName.hashCode); //time+name für Unique hashcode, wenn zwei Termine/Benachrichtigungen zur selben Zeit sind
     }
     ///Benachrichtigung zum Zeitpunkt
     times.add((termin.timeBegin));
-    hashcodes.add(termin.timeBegin.hashCode);
+    hashcodes.add(termin.timeBegin.hashCode + termin.terminName.hashCode);
     ///Benachrichtigung nach dem Termin
     times.add(termin.timeEnd.add(Duration(minutes: 10)));
-    hashcodes.add(termin.timeBegin.add(Duration(minutes: 10)).hashCode);
+    hashcodes.add(termin.timeBegin.add(Duration(minutes: 10)).hashCode + termin.terminName.hashCode); //TODO: Testen, könnte portentiell mehrmals erscheinen
 
     List<String> messages = [];
     ///Benachrichtigungen aus den Einstellungen
@@ -327,12 +338,12 @@ class NotificationHelper{
               "timeBegin": termin.timeBegin.toIso8601String(),
               "terminName": termin.terminName,
               "timeEnd": termin.timeEnd.toIso8601String(),
-              "siteToOpen": i >= notificationTimeList.length ?"QuestionPage" : "WeekPlanView"   //Nur wenn Termin gestartet oder vorbei ist wird zur QuestionPage geleitet
+              "siteToOpen": i >= notificationTimeList.length ? "QuestionPage" : "WeekPlanView"   //Nur wenn Termin gestartet oder vorbei ist wird zur QuestionPage geleitet
             });
       }
   }
 
-  ///Für Studie
+  ///Für Studie und Testen von Benachrichtigungen
   Future<void> scheduleStudyNotification() async {
     //TErmin for Notification
     List<Termin> terminList = await DatabaseHelper().getAllTermine();
@@ -345,8 +356,8 @@ class NotificationHelper{
       }
     }
     String weekKey = termin.weekKey;
-    DateTime studyTime = DateTime.now().add(Duration(seconds: 30));
-    ///Start 30sec
+    DateTime studyTime = DateTime.now().add(Duration(seconds: 2));
+    ///Start 2sec
     final pref = await SharedPreferences.getInstance();
 
       List<Termin> termineForThisDay = [];
@@ -380,7 +391,7 @@ class NotificationHelper{
             "siteToOpen": noTasks ? "MainPage" : "WeekPlanView"
           }
       );
-    ///Termin 30sec + 10 + 15 + 20 sec = 50sec
+    ///Termin 2sec + 10 + 15 + 20 sec = 50sec
     ///Implementation der Benachrichtigungen
     List<int> notificationTimeList = pref.getStringList("notificationIntervals")?.map(int.parse).toList() ?? [15];
     List<DateTime> times = [];
@@ -425,7 +436,7 @@ class NotificationHelper{
             "siteToOpen": i >= notificationTimeList.length ?"QuestionPage" : "WeekPlanView"   //Nur wenn Termin gestartet oder vorbei ist wird zur QuestionPage geleitet
           });
     }
-    ///END 60sec
+    ///END 5sec
     String title1 = S.current.noti_dayEnd_title(studyTime);
     String message1 = S.current.noti_dayEnd_message;
 
@@ -434,7 +445,7 @@ class NotificationHelper{
         hashCode: studyTime.hashCode+1,
         title: title1,
         msg: message1,
-        triggerDateTime: studyTime.add(Duration(minutes: 1)),
+        triggerDateTime: studyTime.add(Duration(seconds: 5)),
         repeatNotif: false,
         payLoad: {
           "weekKey": weekKey,
@@ -442,7 +453,7 @@ class NotificationHelper{
           "siteToOpen": "DayOverView"
         });
 
-    ///Plant die Benachrichtigung für die Wochenübersicht
+    ///Plant die Benachrichtigung für die Wochenübersicht 60sec
 
       String lastTitle = S.current.noti_weekEnd_title;
       String lastMsg = S.current.noti_weekEnd_message;
@@ -452,7 +463,7 @@ class NotificationHelper{
           hashCode: studyTime.hashCode+2,
           title: lastTitle,
           msg: lastMsg,
-          triggerDateTime: studyTime.add(Duration(minutes: 1, seconds: 30)),
+          triggerDateTime: studyTime.add(Duration(minutes: 1)),
           repeatNotif: false,
           payLoad: {
             "weekKey": weekKey,

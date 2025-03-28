@@ -62,8 +62,10 @@ It aims to provide tools that help users maintain Motivation while being mindful
       - Today:         Displays whats planed for Today and what you already gave Feedback to
       - Week Overview: Displays all your individual weekly plans
       - Overview:      Displays the mean-Value of all your tasks for each weekly plan and tracks activities you gave especially good Feedback to
-    - Weekplan View: You can tap on the calendar-header to get a day-summary. Tap on the Appbar or the item in the Drop-Down Menu on the top right to open a Week summary
-4. **Customization**: Adjust settings to suit personal preferences and needs and add a Name so the App gets more personal :) (other customization includes accentcolor, images, sounds, time for Notifications)
+    - Week-plan View:  You can tap on the calendar-header to get a day-summary. Tap on the Appbar or the item in the Drop-Down Menu on the top right to open a Week summary
+      - Day-Overview:  Displays a Summary of alle the answered Feedback for a single Day. Includes the best rated Activities, a Progress Display in form of a growing tree(animates from the last day and adds whats been done this day) and a radar-Chart
+      - Week-Overview: Displays a Summary of the whole week. Includes the best rated Activities, the growing Tree progress Display (animates from 0 to the percent of answered Activities this week, and a normal Graph with the mean-Values for each day
+3. **Customization**: Adjust settings to suit personal preferences and needs and add a Name so the App gets more personal :) (other customization includes accentcolor, images, sounds, time for Notifications)
 
 ---
 
@@ -95,5 +97,3 @@ The App is completely offline. None of your data will be shared unless you show 
     - A: Also no data is collected!
 - **Q: Will this App get updates?**
     - A: Maybe? Depending on if someone wants to pick it up, Improves it in a thesis or the App ends up getting used actively
-- **Q: Are you serious?**
-    - A: Yes, absolutely! I really really hope the users can get better! Everyone deserves to be happy and if I can contribute in whatever little way I'm happy! :)

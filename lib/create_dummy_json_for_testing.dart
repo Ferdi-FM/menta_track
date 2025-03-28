@@ -8,6 +8,7 @@ class CreateDummyJsonForTesting{
   List<Map<String, String>> oneTermine = [];
   List<Map<String, String>> twoTermine = [];
   List<Map<String, String>> studyTermine = [];
+  List<Map<String, String>> presentationTermine = [];
 
   CreateDummyJsonForTesting(){
     final termine = [
@@ -427,6 +428,144 @@ class CreateDummyJsonForTesting{
       }
     ];
 
+    presentationTermine = [
+      {
+        "tN": "Frühstück",
+        "tB": "2025-03-03 10:00:00",
+        "tE": "2025-03-03 11:00:00"
+      },
+      {
+        "tN": "Aufräumen & Putzen",
+        "tB": "2025-03-03 11:30:00",
+        "tE": "2025-03-03 13:00:00"
+      },
+      {
+        "tN": "Nichts tun",
+        "tB": "2025-03-03 15:00:00",
+        "tE": "2025-03-03 16:30:00"
+      },
+      {
+        "tN": "Frühstück",
+        "tB": "2025-03-04 10:00:00",
+        "tE": "2025-03-04 11:00:00"
+      },
+      {
+        "tN": "Aufräumen & Putzen",
+        "tB": "2025-03-05 11:30:00",
+        "tE": "2025-03-05 13:00:00"
+      },
+      {
+        "tN": "Aufstehen",
+        "tB": "2025-03-10 09:00:00",
+        "tE": "2025-03-10 10:00:00"
+      },
+      {
+        "tN": "Frühstück",
+        "tB": "2025-03-10 09:45:00",
+        "tE": "2025-03-10 11:00:00"
+      },
+      {
+        "tN": "Langsam angehen lassen",
+        "tB": "2025-03-10 10:15:00",
+        "tE": "2025-03-10 12:00:00"
+      },
+      {
+        "tN": "Meeting",
+        "tB": "2025-03-11 14:00:00",
+        "tE": "2025-03-11 15:30:00"
+      },
+      {
+        "tN": "Nicht zu ernst nehmen",
+        "tB": "2025-03-11 15:00:00",
+        "tE": "2025-03-11 16:30:00"
+      },
+      {
+        "tN": "Sport",
+        "tB": "2025-03-12 18:00:00",
+        "tE": "2025-03-12 19:00:00"
+      },
+      {
+        "tN": "Yoga",
+        "tB": "2025-03-13 13:30:00",
+        "tE": "2025-03-13 14:30:00"
+      },
+      {
+        "tN": "Hobby",
+        "tB": "2025-03-14 14:00:00",
+        "tE": "2025-03-14 15:30:00"
+      },
+      {
+        "tN": "Auf Mount Everest klettern",
+        "tB": "2025-03-15 18:00:00",
+        "tE": "2025-03-15 19:00:00"
+      },
+      {
+        "tN": "Sauna",
+        "tB": "2025-03-16 20:00:00",
+        "tE": "2025-03-16 21:00:00"
+      },
+      {
+        "tN": "App testen",
+        "tB": "2025-03-17 13:00:00",
+        "tE": "2025-03-17 14:00:00"
+      },
+      {
+        "tN": "Probieren",
+        "tB": "2025-03-18 15:30:00",
+        "tE": "2025-03-18 16:30:00"
+      },
+      {
+        "tN": "Testen",
+        "tB": "2025-03-19 13:30:00",
+        "tE": "2025-03-19 14:30:00"
+      },
+      {
+        "tN": "Feedback geben",
+        "tB": "2025-03-20 14:00:00",
+        "tE": "2025-03-20 15:30:00"
+      },
+      {
+        "tN": "Film Abend",
+        "tB": "2025-03-21 18:00:00",
+        "tE": "2025-03-21 19:00:00"
+      },
+      {
+        "tN": "Bouldern",
+        "tB": "2025-03-23 13:30:00",
+        "tE": "2025-03-23 14:30:00"
+      },
+      {
+        "tN": "Brunch",
+        "tB": "2025-03-24 14:00:00",
+        "tE": "2025-03-24 15:30:00"
+      },
+      {
+        "tN": "Meditieren",
+        "tB": "2025-03-25 18:00:00",
+        "tE": "2025-03-25 19:00:00"
+      },
+      {
+        "tN": "Nichts tun",
+        "tB": "2025-03-26 20:00:00",
+        "tE": "2025-03-26 21:00:00"
+      },
+      {
+        "tN": "Tierheim helfen",
+        "tB": "2025-03-27 09:00:00",
+        "tE": "2025-03-27 10:00:00"
+      },
+      {
+        "tN": "2 Wochen Einkauf",
+        "tB": "2025-03-28 14:00:00",
+        "tE": "2025-03-28 15:30:00"
+      },
+      {
+        "tN": "Lieblingsessen kochen",
+        "tB": "2025-03-29 18:00:00",
+        "tE": "2025-03-29 19:00:00"
+      }
+    ];
+
     // 2025-01-20         20.01 21.01 22.01 | 29.01 30.01.22.01    "20-26" ->  29 ->22 -> 20! "+6" -> 27
     // 2025-01-29      ICH WIL HINZUFÜGEN: 18.01- 31.01
 
@@ -435,7 +574,7 @@ class CreateDummyJsonForTesting{
 
   String toCompressedStudyList(){
     //Json zu String
-    String unCompressedString = jsonEncode(studyTermine);
+    String unCompressedString = jsonEncode(presentationTermine);
     // String in Bytes
     List<int> bytes = utf8.encode(unCompressedString);
     // GZip-Kompression mit GZipCodec
