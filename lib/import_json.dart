@@ -58,7 +58,7 @@ class ImportJson {
     return firstWeekDay;
   }
 
-  //TODO: Der Gesamte import kann vereinfacht werden, sobald die App zur Wochenplanerstellung geschrieben wurde, gerade muss noch jeder Fall beachtet werden
+  //Der Gesamte import kann vereinfacht werden, sobald die App zur Wochenplanerstellung geschrieben wurde, gerade muss noch jeder Fall beachtet werden
   ///Checkt während dem durchiterieren nach Überschneidungen, da "-7days" zur unendlichen Schleife führen würde
   Future<DateTime> checkWeekKeyRangeInLoop(DateTime firstWeekDay) async {
     String firstWeekDayString = DateFormat("yyyy-MM-dd").format(firstWeekDay);

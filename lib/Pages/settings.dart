@@ -252,7 +252,7 @@ class SettingsPageState extends State<SettingsPage> {
         onPopInvokedWithResult: (bool didPop, result) {
           if (!didPop) {
             Navigator.pop(context, _settingsChanged);
-            if(_notificationsChanged) NotificationHelper().loadAllNotifications(true);
+            if(_notificationsChanged) NotificationHelper().loadAllNotifications(true); //Könnte effizienter durch spezifische cancelation werden, macht code aber deutlich komplexer
           }
         },
       child: Scaffold(

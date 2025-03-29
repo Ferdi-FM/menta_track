@@ -36,7 +36,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Der Tag ist noch nicht gekommen 😉 Trotzdem schön, dass du schon mal hier reinschaust ${name} :)";
 
   static String m5(count) =>
-      "${Intl.plural(count, one: '\n\nEine Aktivität steht heute erst noch aus 😉', other: '\n\n${count} Aktivitäten stehen erst noch bevor 😉')}";
+      "${Intl.plural(count, one: '\n\nEine Aktivität steht heute erst noch bevor 😉', other: '\n\n${count} Aktivitäten stehen erst noch bevor 😉')}";
 
   static String m6(date) => "${date}";
 
@@ -106,13 +106,13 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m34(date) => "📅 Aktivitäten am ${date}";
 
   static String m35(terminName) =>
-      "${terminName} ist vorbei.\n Ich hoffe es hat geklappt und dir geholfen 😊\nBitte klicke auf mich,\n nimm dir eine Minute\nund reflektiere die Aktivität\nEgal ob geschaft oder nicht,\ndas reflektieren darüber ist schon\neine tolle Leistung 🤘";
+      "${terminName} ist vorbei.<br> Ich hoffe es hat geklappt und dir geholfen 😊<br>Bitte klicke auf mich, nimm dir eine Minute und reflektiere die Aktivität<br>Egal ob geschaft oder nicht, das reflektieren darüber ist schon eine tolle Leistung 🤘";
 
   static String m36(terminName) =>
-      "Es ist soweit für ${terminName}!\n Viel Erfolg!🤞";
+      "Es ist soweit für ${terminName}!<br> <b>Viel Erfolg!<b>🤞";
 
   static String m37(terminName, count) =>
-      "${terminName} steht\n in ${count} Minuten an. \n Du schaffst das!🤞";
+      "${terminName} steht in ${count} Minuten an. <br> <b>Du schaffst das!<b>🤞";
 
   static String m38(name) =>
       "Du kannst auch feedback geben, falls es nicht geklappt hat!\nAllein das du Feedback gibst ist schon toll ${name} 😇💖\n";
@@ -124,7 +124,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "${Intl.plural(count, zero: 'Klasse, dass dus geschafft hast${name}!!\n🥳', one: 'Schön, dass du dir die Zeit genommen hast${name}!\n🥳', other: 'Toll, dass du reflektierst${name}!\n🥳')}";
 
   static String m41(date1, date2, count, name) =>
-      "${Intl.plural(count, zero: '${name} ist am \n${date1} um ${date2}\n\nDu bist zu früh dran 😊 \nAber trotzdem cool, dass du vorbeischaust 👍', other: '${name} ist am \n${date1} um ${date2}\n\nCool, dass du da bist 😊\nDie Aktivität hat grade erst gestartet\nSchau in kürze nochmal hier rein um Feedback zu geben 👍')}";
+      "${Intl.plural(count, zero: '${name} ist am \n${date1} um ${date2}\n\nDu bist zu früh dran 😊 \nAber trotzdem cool, dass du vorbeischaust 👍', other: '${name} ist am \n${date1} um ${date2}\n\nCool, dass du da bist 😊\nDie Aktivität hat gerade erst gestartet\nSchau in kürze nochmal hier rein um Feedback zu geben 👍')}";
 
   static String m42(count) =>
       "${Intl.plural(count, zero: 'Benachrichtigung', other: 'Benachrichtigungen')}";
@@ -138,7 +138,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Du hast ${date}\n ${Intl.plural(count, one: 'deine Aktivität', other: '${count} Aktivitäten')}\nnoch nicht beantwortet.";
 
   static String m46(count) =>
-      "\n\n(Wenn du Lust hast, kannst du noch Feedback zu ${Intl.plural(count, one: 'einer Aktivität', other: '${count} Aktivitäten')} auf der \'Offen\'-Seite geben 😊)";
+      "\n\n(Wenn du Lust hast, kannst du noch Feedback zu ${Intl.plural(count, one: 'einer Aktivität', other: '${count} Aktivitäten')} auf der \"Offen\"-Seite geben 😊)";
 
   static String m47(name) =>
       "Hier wird angezeigt was heute so geplant ist ${name}😇";
@@ -394,7 +394,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Wie sehr hat\nes geholfen?",
     ),
     "mainPageDeleteWeek": MessageLookupByLibrary.simpleMessage(
-      "Um eine Woche zu löschen, halte das \'Mülleimer\'-Symbol gedrückt.",
+      "Um eine Woche zu löschen, halte das \"Mülleimer\"-Symbol gedrückt.",
     ),
     "mainPageDescription": MessageLookupByLibrary.simpleMessage(
       "Das ist die Startseite",
@@ -423,7 +423,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Kein Feedback offen, super!👍",
     ),
     "noFeedbackFromNotification": MessageLookupByLibrary.simpleMessage(
-      "Der Tag ist vorbei, toll das du hier reinschaust,\nallein das bedeutet schon, dass du deine Situation verbessern willst👍 \n Danke dir!😉\n\n",
+      "Der Tag ist vorbei, toll das du hier reinschaust, <br> allein das bedeutet schon, dass du deine Situation verbessern willst👍 <br> Danke dir!😉\n\n",
     ),
     "notEmpty": MessageLookupByLibrary.simpleMessage(
       "Name darf nicht leer sein",
@@ -432,21 +432,21 @@ class MessageLookup extends MessageLookupByLibrary {
       "Noch nicht soweit 😉",
     ),
     "noti_dayEnd_message": MessageLookupByLibrary.simpleMessage(
-      "Wieder ein Tag vorbei. \n Klicke auf mich um zu sehn\n was heute so los war 😊 \n",
+      "Wieder ein Tag vorbei. <br> Klicke auf mich um zu sehn was heute so los war 😊<br>",
     ),
     "noti_dayEnd_title": m33,
     "noti_noTasks_message": MessageLookupByLibrary.simpleMessage(
-      "Heute stehen keine Aktivitäten an,\nalso lehn dich zurück und\nentspann ein bisschen 🙂",
+      "Heute stehen keine Aktivitäten an,<br>also lehn dich zurück und entspann ein bisschen 🙂",
     ),
     "noti_start_message": MessageLookupByLibrary.simpleMessage(
-      "Heute stehen folgende Aktivitäten an 🙂 \n",
+      "Heute stehen folgende Aktivitäten an 🙂<br>",
     ),
     "noti_start_title": m34,
     "noti_termin_messageAfter": m35,
     "noti_termin_messageAt": m36,
     "noti_termin_messageBefore": m37,
     "noti_weekEnd_message": MessageLookupByLibrary.simpleMessage(
-      "Super! Wieder eine Woche geschaft\n Klicke hier um deine Wochenübersicht\n anzeigen zu lassen",
+      "Super! Wieder eine Woche geschaft!😊<br> Klicke hier um deine Wochenübersicht anzeigen zu lassen",
     ),
     "noti_weekEnd_title": MessageLookupByLibrary.simpleMessage(
       "Wochenübersicht 🎊",
@@ -725,7 +725,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "weekStart": MessageLookupByLibrary.simpleMessage("Wochenstart"),
     "week_reward_message": MessageLookupByLibrary.simpleMessage(
-      "Danke! 😊 \n\n Ich hoffe deine Woche hat dich vorangebracht und dir geholfen \n\n Du schaffst das Woche für Woche 💪",
+      "<b>Danke!<b> 😊 \n\n Ich hoffe deine Woche hat dich vorangebracht und dir geholfen \n\n Du schaffst das Woche für Woche 💪",
     ),
     "weeklyPlans": MessageLookupByLibrary.simpleMessage("Wochenpläne"),
     "weekly_values": MessageLookupByLibrary.simpleMessage("Wöchentliche Werte"),

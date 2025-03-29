@@ -3,6 +3,8 @@
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <!-- Paket-Sichtbarkeit für API 30 und höher -->
     <queries>
@@ -16,6 +18,11 @@
         android:label="Menta Track"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_launcher" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -44,6 +51,8 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

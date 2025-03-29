@@ -15,7 +15,6 @@ import '../termin.dart';
 
 ///Tagesübersichtsseite zeigt Informationen zu einem Tag
 //Confetti package: https://pub.dev/packages/confetti
-//TODO Variation falls Termin nach endbenachrichtigung!
 
 class DayOverviewPage extends StatefulWidget {
   final String weekKey; ///braucht "yyyy-MM-dd"-Format
@@ -326,8 +325,7 @@ class DayOverviewState extends State<DayOverviewPage> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           SizedBox(height: MediaQuery.of(context).size.height*0.07,),
-                          SizedBox(height: MediaQuery.of(context).size.height*0.03,),
-                          _loaded ? getText() : SizedBox(width: MediaQuery.of(context).size.width,),
+                          _loaded ? getText() : SizedBox(),
                           SizedBox(height: 20,),
                           if (!_noFavorites) Material(//zuerst favoriteAnswers.isNotEmpty, durch es ist aber immer mindestens ["","",""] was als voll gezählt wird
                             elevation: 10,
@@ -426,7 +424,12 @@ class DayOverviewState extends State<DayOverviewPage> {
                           ),
                           widget.fromNotification
                               ? ActionSlider.standard(
-                            child: Text(S.current.understood, key: GlobalKey(debugLabel: "actKey")),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 10),
+                              child: FittedBox(
+                                  child: Text(S.current.understood, key: GlobalKey(debugLabel: "actKey"))
+                              )
+                            ),
                             action: (controller) async {
                               controller.loading();
                               await Future.delayed(const Duration(seconds: 1));

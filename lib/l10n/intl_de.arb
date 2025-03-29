@@ -142,7 +142,7 @@
   "questionPage_comment": "Wenn du Lust hast kannst du hier einen kurzen Kommentar hinzufügen:",
   "questionPage_commentLabel": "Dein Feedback",
   "questionPage_save": "Zum Speichern wischen",
-  "questionPage_too_early1" : "{count, plural,  =0{{name} ist am \n{date1} um {date2}\n\nDu bist zu früh dran \uD83D\uDE0A \nAber trotzdem cool, dass du vorbeischaust \uD83D\uDC4D} other{{name} ist am \n{date1} um {date2}\n\nCool, dass du da bist \uD83D\uDE0A\nDie Aktivität hat grade erst gestartet\nSchau in kürze nochmal hier rein um Feedback zu geben \uD83D\uDC4D}}",
+  "questionPage_too_early1" : "{count, plural,  =0{{name} ist am \n{date1} um {date2}\n\nDu bist zu früh dran \uD83D\uDE0A \nAber trotzdem cool, dass du vorbeischaust \uD83D\uDC4D} other{{name} ist am \n{date1} um {date2}\n\nCool, dass du da bist \uD83D\uDE0A\nDie Aktivität hat gerade erst gestartet\nSchau in kürze nochmal hier rein um Feedback zu geben \uD83D\uDC4D}}",
   "@questionPage_too_early1" : {
     "placeholders": {
       "date1": {
@@ -187,7 +187,7 @@
   "mainPageInstructions": "Hier findest du alle Deine gespeicherten Wochenpläne.",
   "mainPageQrScanner": "Wenn du auf die Schaltfläche unten rechts tippst, öffnet sich ein QR-Scanner. Nutze ihn um einen QR-Code von deinem Therapeuten zu scannen.",
   "mainPageTapOnPlan": "Tippe auf einen Plan, um ihn zu öffnen \uD83D\uDE0A",
-  "mainPageDeleteWeek": "Um eine Woche zu löschen, halte das 'Mülleimer'-Symbol gedrückt.",
+  "mainPageDeleteWeek": "Um eine Woche zu löschen, halte das \"Mülleimer\"-Symbol gedrückt.",
   "mainPageSwipeOrButton": "Wische nach links/rechts oder nutze eine Schaltfläche im unteren Menü, um die Seiten zu wechseln.",
 
   "iconHelp1": "Zeigt dir, dass du alle Aktivitäten in einer Woche bewertet hast",
@@ -316,10 +316,10 @@
   "taskCompletedOn": "Du hast {date}\n",
   "today": "heute",
   "tasksCompleted": "{count, plural, =1{\nAktivität geschafft} other{\nAktivitäten geschafft}}",
-  "tasksPendingFeedback": "\n\n(Wenn du Lust hast, kannst du noch Feedback zu {count, plural, =1{einer Aktivität} other{{count} Aktivitäten}} auf der 'Offen'-Seite geben 😊)",
+  "tasksPendingFeedback": "\n\n(Wenn du Lust hast, kannst du noch Feedback zu {count, plural, =1{einer Aktivität} other{{count} Aktivitäten}} auf der \"Offen\"-Seite geben 😊)",
   "noAppointmentsOn": "Du hattest {date} keine Aktivität geplant gehabt.",
   "hopeYouHadAGoodDay": "Ich hoffe, du hast und hattest trotzdem einen schönen Tag {count, plural, zero{} other{, {name}}} 😊",
-  "noFeedbackFromNotification": "Der Tag ist vorbei, toll das du hier reinschaust,\nallein das bedeutet schon, dass du deine Situation verbessern willst\uD83D\uDC4D \n Danke dir!\uD83D\uDE09\n\n",
+  "noFeedbackFromNotification": "Der Tag ist vorbei, toll das du hier reinschaust, <br> allein das bedeutet schon, dass du deine Situation verbessern willst\uD83D\uDC4D <br> Danke dir!\uD83D\uDE09\n\n",
   "tasksNotAnsweredOn": "Du hast {date}\n {count, plural, =1{deine Aktivität} other{{count} Aktivitäten}}\nnoch nicht beantwortet.",
   "checkPendingFeedback": "Schau auf der Startseite unter \"Offen\" oder in der \"Wochenübersicht\" nach, um Feedback zu einer Aktivität zu geben 👍",
   "dayNotYetArrived": "Der Tag ist noch nicht gekommen 😉 Trotzdem schön, dass du schon mal hier reinschaust {name} :)",
@@ -336,7 +336,7 @@
   "weekOverView_tooEarly": "Die Woche ist noch nicht gekommen. Schau gerne später wieder hier rein :)",
   "weekOverView_noAnswers": "Du hast diese Woche noch keine Aktivität bewertet \n komm bitte später wieder 🙋‍♂️",
   "weekOverView_scroll": "\n\n Scroll weiter um mehr Infos zu bekommen ;)",
-  "week_reward_message": "Danke! \uD83D\uDE0A \n\n Ich hoffe deine Woche hat dich vorangebracht und dir geholfen \n\n Du schaffst das Woche für Woche \uD83D\uDCAA",
+  "week_reward_message": "<b>Danke!<b> \uD83D\uDE0A \n\n Ich hoffe deine Woche hat dich vorangebracht und dir geholfen \n\n Du schaffst das Woche für Woche \uD83D\uDCAA",
   "weekly_values": "Wöchentliche Werte",
 
 
@@ -354,13 +354,13 @@
       }
     }
   },
-  "noti_start_message": "Heute stehen folgende Aktivitäten an 🙂 \n",
-  "noti_noTasks_message":"Heute stehen keine Aktivitäten an,\nalso lehn dich zurück und\nentspann ein bisschen \uD83D\uDE42",
+  "noti_start_message": "Heute stehen folgende Aktivitäten an 🙂<br>",
+  "noti_noTasks_message":"Heute stehen keine Aktivitäten an,<br>also lehn dich zurück und entspann ein bisschen \uD83D\uDE42",
 
   "@Termin": {  },
-  "noti_termin_messageBefore": "{terminName} steht\n in {count} Minuten an. \n Du schaffst das!🤞",
-  "noti_termin_messageAt": "Es ist soweit für {terminName}!\n Viel Erfolg!🤞",
-  "noti_termin_messageAfter": "{terminName} ist vorbei.\n Ich hoffe es hat geklappt und dir geholfen 😊\nBitte klicke auf mich,\n nimm dir eine Minute\nund reflektiere die Aktivität\nEgal ob geschaft oder nicht,\ndas reflektieren darüber ist schon\neine tolle Leistung 🤘",
+  "noti_termin_messageBefore": "{terminName} steht in {count} Minuten an. <br> <b>Du schaffst das!<b>🤞",
+  "noti_termin_messageAt": "Es ist soweit für {terminName}!<br> <b>Viel Erfolg!<b>🤞",
+  "noti_termin_messageAfter": "{terminName} ist vorbei.<br> Ich hoffe es hat geklappt und dir geholfen 😊<br>Bitte klicke auf mich, nimm dir eine Minute und reflektiere die Aktivität<br>Egal ob geschaft oder nicht, das reflektieren darüber ist schon eine tolle Leistung 🤘",
 
 
   "@End": {  },
@@ -375,9 +375,9 @@
       }
     }
   },
-  "noti_dayEnd_message":"Wieder ein Tag vorbei. \n Klicke auf mich um zu sehn\n was heute so los war \uD83D\uDE0A \n",
+  "noti_dayEnd_message":"Wieder ein Tag vorbei. <br> Klicke auf mich um zu sehn was heute so los war \uD83D\uDE0A<br>",
   "noti_weekEnd_title": "Wochenübersicht \uD83C\uDF8A",
-  "noti_weekEnd_message":"Super! Wieder eine Woche geschaft\n Klicke hier um deine Wochenübersicht\n anzeigen zu lassen",
+  "noti_weekEnd_message":"Super! Wieder eine Woche geschaft!\uD83D\uDE0A<br> Klicke hier um deine Wochenübersicht anzeigen zu lassen",
 
   "delete": "Löschen",
   "delete_week_plan":"Willst du den Wochenplan für:",
@@ -441,5 +441,5 @@
 
   "questionPage_WellDone": "{count, plural, =0{Klasse, dass du Feedback gegeben hast{name}!!\n\uD83E\uDD73} =1{Schön, dass du dir die Zeit für Feedback genommen hast{name}!\n\uD83E\uDD73} other{Toll, dass du reflektierst{name}!\n\uD83E\uDD73}}",
   "questionPage_WellDone2": "{count, plural, =0{Klasse, dass dus geschafft hast{name}!!\n\uD83E\uDD73} =1{Schön, dass du dir die Zeit genommen hast{name}!\n\uD83E\uDD73} other{Toll, dass du reflektierst{name}!\n\uD83E\uDD73}}",
-  "dayOverView_activityNotArrived" : "{count, plural, =1{\n\nEine Aktivität steht heute erst noch aus \uD83D\uDE09} other{\n\n{count} Aktivitäten stehen erst noch bevor \uD83D\uDE09}}"
+  "dayOverView_activityNotArrived" : "{count, plural, =1{\n\nEine Aktivität steht heute erst noch bevor \uD83D\uDE09} other{\n\n{count} Aktivitäten stehen erst noch bevor \uD83D\uDE09}}"
 }

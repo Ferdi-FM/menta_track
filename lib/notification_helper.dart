@@ -15,6 +15,7 @@ import 'Pages/main_page.dart';
 import 'generated/l10n.dart';
 
 //Edited ExampleCode & Dokumentation von https://pub.dev/packages/awesome_notifications/example
+//Konfigurieren für IOS, Testen ob permission "<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>" unangemessen viel Akku verbraucht
 ///Erstellt und scheduled alle Notifications
 
 class NotificationHelper{
@@ -25,7 +26,7 @@ class NotificationHelper{
   ///Initialisierung
   Future<void> initializeLocalNotifications() async {
     await AwesomeNotifications().initialize(
-        null,
+        "resource://drawable/ic_launcher",
         [
           NotificationChannel(
               channelKey: "termin_Notifications",
@@ -35,7 +36,8 @@ class NotificationHelper{
               defaultPrivacy: NotificationPrivacy.Private,
               defaultColor: Colors.deepPurple,
               ledColor: Colors.deepPurple,
-              criticalAlerts: true
+              criticalAlerts: true,
+
           )
         ],
         debug: true);
@@ -156,7 +158,7 @@ class NotificationHelper{
   ///Alert für Zustimmung zu Notifiactions
   //passiert bereits automatisch?
   Future<bool> displayNotificationRationale() async {
-    return await AwesomeNotifications().requestPermissionToSendNotifications(); //TODO: auf manchen Handys wird dannach erstmal ein reines weißes overlay gezeigt, habe noch nicht rausgefunden wieso
+    return await AwesomeNotifications().requestPermissionToSendNotifications(); //auf manchen Handys wird dannach erstmal ein reines weißes overlay gezeigt, noch nicht rausgefunden wieso
     //navigatorKey.currentState?.pop();
   }
 
@@ -198,8 +200,8 @@ class NotificationHelper{
     if (!isAllowed) return;
 
     final pref = await SharedPreferences.getInstance();
-    int timeMorningInMinuts = pref.getInt("morningTime") ?? 7*60;
-    TimeOfDay morningTime =  TimeOfDay(hour: timeMorningInMinuts  ~/ 60, minute:  timeMorningInMinuts  % 60) ;
+    int timeMorningInMinutes = pref.getInt("morningTime") ?? 7*60;
+    TimeOfDay morningTime =  TimeOfDay(hour: timeMorningInMinutes  ~/ 60, minute:  timeMorningInMinutes  % 60) ;
 
 
     DateTime firstWeekDayMorning = DateTime.parse(weekKey).add(Duration(hours: morningTime.hour, minutes: morningTime.minute)); //benachrichtigung um 7Uhr morgens, hängt von Implementation von Einstellungen ab
@@ -219,7 +221,7 @@ class NotificationHelper{
 
       if(termineForThisDay.isNotEmpty){ //Benachrichtigt wenn es Termine gibt
         for(Termin t in termineForThisDay){
-          message = "$message - ${t.terminName} ${S.current.um} <b>${S.current.displayATime(t.timeBegin)}<b> \n";
+          message = "$message - ${t.terminName} ${S.current.um} <b>${S.current.displayATime(t.timeBegin)}<b><br> \n";
         }
       } else {
         noTasks = true;
@@ -228,7 +230,7 @@ class NotificationHelper{
 
       await myNotifyScheduleInHours(
           hashCode: currentDay.hashCode,
-          title: "${Emojis.office_tear_off_calendar} $title",
+          title: title,
           msg: message,
           triggerDateTime: currentDay,
           repeatNotif: false,
@@ -312,7 +314,7 @@ class NotificationHelper{
     hashcodes.add(termin.timeBegin.hashCode + termin.terminName.hashCode);
     ///Benachrichtigung nach dem Termin
     times.add(termin.timeEnd.add(Duration(minutes: 10)));
-    hashcodes.add(termin.timeBegin.add(Duration(minutes: 10)).hashCode + termin.terminName.hashCode);
+    hashcodes.add(termin.timeEnd.add(Duration(minutes: 10)).hashCode + termin.terminName.hashCode);
 
     List<String> messages = [];
     ///Benachrichtigungen aus den Einstellungen
@@ -345,7 +347,7 @@ class NotificationHelper{
 
   ///Für Studie und Testen von Benachrichtigungen
   Future<void> scheduleStudyNotification() async {
-    //TErmin for Notification
+    //Termin for Notification
     List<Termin> terminList = await DatabaseHelper().getAllTermine();
     Termin termin = terminList[1];
     for(Termin t in terminList){
@@ -356,7 +358,7 @@ class NotificationHelper{
       }
     }
     String weekKey = termin.weekKey;
-    DateTime studyTime = DateTime.now().add(Duration(seconds: 2));
+    DateTime studyTime = DateTime.now().add(Duration(seconds: 10));
     ///Start 2sec
     final pref = await SharedPreferences.getInstance();
 
@@ -373,7 +375,7 @@ class NotificationHelper{
 
       if(termineForThisDay.isNotEmpty){ //Benachrichtigt wenn es Termine gibt
         for(Termin t in termineForThisDay){
-          message = "$message - ${t.terminName} ${S.current.um} <b>${S.current.displayATime(t.timeBegin)}<b> \n";
+          message = "$message - ${t.terminName} ${S.current.um} <b>${S.current.displayATime(t.timeBegin)}<b><br> \n";
         }
       } else {
         noTasks = true;
@@ -382,7 +384,7 @@ class NotificationHelper{
 
       await myNotifyScheduleInHours(
           hashCode: studyTime.hashCode,
-          title: "${Emojis.office_tear_off_calendar} $title",
+          title: title,
           msg: message,
           triggerDateTime: studyTime,
           repeatNotif: false,
@@ -391,7 +393,6 @@ class NotificationHelper{
             "siteToOpen": noTasks ? "MainPage" : "WeekPlanView"
           }
       );
-    ///Termin 2sec + 10 + 15 + 20 sec = 50sec
     ///Implementation der Benachrichtigungen
     List<int> notificationTimeList = pref.getStringList("notificationIntervals")?.map(int.parse).toList() ?? [15];
     List<DateTime> times = [];
@@ -422,12 +423,11 @@ class NotificationHelper{
 
     for(int i = 0; i < notificationTimeList.length+2;i++){ //numberOfNotifications   i < notificationTimeList.length+2
       await myNotifyScheduleInHours(
-          hashCode:studyTime.hashCode+4+i*2,
+          hashCode:studyTime.hashCode+8+i,
           title: "📆 ${termin.terminName}",
           msg: messages[i],
-          triggerDateTime: studyTime.add(Duration(seconds: 10+i*5)),
+          triggerDateTime: studyTime.add(Duration(seconds: i*2)),
           repeatNotif: false,
-          layout: i == notificationTimeList.length+1 ? NotificationLayout.BigText : NotificationLayout.Inbox ,
           payLoad: {
             "weekKey": weekKey,
             "timeBegin": termin.timeBegin.toIso8601String(),
@@ -463,7 +463,7 @@ class NotificationHelper{
           hashCode: studyTime.hashCode+2,
           title: lastTitle,
           msg: lastMsg,
-          triggerDateTime: studyTime.add(Duration(minutes: 1)),
+          triggerDateTime: studyTime.add(Duration(seconds: 10)),
           repeatNotif: false,
           payLoad: {
             "weekKey": weekKey,
@@ -481,6 +481,28 @@ class NotificationHelper{
       notification.content?.id == hashCode);
   }
 
+  Future<void> unscheduleTerminNotification(String startTime, String endTime, String terminName) async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    List<int> notificationTimeList = pref.getStringList("notificationIntervals")?.map(int.parse).toList() ?? [15];
+    List<int> hashcodes = [];
+
+    DateTime timeBegin = DateTime.parse(startTime);
+    DateTime timeEnd = DateTime.parse(endTime);
+
+    ///Benachrichtigungen aus den Einstellungen
+    for(int k in notificationTimeList){
+      hashcodes.add(timeBegin.subtract(Duration(minutes: k)).hashCode + terminName.hashCode);
+    }
+    ///Benachrichtigung zum Zeitpunkt
+    hashcodes.add(timeBegin.hashCode + terminName.hashCode);
+    ///Benachrichtigung nach dem Termin
+    hashcodes.add(timeEnd.add(Duration(minutes: 10)).hashCode + terminName.hashCode);
+
+    for(int hashcode in hashcodes){
+      AwesomeNotifications().cancel(hashcode);
+    }
+
+  }
 
   ///Erstellt die eigentliche Notification
   Future<void> myNotifyScheduleInHours({
@@ -501,9 +523,15 @@ class NotificationHelper{
       return;
     }
     if(!await isNotificationScheduled(hashCode)){ //Checkt ob Notification schon geschedulet is
+      print("$title is planed at $triggerDateTime");
       await AwesomeNotifications().createNotification(
-        schedule: NotificationCalendar.fromDate(
-          date: triggerDateTime,
+        schedule: NotificationCalendar(
+          year: triggerDateTime.year,
+          month: triggerDateTime.month,
+          day: triggerDateTime.day,
+          hour: triggerDateTime.hour,
+          minute: triggerDateTime.minute,
+          second: triggerDateTime.second,
           allowWhileIdle: true,
           preciseAlarm: true,
         ),
@@ -512,9 +540,9 @@ class NotificationHelper{
           channelKey: "termin_Notifications",
           title: title,
           body: msg,
-          notificationLayout: layout ?? NotificationLayout.Inbox,
-          //largeIcon: "asset://assets/images/mascot/Mascot DaumenHoch Transparent.png",
-          //bigPicture: "asset://assets/images/mascot/Mascot DaumenHoch Transparent.png",
+          notificationLayout: layout ?? NotificationLayout.BigText,
+          //largeIcon: "resource://assets/images/mascot/Mascot DaumenHoch Transparent.png",
+          //bigPicture: "resource://assets/images/mascot/Mascot DaumenHoch Transparent.png",
           actionType : ActionType.Default,
           color: Colors.black,
           backgroundColor: Colors.black,

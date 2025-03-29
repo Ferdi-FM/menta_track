@@ -363,7 +363,12 @@ class WeekOverviewState extends State<WeekOverview> {
                     ),
                     SizedBox(height: 36,),
                     widget.fromNotification ? ActionSlider.standard( //Wenn von Notification gekommen wird
-                      child: Text(S.current.understood, key: GlobalKey(debugLabel: "actKey")),
+                      child:Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10), //Damit der Thumb nicht des Text überdeckt
+                          child: FittedBox(
+                              child: Text(S.current.understood, key: GlobalKey(debugLabel: "actKey")),
+                          )
+                      ),
                       action: (controller) async {
                         controller.loading();
                         await Future.delayed(const Duration(seconds: 1));

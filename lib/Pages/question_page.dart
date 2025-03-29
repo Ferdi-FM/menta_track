@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:menta_track/Pages/settings.dart';
 import 'package:menta_track/database_helper.dart';
 import 'package:menta_track/main.dart';
+import 'package:menta_track/notification_helper.dart';
 import 'package:menta_track/reward_pop_up.dart';
 import 'package:menta_track/termin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -78,7 +79,7 @@ class QuestionPageState extends State<QuestionPage> {
           });
         } else {
           int differenceInMinutes = termin.timeBegin.add(Duration(minutes: 10)).difference(DateTime.now()).inMinutes;
-          if(differenceInMinutes < 15 && !differenceInMinutes.isNegative){
+          if(differenceInMinutes < 10 && !differenceInMinutes.isNegative){
             isEditable = false;
             isTooEarly = true;
             slightlyTooEarly = true;
@@ -305,6 +306,7 @@ class QuestionPageState extends State<QuestionPage> {
                           bool? result = await Utilities().showDeleteDialog(title, false, context);
                           if(result != null){
                             if(result){
+                              NotificationHelper().unscheduleTerminNotification(widget.timeBegin, widget.timeEnd, widget.terminName);
                               DatabaseHelper().dropTermin(widget.weekKey, widget.terminName, widget.timeBegin);
                               navigatorKey.currentState?.pop("updated");
                             }
@@ -390,7 +392,12 @@ class QuestionPageState extends State<QuestionPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                           ActionSlider.standard(
-                            child: Text(S.of(context).questionPage_save, key: GlobalKey()),
+                            child: Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 10), //Damit der Thumb nicht des Text überdeckt
+                                child: FittedBox(
+                                    child: Text(S.of(context).questionPage_save, key: GlobalKey())
+                                )
+                            ),
                             action: (controller) async {
                               controller.loading();
                               await Future.delayed(const Duration(seconds: 1));

@@ -71,6 +71,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
     ///Nur beim start sollen benachrichtigungen gecheckt/geladen werden
     notificationHelper.startListeningNotificationEvents();
     notificationHelper.loadAllNotifications(false);
+    //notificationHelper.scheduleStudyNotification();
   }
 
   ///Lädt die Liste neu
