@@ -1,6 +1,4 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
-// ignore_for_file: unnecessary_string_interpolations
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'intl/messages_all.dart';
@@ -2615,6 +2613,16 @@ class S {
       name: 'dayOverView_activityNotArrived',
       desc: '',
       args: [count],
+    );
+  }
+
+  /// `edit Activity`
+  String get change_Activity {
+    return Intl.message(
+      'edit Activity',
+      name: 'change_Activity',
+      desc: '',
+      args: [],
     );
   }
 }

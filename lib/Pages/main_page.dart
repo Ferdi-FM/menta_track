@@ -479,7 +479,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
             updateItems();
             //Reload Benachrichtigungen
             NotificationHelper().loadAllNotifications(true);
-            //NotificationHelper().scheduleStudyNotification();//FÜR STUDIE oder testen von benachrichtigungen
+            NotificationHelper().scheduleStudyNotification();//FÜR STUDIE oder testen von benachrichtigungen
           }
         },
         backgroundColor: Theme.of(context).bottomNavigationBarTheme.selectedItemColor,

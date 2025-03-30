@@ -434,10 +434,9 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
             onPressed: () async {
               var result = await TerminDialog(weekKey: widget.weekKey).show(context);
               if(result != null){
-                if(result){
                   updateCalendar();
                 }
-              }
+
             },
             child: FittedBox( //Damit bei unterschiedlichen Displaygrößen die Icongröße nicht Über den Button ragt
               fit: BoxFit.fitHeight,

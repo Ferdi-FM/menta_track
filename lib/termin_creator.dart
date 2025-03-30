@@ -23,7 +23,7 @@ class TerminDialog {
     this.updatingEntry
   });
 
-  Future<bool?> show(BuildContext context) async {
+  Future<Map<String,dynamic>?> show(BuildContext context) async {
     TextEditingController nameController = TextEditingController();
     DateTime selectedDate;
     TimeOfDay startTime;
@@ -35,6 +35,7 @@ class TerminDialog {
       selectedDate = existingStartTime!;
       startTime = TimeOfDay.fromDateTime(existingStartTime!);
       endTime = TimeOfDay.fromDateTime(existingEndTime!);
+      nameController.text = existingName!;
     } else {
       selectedDate = DateTime.parse(weekKey);
       startTime = TimeOfDay.fromDateTime(DateTime.now());
@@ -67,7 +68,7 @@ class TerminDialog {
             return AlertDialog(
                   actionsOverflowAlignment: OverflowBarAlignment.center,
                   actionsAlignment: MainAxisAlignment.spaceEvenly,
-                  title: Text(S.current.createTermin),
+                  title: Text(updatingEntry != null ? S.current.change_Activity : S.current.createTermin),
                   content: SingleChildScrollView(
                       child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -164,16 +165,16 @@ class TerminDialog {
                               onPressed: () {
                                 if (nameController.text.isNotEmpty) {
                                   if(startTime.isBefore(endTime)){
-                                    navigatorKey.currentState?.pop(true);
                                     DateTime timeStart = selectedDate.add(Duration(hours: startTime.hour, minutes: startTime.minute));
                                     DateTime timeEnd = selectedDate.add(Duration(hours: endTime.hour, minutes: endTime.minute));
                                     if(updatingEntry != null){
                                       if(updatingEntry!){
                                         Map<String,dynamic> updateMap = {
-                                          "terminName" : nameController.text ,
-                                          "timeBegin" : timeStart.toIso8601String(),
-                                          "timeEnd" : timeEnd.toIso8601String(),
-                                        };
+                                            "terminName" : nameController.text ,
+                                            "timeBegin" : timeStart.toIso8601String(),
+                                            "timeEnd" : timeEnd.toIso8601String(),
+                                          };
+
                                         if(existingEndTime != null && existingEndTime != null){
                                           String originalTimeBegin = existingStartTime!.toIso8601String();
                                           existingStartTime!.toIso8601String();
@@ -182,6 +183,12 @@ class TerminDialog {
                                         }
                                       }
                                     }
+                                    Map<String,dynamic> results = {
+                                      "timeBegin": timeStart,
+                                      "timeEnd": timeEnd,
+                                      "terminName": nameController.text,
+                                    };
+                                    navigatorKey.currentState?.pop(results);
                                     DatabaseHelper().insertSingleTermin(weekKey, nameController.text, timeStart, timeEnd); //Für mehrtägige implementation: Wenn über eine WOche hinweg ein Termin vergeben wird, sollte dieser zu beiden Wochen hinzugefügt werden
                                   } else {
                                     setState(() {

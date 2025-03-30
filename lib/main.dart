@@ -39,7 +39,7 @@ class MyAppState extends State<MyApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: [
-        Locale("en", "US"),
+        //Locale("en", "US"),
         Locale("en", "GB"),
         Locale("de", "DE"),
         // Füge hier weitere Sprachen hinzu

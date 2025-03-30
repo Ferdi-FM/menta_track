@@ -433,6 +433,6 @@
 
   "questionPage_WellDone": "{count, plural, =0{Great job giving feedback{name}!!\n\uD83E\uDD73} =1{Nice that you took the time for feedback{name}!\n\uD83E\uDD73} other{Awesome that you're reflecting{name}!\n\uD83E\uDD73}}",
   "questionPage_WellDone2": "{count, plural, =0{Klasse, dass du's geschafft hast{name}!!\n\uD83E\uDD73} =1{Schön, dass du dir die Zeit genommen hast{name}!\n\uD83E\uDD73} other{Toll, dass du reflektierst{name}!\n\uD83E\uDD73}}",
-  "dayOverView_activityNotArrived" : "{count, plural, =1{\n\nOne Activity still in the future \uD83D\uDE09} other{\n\n{count} Activities haven't arrived yet \uD83D\uDE09}}"
-
+  "dayOverView_activityNotArrived" : "{count, plural, =1{\n\nOne Activity still in the future \uD83D\uDE09} other{\n\n{count} Activities haven't arrived yet \uD83D\uDE09}}",
+  "change_Activity": "edit Activity"
 }

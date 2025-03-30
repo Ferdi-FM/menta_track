@@ -14,6 +14,7 @@ import 'package:menta_track/termin.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../generated/l10n.dart';
 import '../helper_utilities.dart';
+import '../termin_creator.dart';
 
 class QuestionPage extends StatefulWidget{
   final String weekKey; ///"MM-dd-yyyy"
@@ -43,9 +44,16 @@ class QuestionPageState extends State<QuestionPage> {
   DatabaseHelper databaseHelper = DatabaseHelper();
   //Widget _themeIllustration = SizedBox();
   String name = "";
+  bool updated = false;
+  String localTimeBegin = "";
+  String localTimeEnd = "";
+  String localTerminName = "";
 
   @override
   void initState() {
+    localTerminName = widget.terminName;
+    localTimeBegin = widget.timeBegin;
+    localTimeEnd = widget.timeEnd;
     getTermin();
     loadTheme();
     super.initState();
@@ -65,7 +73,7 @@ class QuestionPageState extends State<QuestionPage> {
   ///Holt sich den Termin und füllt die Questionpage mit den Antworten, falls er schon beantwortet wurde
   void getTermin() async {
     final pref = await SharedPreferences.getInstance();
-     Termin? termin = await databaseHelper.getSpecificTermin(widget.weekKey, widget.timeBegin, widget.terminName);
+     Termin? termin = await databaseHelper.getSpecificTermin(widget.weekKey, localTimeBegin, localTerminName);
      name = pref.getString("userName") ?? "";
      if(termin != null){
         if(termin.answered){ //Wenn hier true, müsste isEditable eigentlich immer false sein, da diese Info schon im WeekPlanView abgefragt wird. Diese Datenabfrage hier ist auch eher eine zusätzliche redundanz zur Sicherheit
@@ -106,7 +114,7 @@ class QuestionPageState extends State<QuestionPage> {
       "comment": textEditingController.text,
       "answered": 1,
     };
-    databaseHelper.updateEntry(widget.weekKey, widget.timeBegin, widget.terminName, updatedValues);
+    databaseHelper.updateEntry(widget.weekKey, localTimeBegin, localTerminName, updatedValues);
     databaseHelper.updateActivities(widget.weekKey);
     if(!isBeingEdited) {
       Navigator.pop(context, "updated");
@@ -241,9 +249,9 @@ class QuestionPageState extends State<QuestionPage> {
                   RichText(
                     text: TextSpan(
                         children: [
-                          TextSpan(text: "${widget.terminName}  \n", style: TextStyle(fontWeight: FontWeight.bold)),
-                          TextSpan(text:  "${S.of(context).am} ${S.current.displayADate(DateTime.parse(widget.timeBegin))} "
-                                          "${S.of(context).um} ${S.current.displayATime(DateTime.parse(widget.timeBegin))}")
+                          TextSpan(text: "${localTerminName}  \n", style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text:  "${S.of(context).am} ${S.current.displayADate(DateTime.parse(localTimeBegin))} "
+                                          "${S.of(context).um} ${S.current.displayATime(DateTime.parse(localTimeBegin))}")
                         ],
                         style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 18)),
                   ),
@@ -283,9 +291,9 @@ class QuestionPageState extends State<QuestionPage> {
                     ),
                     onPressed: () async {
                       final Event event = Event(
-                        title: widget.terminName,
-                        startDate: DateTime.parse(widget.timeBegin),
-                        endDate: DateTime.parse(widget.timeEnd),
+                        title: localTerminName,
+                        startDate: DateTime.parse(localTimeBegin),
+                        endDate: DateTime.parse(localTimeEnd),
                       );
                       Add2Calendar.addEvent2Cal(event);
                     },
@@ -302,18 +310,47 @@ class QuestionPageState extends State<QuestionPage> {
                           ),
                         ),
                         onPressed: () async {
-                          String title =" ${widget.terminName} ${S.current.am} ${DateFormat("dd.MM").format(DateTime.parse(widget.timeBegin))} ${S.current.um} ${DateFormat("HH:mm").format(DateTime.parse(widget.timeBegin))}";
+                          String title =" ${localTerminName} ${S.current.am} ${DateFormat("dd.MM").format(DateTime.parse(localTimeBegin))} ${S.current.um} ${DateFormat("HH:mm").format(DateTime.parse(localTimeBegin))}";
                           bool? result = await Utilities().showDeleteDialog(title, false, context);
                           if(result != null){
                             if(result){
-                              NotificationHelper().unscheduleTerminNotification(widget.timeBegin, widget.timeEnd, widget.terminName);
-                              DatabaseHelper().dropTermin(widget.weekKey, widget.terminName, widget.timeBegin);
+                              NotificationHelper().unscheduleTerminNotification(localTimeBegin, localTimeEnd, localTerminName);
+                              DatabaseHelper().dropTermin(widget.weekKey, localTerminName, localTimeBegin);
                               navigatorKey.currentState?.pop("updated");
                             }
                           }
 
                         },
-                      )
+                      ),
+                  if(radioAnswers[0] == -1)MenuItemButton(
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Icon(Icons.edit),
+                          SizedBox(width: 10),
+                          Text(S.current.change_Activity)
+                        ],
+                      ),
+                    ),
+                    onPressed: () async {
+                      Map<String,dynamic>? result = await TerminDialog(weekKey: widget.weekKey, existingStartTime: DateTime.parse(localTimeBegin), existingEndTime: DateTime.parse(localTimeEnd), existingName: localTerminName, updatingEntry: true).show(context);
+                      if(result != null){
+                        DateTime start = result["timeBegin"]!;
+                        DateTime end = result["timeEnd"];
+                        String tName = result["terminName"];
+                        NotificationHelper().unscheduleTerminNotification(localTimeBegin, localTimeEnd, localTerminName);
+                        setState(() {
+                            localTimeBegin = start.toIso8601String();
+                            localTimeEnd = end.toIso8601String();
+                            localTerminName = tName;
+                            updated = true;
+                            getTermin();
+                        });
+                          //navigatorKey.currentState?.pop("updated"); //Schließt zwar die Seite, aber updated dafür direkt den Kalender, mann müsste "updated" als variabel definieren und dann beim normalen schließen der Seite übergeben, falls nicht null
+                        }
+                    },
+                  ),
                 ],
                 builder: (BuildContext context, MenuController controller, Widget? child) {
                   return TextButton(
@@ -351,8 +388,8 @@ class QuestionPageState extends State<QuestionPage> {
                 SizedBox(height: 20),
                 ///Erste Frage (Falls Zeitpunkt gekommen ist, ansonsten Info)
                 isTooEarly ? Text(!slightlyTooEarly ?
-                        S.current.questionPage_too_early1(DateTime.parse(widget.timeBegin), DateTime.parse(widget.timeBegin),0,widget.terminName) :
-                        S.current.questionPage_too_early1(DateTime.parse(widget.timeBegin), DateTime.parse(widget.timeBegin),1,widget.terminName),
+                        S.current.questionPage_too_early1(DateTime.parse(localTimeBegin), DateTime.parse(localTimeBegin),0,localTerminName) :
+                        S.current.questionPage_too_early1(DateTime.parse(localTimeBegin), DateTime.parse(localTimeBegin),1,localTerminName),
                     style: TextStyle(fontSize: 24),textAlign: TextAlign.center,)
                 : buildQuestion(0, true),
                 SizedBox(height: 16),
@@ -412,7 +449,13 @@ class QuestionPageState extends State<QuestionPage> {
                           ),
                         SizedBox(height: 16,),
                         ElevatedButton(
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () {
+                            if(updated){
+                              navigatorKey.currentState?.pop("updated");
+                            } else {
+                              navigatorKey.currentState?.pop();
+                            }
+                          },
                           style: ElevatedButton.styleFrom(minimumSize: Size(200,50),),
                           child: Text(S.of(context).cancel, style: TextStyle(fontSize: 16),),
                         ),
@@ -455,7 +498,12 @@ class QuestionPageState extends State<QuestionPage> {
                           child: !isBeingEdited ? ElevatedButton(
                               onPressed: () {
                                 if(hapticFeedback) HapticFeedback.lightImpact();
-                                Navigator.pop(context);
+                                if(updated){
+                                  Navigator.pop(context, "updated");
+                                } else {
+                                  navigatorKey.currentState?.pop();
+                                }
+
                               },
                               //style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).primaryColorLight),
                               child: AutoSizeText(S.of(context).back, style: TextStyle(fontSize: 16), maxLines: 1,)
@@ -513,10 +561,10 @@ Funktion zum verschieben von Terminen: //Angefangen wenn man Aktivitäten versch
                       ),
                     ),
                     onPressed: () async {
-                      bool? result = await TerminDialog(weekKey: widget.weekKey, existingStartTime: DateTime.parse(widget.timeBegin), existingEndTime: DateTime.parse(widget.timeEnd), updatingEntry: true).show(context);
+                      bool? result = await TerminDialog(weekKey: widget.weekKey, existingStartTime: DateTime.parse(localTimeBegin), existingEndTime: DateTime.parse(localTimeEnd), updatingEntry: true).show(context);
                       if(result != null){
                         if(result){
-                          NotificationHelper().unscheduleTerminNotification(widget.timeBegin, widget.timeEnd, widget.terminName);
+                          NotificationHelper().unscheduleTerminNotification(localTimeBegin, localTimeEnd, localTerminName);
                           navigatorkey.currentState?.pop("updated"); //Schließt zwar die Seite, aber updated dafür direkt den Kalender, mann müsste "updated" als variabel definieren und dann beim normalen schließen der Seite übergeben, falls nicht null
                         }
                       }

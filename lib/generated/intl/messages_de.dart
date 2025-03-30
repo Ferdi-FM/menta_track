@@ -231,6 +231,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "calm_activities_desc_variable": m3,
     "cancel": MessageLookupByLibrary.simpleMessage("Abbrechen"),
+    "change_Activity": MessageLookupByLibrary.simpleMessage("Aktivität ändern"),
     "checkPendingFeedback": MessageLookupByLibrary.simpleMessage(
       "Schau auf der Startseite unter \"Offen\" oder in der \"Wochenübersicht\" nach, um Feedback zu einer Aktivität zu geben 👍",
     ),
