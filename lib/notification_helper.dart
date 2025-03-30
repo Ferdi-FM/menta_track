@@ -523,7 +523,6 @@ class NotificationHelper{
       return;
     }
     if(!await isNotificationScheduled(hashCode)){ //Checkt ob Notification schon geschedulet is
-      print("$title is planed at $triggerDateTime");
       await AwesomeNotifications().createNotification(
         schedule: NotificationCalendar(
           year: triggerDateTime.year,

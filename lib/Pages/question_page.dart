@@ -498,4 +498,28 @@ class QuestionPageState extends State<QuestionPage> {
       height: MediaQuery.of(context).size.width/3,
       width: MediaQuery.of(context).size.width/3,
       child: _themeIllustration,
-    ),*/
+    ),
+
+Funktion zum verschieben von Terminen: //Angefangen wenn man Aktivitäten verschieben sollen kann. Aber dann lieber: Longpress auf Eintrag in wekk_plan_view öffnet DropDown-Menü über das gelöscht und verschoben werden kann
+                  MenuItemButton(
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Icon(Icons.edit),
+                          SizedBox(width: 10),
+                          Text("Aktivität verschieben")
+                        ],
+                      ),
+                    ),
+                    onPressed: () async {
+                      bool? result = await TerminDialog(weekKey: widget.weekKey, existingStartTime: DateTime.parse(widget.timeBegin), existingEndTime: DateTime.parse(widget.timeEnd), updatingEntry: true).show(context);
+                      if(result != null){
+                        if(result){
+                          NotificationHelper().unscheduleTerminNotification(widget.timeBegin, widget.timeEnd, widget.terminName);
+                          navigatorkey.currentState?.pop("updated"); //Schließt zwar die Seite, aber updated dafür direkt den Kalender, mann müsste "updated" als variabel definieren und dann beim normalen schließen der Seite übergeben, falls nicht null
+                        }
+                      }
+
+                    },
+                  ),*/

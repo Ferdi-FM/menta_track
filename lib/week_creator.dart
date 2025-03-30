@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:menta_track/database_helper.dart';
+import 'package:menta_track/main.dart';
 import 'generated/l10n.dart';
 
 ///Klasse zum manuellen Hinzufügen einer Woche
@@ -70,7 +71,7 @@ class WeekDialog {
                       children: [
                         Expanded(
                               child: TextButton(
-                                onPressed: () => Navigator.pop(context),
+                                onPressed: () => navigatorKey.currentState?.pop(),
                                 child: FittedBox(
                                   child: Text(S.current.cancel,),
                                 )
@@ -78,9 +79,12 @@ class WeekDialog {
                         ),
                         Expanded(
                             child: TextButton(
-                              onPressed: () {
-                                DatabaseHelper().insertSingleWeek(DateFormat("yyyy-MM-dd").format(startDate), context);
-                              },
+                              onPressed: () async {
+                                bool added = await DatabaseHelper().insertSingleWeek(DateFormat("yyyy-MM-dd").format(startDate), context);
+                                if(added){
+                                  navigatorKey.currentState?.pop(true);
+                                }
+                                },
                               child: FittedBox(
                                 child: Text(S.current.save),
                               ),

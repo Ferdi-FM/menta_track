@@ -9,13 +9,18 @@ import 'generated/l10n.dart';
 class TerminDialog {
   final String weekKey;
 
+  final String? existingName;
   final DateTime? existingStartTime;
   final DateTime? existingEndTime;
+  final bool? updatingEntry;
+  //Option zum verschieben von Terminen einfügen
 
   const TerminDialog({
     required this.weekKey,
     this.existingStartTime,
-    this.existingEndTime
+    this.existingEndTime,
+    this.existingName,
+    this.updatingEntry
   });
 
   Future<bool?> show(BuildContext context) async {
@@ -162,7 +167,22 @@ class TerminDialog {
                                     navigatorKey.currentState?.pop(true);
                                     DateTime timeStart = selectedDate.add(Duration(hours: startTime.hour, minutes: startTime.minute));
                                     DateTime timeEnd = selectedDate.add(Duration(hours: endTime.hour, minutes: endTime.minute));
-                                    DatabaseHelper().insertSingleTermin(weekKey, nameController.text, timeStart, timeEnd);
+                                    if(updatingEntry != null){
+                                      if(updatingEntry!){
+                                        Map<String,dynamic> updateMap = {
+                                          "terminName" : nameController.text ,
+                                          "timeBegin" : timeStart.toIso8601String(),
+                                          "timeEnd" : timeEnd.toIso8601String(),
+                                        };
+                                        if(existingEndTime != null && existingEndTime != null){
+                                          String originalTimeBegin = existingStartTime!.toIso8601String();
+                                          existingStartTime!.toIso8601String();
+                                          String originalName = existingName!;
+                                          DatabaseHelper().updateEntry(weekKey, originalTimeBegin,originalName, updateMap);
+                                        }
+                                      }
+                                    }
+                                    DatabaseHelper().insertSingleTermin(weekKey, nameController.text, timeStart, timeEnd); //Für mehrtägige implementation: Wenn über eine WOche hinweg ein Termin vergeben wird, sollte dieser zu beiden Wochen hinzugefügt werden
                                   } else {
                                     setState(() {
                                       tileColor = Color.fromARGB(90, 220, 172, 107);

@@ -163,7 +163,7 @@
 
   "@Settings": {
   },
-  "settings_name": "Dein Name",
+  "settings_name": "Hier kannst du einen Namen angeben :)",
   "settings_theme": "Bilder-Thema",
   "settings_themePictures": "Keine Bilder",
   "settings_themeOnlyMainPage": "Thema nur auf Hauptseite" ,

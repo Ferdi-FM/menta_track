@@ -584,7 +584,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "settings_morningNotification": MessageLookupByLibrary.simpleMessage(
       "Zeitpunkt Morgens",
     ),
-    "settings_name": MessageLookupByLibrary.simpleMessage("Dein Name"),
+    "settings_name": MessageLookupByLibrary.simpleMessage(
+      "Hier kannst du einen Namen angeben :)",
+    ),
     "settings_name_headline": MessageLookupByLibrary.simpleMessage("Name"),
     "settings_notifications": m42,
     "settings_notificationsForTasks": MessageLookupByLibrary.simpleMessage(

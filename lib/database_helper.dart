@@ -56,14 +56,13 @@ class DatabaseHelper {
     );
   }
 
-  Future<void> insertSingleWeek(String weekKey, BuildContext context) async{
+  Future<bool> insertSingleWeek(String weekKey, BuildContext context) async{
     final db = await database;
-    String query = '''
-      SELECT weekKey FROM WeeklyPlans 
-      WHERE date(weekKey) BETWEEN date(?, '-6 days') AND date(?, '+6 days')
-      LIMIT 1;
-    ''';
-    List<Map<String, dynamic>> result = await db.rawQuery(query, [weekKey, weekKey]);
+    List<Map<String, dynamic>> result = await db.query(
+      "WeeklyPlans",
+      where: "date(weekKey) BETWEEN date(?, '-6 days') AND date(?, '+6 days')",
+      whereArgs: [weekKey, weekKey],
+    );
 
     if(result.isEmpty){
       await db.insert(
@@ -71,12 +70,14 @@ class DatabaseHelper {
         {"weekKey": weekKey},
         conflictAlgorithm: ConflictAlgorithm.ignore,
       );
+      return true;
     } else {
       if(context.mounted){
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Woche würde sich überschneiden"))
         );
       }
+      return false;
     }
   }
 

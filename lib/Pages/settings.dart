@@ -274,6 +274,7 @@ class SettingsPageState extends State<SettingsPage> {
             padding: EdgeInsets.all(16.0),
             child: Column(
               children: [
+                SizedBox(height: 10),
                 ListTile(
                   title: Text(S.current.settings_name_headline, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center,),
                 ),

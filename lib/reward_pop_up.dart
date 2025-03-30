@@ -267,8 +267,8 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
                 child: ConfettiWidget(
                   confettiController: _confettiController,
                   blastDirectionality: BlastDirectionality.explosive,
-                  emissionFrequency: 0.25,
-                  numberOfParticles: 20, // a lot of particles at once
+                  emissionFrequency: 0.35,
+                  numberOfParticles: 15, // a lot of particles at once
                   gravity: 0.1,
                   shouldLoop: false,
                 ),
@@ -278,8 +278,8 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
                 child: ConfettiWidget(
                   confettiController: _confettiController,
                   blastDirectionality: BlastDirectionality.explosive,
-                  emissionFrequency: 0.25,
-                  numberOfParticles: 20, // a lot of particles at once
+                  emissionFrequency: 0.35,
+                  numberOfParticles: 15, // a lot of particles at once
                   gravity: 0.1,
                   shouldLoop: false,
                 ),

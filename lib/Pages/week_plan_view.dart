@@ -241,7 +241,7 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
           child:
           GestureDetector(
               behavior: HitTestBehavior.translucent,
-              onTapDown: (event) async {
+              onTapUp: (event) async {
                 Offset pos = event.globalPosition;
                 final result = await navigatorKey.currentState?.push(
                     PageRouteBuilder(
@@ -289,13 +289,13 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
                   Container(
                     height: textheight.toDouble(),
                     alignment: Alignment.center,
-                    margin: EdgeInsets.only(left: 10, right: 10, bottom: 12, top: 10), //Ursprünglich 8 : 12
+                    margin: EdgeInsets.only(left: 10, right: 10, bottom: duration > 30 ? 12: duration/3, top: duration > 30 ? 10 : duration/4), //Ursprünglich 8 : 12
                       child: Text(
                           overflow: TextOverflow.ellipsis,
                           maxLines: (duration/30).toInt(),
                           title,
                           style: TextStyle(
-                            fontSize: duration > 30 ? 10 : duration/7, //Ursprünglich 11
+                            fontSize: duration > 30 ? 10 : duration/7,
                             color: Colors.black,
                           ),
                           textAlign: TextAlign.center,
@@ -461,3 +461,78 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
         }
   }
 }
+
+//Funktion für ContextMenü bei einzelnen Einträgen (Kommt unter Container in dem Stack:
+
+/*MenuAnchor(
+                      menuChildren: <Widget>[
+                        MenuItemButton(
+                          child: Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Icon(Icons.delete),
+                                SizedBox(width: 10),
+                                Text("Delete")
+                              ],
+                            ),
+                          ),
+                          onPressed: () => print("delete"),
+                        ),
+                        MenuItemButton(
+                          child: Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Icon(Icons.edit),
+                                SizedBox(width: 10),
+                                Text("Edit")
+                              ],
+                            ),
+                          ),
+                          onPressed: () {
+                            print("Edit");
+                          },
+                        ),
+                      ],
+                      builder: (BuildContext context, MenuController controller, Widget? child) {
+                        return TextButton(
+                          focusNode: FocusNode(),
+                          onLongPress: () {
+                            if (controller.isOpen) {
+                              controller.close();
+                            } else {
+                              controller.open();
+                            }
+                          },
+                          onPressed: () async {
+                            final RenderBox renderBox = context.findRenderObject() as RenderBox;
+                            final Offset pos = renderBox.localToGlobal(Offset.zero);
+                            final result = await navigatorKey.currentState?.push(
+                                PageRouteBuilder(
+                                  pageBuilder: (context, animation, secondaryAnimation) => QuestionPage(
+                                      weekKey: widget.weekKey,
+                                      timeBegin: startTime.toIso8601String(),
+                                      timeEnd: endTime.toIso8601String(),
+                                      terminName: title),
+                                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                    const curve = Curves.easeInOut;
+                                    var tween = Tween<double>(begin: 0.1, end: 1.0).chain(CurveTween(curve: curve));
+                                    var scaleAnimation = animation.drive(tween);
+                                    return ScaleTransition(
+                                      scale: scaleAnimation,
+                                      alignment: Alignment((pos.dx+50) / MediaQuery.of(context).size.width * 2 - 1,
+                                          (pos.dy+30) / MediaQuery.of(context).size.height * 2 - 1), // Die Tap-Position relativ zur Bildschirmgröße
+                                      child: child,
+                                    );},
+                                )
+                            );
+                            if(result != null){
+                              updated = true;
+                              updateCalendar();
+                            }
+                          },
+                          child: SizedBox.expand()
+                        );
+                      }
+                  )*/
