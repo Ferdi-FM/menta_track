@@ -202,8 +202,7 @@ class MyHomePageState extends State<WeekPlanView> with RouteAware{
 
   ///Konvertiert eine DateTime zu der vom package erwartetem Format (integer). errechnet differenz zwischen der 0ten Stunde am Kalender und dem Termin
   Map<String, int> convertToCalendarFormat(DateTime calendarStart, DateTime terminDate) {
-    Duration difference = terminDate.difference(calendarStart);
-
+    Duration difference = terminDate.add(terminDate.timeZoneOffset - calendarStart.timeZoneOffset).difference(calendarStart);
     int days = difference.inDays;
     int hours = difference.inHours % 24;
     int minutes = difference.inMinutes % 60;

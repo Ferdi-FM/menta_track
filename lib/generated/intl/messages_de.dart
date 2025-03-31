@@ -398,7 +398,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Um eine Woche zu löschen, halte das \"Mülleimer\"-Symbol gedrückt.",
     ),
     "mainPageDescription": MessageLookupByLibrary.simpleMessage(
-      "Das ist die Startseite",
+      "Das ist die Wochenansicht",
     ),
     "mainPageInstructions": MessageLookupByLibrary.simpleMessage(
       "Hier findest du alle Deine gespeicherten Wochenpläne.",
@@ -728,7 +728,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "weekStart": MessageLookupByLibrary.simpleMessage("Wochenstart"),
     "week_reward_message": MessageLookupByLibrary.simpleMessage(
-      "<b>Danke!<b> 😊 \n\n Ich hoffe deine Woche hat dich vorangebracht und dir geholfen \n\n Du schaffst das Woche für Woche 💪",
+      "Danke! 😊 \n\n Ich hoffe deine Woche hat dich vorangebracht und dir geholfen \n\n Du schaffst das Woche für Woche 💪",
     ),
     "weeklyPlans": MessageLookupByLibrary.simpleMessage("Wochenpläne"),
     "weekly_values": MessageLookupByLibrary.simpleMessage("Wöchentliche Werte"),

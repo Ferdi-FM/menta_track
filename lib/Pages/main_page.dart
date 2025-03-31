@@ -155,7 +155,8 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
 
   ///Checkt nach erstem Start und zeigt ein Tutorial an
   Future<void> checkForFirstStart() async {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future.delayed(Duration(milliseconds: 500));// Weil die Erlaubnisfrage teils das laden des Texts blockiert hat
       if(mounted) await Utilities().checkAndShowFirstHelpDialog(context, "MainPageFirst");
     });
   }
@@ -456,7 +457,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
             BottomNavigationBarItem(
               icon: _selectedIndex == 2 ? Icon(Icons.home) : Icon(Icons.home_outlined),
               backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
-              label:  S.of(context).home,
+              label:  S.current.weeklyPlans,
             ),
             BottomNavigationBarItem(
               icon: _selectedIndex == 3 ? Icon(Icons.insights) : Icon(Icons.insights_outlined),
@@ -479,7 +480,7 @@ class MainPageState extends State<MainPage> with WidgetsBindingObserver, RouteAw
             updateItems();
             //Reload Benachrichtigungen
             NotificationHelper().loadAllNotifications(true);
-            NotificationHelper().scheduleStudyNotification();//FÜR STUDIE oder testen von benachrichtigungen
+            //NotificationHelper().scheduleStudyNotification();//FÜR STUDIE oder testen von benachrichtigungen
           }
         },
         backgroundColor: Theme.of(context).bottomNavigationBarTheme.selectedItemColor,

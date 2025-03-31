@@ -185,7 +185,7 @@ class DayOverviewState extends State<DayOverviewPage> {
         context,
         S.current.day_reward_message,
         widget.weekKey,
-        false
+        true
     );
     if(result == "confirmed"){
       leavePage();

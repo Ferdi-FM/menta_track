@@ -10,6 +10,8 @@ class CreateDummyJsonForTesting{
   List<Map<String, String>> studyTermine = [];
   List<Map<String, String>> presentationTermine = [];
 
+  List<Map<String, String>> singleWeek = [];
+
   CreateDummyJsonForTesting(){
     final termine = [
       {
@@ -550,19 +552,42 @@ class CreateDummyJsonForTesting{
         "tE": "2025-03-26 21:00:00"
       },
       {
+        "tN": "Kochen",
+        "tB": "2025-03-30 20:00:00",
+        "tE": "2025-03-30 21:00:00"
+      },
+      {
         "tN": "Tierheim helfen",
-        "tB": "2025-03-27 09:00:00",
-        "tE": "2025-03-27 10:00:00"
+        "tB": "2025-03-31 09:00:00",
+        "tE": "2025-03-31 10:00:00"
       },
       {
         "tN": "2 Wochen Einkauf",
-        "tB": "2025-03-28 14:00:00",
-        "tE": "2025-03-28 15:30:00"
+        "tB": "2025-04-01 14:00:00",
+        "tE": "2025-04-01 15:30:00"
       },
       {
         "tN": "Lieblingsessen kochen",
-        "tB": "2025-03-29 18:00:00",
-        "tE": "2025-03-29 19:00:00"
+        "tB": "2025-04-03 18:00:00",
+        "tE": "2025-04-03 19:00:00"
+      }
+    ];
+
+    singleWeek = [
+      {
+        "tN": "Tierheim helfen",
+        "tB": "2025-03-31 09:00:00",
+        "tE": "2025-03-31 10:00:00"
+      },
+      {
+        "tN": "2 Wochen Einkauf",
+        "tB": "2025-04-01 14:00:00",
+        "tE": "2025-04-01 15:30:00"
+      },
+      {
+        "tN": "Lieblingsessen kochen",
+        "tB": "2025-04-03 18:00:00",
+        "tE": "2025-04-03 19:00:00"
       }
     ];
 

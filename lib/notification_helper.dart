@@ -350,26 +350,19 @@ class NotificationHelper{
     //Termin for Notification
     List<Termin> terminList = await DatabaseHelper().getAllTermine();
     Termin termin = terminList[1];
-    for(Termin t in terminList){
-      if(DateFormat("dd.MM.yy").format(t.timeBegin) == DateFormat("dd.MM.yy").format(DateTime.now())){
-        if(t.timeBegin.isBefore(DateTime.now())){
-          termin = t;
-        }
-      }
-    }
     String weekKey = termin.weekKey;
     DateTime studyTime = DateTime.now().add(Duration(seconds: 10));
     ///Start 2sec
     final pref = await SharedPreferences.getInstance();
 
       List<Termin> termineForThisDay = [];
-      String title = S.current.noti_start_title(studyTime);
+      String title = S.current.noti_start_title(termin.timeBegin);
       String message = S.current.noti_start_message;
       bool noTasks = false;
 
-      for(Termin termin in terminList){
-        if(DateFormat("dd.MM.yy").format(studyTime) == DateFormat("dd.MM.yy").format(termin.timeBegin)){
-          termineForThisDay.add(termin);
+      for(Termin termin1 in terminList){
+        if(DateFormat("dd.MM.yy").format(termin1.timeBegin) == DateFormat("dd.MM.yy").format(termin.timeBegin)){
+          termineForThisDay.add(termin1);
         }
       }
 
@@ -437,7 +430,7 @@ class NotificationHelper{
           });
     }
     ///END 5sec
-    String title1 = S.current.noti_dayEnd_title(studyTime);
+    String title1 = S.current.noti_dayEnd_title(termin.timeBegin);
     String message1 = S.current.noti_dayEnd_message;
 
     //print(currentDay);
@@ -449,7 +442,7 @@ class NotificationHelper{
         repeatNotif: false,
         payLoad: {
           "weekKey": weekKey,
-          "weekDayKey": DateFormat("dd.MM.yy").format(studyTime), //DayOverView braucht ("dd.MM.yy") format
+          "weekDayKey": DateFormat("dd.MM.yy").format(termin.timeBegin), //DayOverView braucht ("dd.MM.yy") format
           "siteToOpen": "DayOverView"
         });
 

@@ -249,7 +249,7 @@ class QuestionPageState extends State<QuestionPage> {
                   RichText(
                     text: TextSpan(
                         children: [
-                          TextSpan(text: "${localTerminName}  \n", style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: "$localTerminName  \n", style: TextStyle(fontWeight: FontWeight.bold)),
                           TextSpan(text:  "${S.of(context).am} ${S.current.displayADate(DateTime.parse(localTimeBegin))} "
                                           "${S.of(context).um} ${S.current.displayATime(DateTime.parse(localTimeBegin))}")
                         ],
@@ -310,7 +310,7 @@ class QuestionPageState extends State<QuestionPage> {
                           ),
                         ),
                         onPressed: () async {
-                          String title =" ${localTerminName} ${S.current.am} ${DateFormat("dd.MM").format(DateTime.parse(localTimeBegin))} ${S.current.um} ${DateFormat("HH:mm").format(DateTime.parse(localTimeBegin))}";
+                          String title =" $localTerminName ${S.current.am} ${DateFormat("dd.MM").format(DateTime.parse(localTimeBegin))} ${S.current.um} ${DateFormat("HH:mm").format(DateTime.parse(localTimeBegin))}";
                           bool? result = await Utilities().showDeleteDialog(title, false, context);
                           if(result != null){
                             if(result){

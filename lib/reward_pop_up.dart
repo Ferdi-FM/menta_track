@@ -35,11 +35,13 @@ class _AnimatedRewardPopUp extends StatefulWidget {
   final String message;
   final String weekKey;
   final bool gifBegin;
+  final bool? fromDayWeekNotification;
 
   const _AnimatedRewardPopUp({
     required this.message,
     required this.weekKey,
     required this.gifBegin,
+    this.fromDayWeekNotification,
   });
 
   @override
@@ -122,7 +124,13 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
     setState(() {
       finishedGif = widget.gifBegin;
       !widget.gifBegin ? startFrame = doneTasks/totalTasks : startFrame = 0;
-      endFrame = (doneTasks+1)/totalTasks;
+      if(widget.fromDayWeekNotification != null){
+
+        endFrame = (doneTasks)/totalTasks;
+      } else {
+        endFrame = (doneTasks+1)/totalTasks;
+      }
+
     });
   }
 

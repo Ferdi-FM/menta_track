@@ -104,18 +104,18 @@ class ImportJson {
     ///Es müssen 7 Tage zwischen den starttagen liegen, sodass zur not noch die Woche eingefügt werden kann!
     ///Falls es wie ursprünglich gehandelt werden soll, können "checkWeekKeyRange" & "checkWeekKeyRangeInLoop" wieder verwendet werden.
     ///Dann muss jedoch Sichergestellt werden, dass in den Importierten Plänen keine Lücke, die länger als 7Tage ist, ist!!!
-    else if (inLoop){
-      String testDate2 = DateFormat("yyyy-MM-dd").format(firstWeekDay.subtract(Duration(days: 7)));
-      String query = '''
-      SELECT weekKey FROM WeeklyPlans 
-      WHERE date(weekKey) BETWEEN date(?, '-7 days') AND date(?)
-      LIMIT 1;
-    ''';
-      List<Map<String, dynamic>> result = await db.rawQuery(query, [testDate2, testDate2]);
-      if (result.isNotEmpty && !newTerminMap.containsKey(result.first["weekKey"])) {
-        firstWeekDay = DateTime.parse(result.first["weekKey"]).add(Duration(days: 6));
-      }
-    }
+    //else if (inLoop){
+    //  String testDate2 = DateFormat("yyyy-MM-dd").format(firstWeekDay.subtract(Duration(days: 7)));
+    //  String query = '''
+    //  SELECT weekKey FROM WeeklyPlans
+    //  WHERE date(weekKey) BETWEEN date(?, '-7 days') AND date(?)
+    //  LIMIT 1;
+    //''';
+    //  List<Map<String, dynamic>> result = await db.rawQuery(query, [testDate2, testDate2]);
+    //  if (result.isNotEmpty && !newTerminMap.containsKey(result.first["weekKey"])) {
+    //    firstWeekDay = DateTime.parse(result.first["weekKey"]).add(Duration(days: 6));
+    //  }
+    //}
     return firstWeekDay;
   }
 
@@ -129,14 +129,18 @@ class ImportJson {
     String firstWeekDayString = DateFormat("yyyy-MM-dd").format(firstWeekDay);              //formatieren in String für die Map
 
     firstWeekDay = DateTime.parse(firstWeekDayString);                                      //Um es auf 0:00 am ersten Tag zu setzen
-    firstWeekDay = await checkWeekKeyRangeVariable(firstWeekDay,false, newTerminMap);                     //Checkt das erste mal ob es in einen schon vorhanden Plan fällt
+    firstWeekDay = await checkWeekKeyRange(firstWeekDay);                     //Checkt das erste mal ob es in einen schon vorhanden Plan fällt
     firstWeekDayString = DateFormat("yyyy-MM-dd").format(firstWeekDay);                     //Wandelt die transformierte Zeit in einen String zum vergleichen um
     for(int i = 0; i < terminMap.length; i++){                                              //Iteriert durch Map
       DateTime terminTime =  DateTime.parse(terminMap[i]["tB"]);
-      while(terminTime.difference(firstWeekDay).inDays > 6){                                //schaut ob die Difference zum ersten Wochentag größer als 7Tage ist, wenn true setzt er die nächste woche als neue referenz
-        firstWeekDay = await checkWeekKeyRangeVariable(terminTime,true,newTerminMap);       //Checkt ob es sich in der neuen Range mit einem existierenden Plan überschneidet
+      terminTime = DateTime(terminTime.year,terminTime.month,terminTime.day, 0,0).toLocal();
+      print("DIFFERNECE: $terminTime & $firstWeekDay ||  ${terminTime.timeZoneOffset} - ${firstWeekDay.timeZoneOffset} = ${terminTime.timeZoneOffset - firstWeekDay.timeZoneOffset} " );
+      print("DIFF in hours: ${terminTime.difference(firstWeekDay).inHours} + ${(terminTime.timeZoneOffset - firstWeekDay.timeZoneOffset).inHours}");
+      while(terminTime.difference(firstWeekDay).inHours + (terminTime.timeZoneOffset - firstWeekDay.timeZoneOffset).inHours  >= 168) {                                //schaut ob die Difference zum ersten Wochentag größer als 7Tage ist, wenn true setzt er die nächste woche als neue referenz
+        firstWeekDay = await checkWeekKeyRangeInLoop(terminTime);       //Checkt ob es sich in der neuen Range mit einem existierenden Plan überschneidet
         firstWeekDayString = DateFormat("yyyy-MM-dd").format(firstWeekDay);
       }
+      print("FIRSTWEEKDAY: $firstWeekDay");
       if(!newTerminMap.containsKey(firstWeekDayString)){//wenn die Map noch nicht den Wochenkey enthält
         newTerminMap[firstWeekDayString] = [];                                              //wird er eingefügt
       }

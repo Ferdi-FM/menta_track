@@ -32,12 +32,17 @@ class TerminDialog {
     Color? tileColor;
 
     if(existingStartTime != null){
-      selectedDate = existingStartTime!;
+      selectedDate = DateTime(existingStartTime!.year, existingStartTime!.month, existingStartTime!.day, 0,0);
       startTime = TimeOfDay.fromDateTime(existingStartTime!);
       endTime = TimeOfDay.fromDateTime(existingEndTime!);
       nameController.text = existingName!;
     } else {
+      DateTime weekKeyDate = DateTime.parse(weekKey);
       selectedDate = DateTime.parse(weekKey);
+      if(DateTime.now().isAfter(weekKeyDate) && DateTime.now().isBefore(weekKeyDate.add(Duration(days: 7)))){
+          selectedDate = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, 0, 0);
+      }
+
       startTime = TimeOfDay.fromDateTime(DateTime.now());
       endTime = TimeOfDay.fromDateTime(DateTime.now().add(Duration(minutes: 30)));
     }
@@ -45,7 +50,7 @@ class TerminDialog {
     Future<DateTime?> pickDate(DateTime? initialDate) async {
       return await showDatePicker(
         context: context,
-        initialDate: DateTime.parse(weekKey),
+        initialDate: selectedDate,
         firstDate: DateTime.parse(weekKey),
         lastDate: DateTime.parse(weekKey).add(Duration(days: 6)),
         barrierDismissible: false,
@@ -165,8 +170,20 @@ class TerminDialog {
                               onPressed: () {
                                 if (nameController.text.isNotEmpty) {
                                   if(startTime.isBefore(endTime)){
-                                    DateTime timeStart = selectedDate.add(Duration(hours: startTime.hour, minutes: startTime.minute));
-                                    DateTime timeEnd = selectedDate.add(Duration(hours: endTime.hour, minutes: endTime.minute));
+                                    DateTime timeStart = DateTime(
+                                      selectedDate.year,
+                                      selectedDate.month,
+                                      selectedDate.day,
+                                      startTime.hour,
+                                        startTime.minute
+                                    );
+                                    DateTime timeEnd = DateTime(
+                                      selectedDate.year,
+                                      selectedDate.month,
+                                      selectedDate.day,
+                                      endTime.hour,
+                                      endTime.minute,
+                                    );
                                     if(updatingEntry != null){
                                       if(updatingEntry!){
                                         Map<String,dynamic> updateMap = {
@@ -182,6 +199,8 @@ class TerminDialog {
                                           DatabaseHelper().updateEntry(weekKey, originalTimeBegin,originalName, updateMap);
                                         }
                                       }
+                                    } else {
+                                      DatabaseHelper().insertSingleTermin(weekKey, nameController.text, timeStart, timeEnd);
                                     }
                                     Map<String,dynamic> results = {
                                       "timeBegin": timeStart,
@@ -189,7 +208,7 @@ class TerminDialog {
                                       "terminName": nameController.text,
                                     };
                                     navigatorKey.currentState?.pop(results);
-                                    DatabaseHelper().insertSingleTermin(weekKey, nameController.text, timeStart, timeEnd); //Für mehrtägige implementation: Wenn über eine WOche hinweg ein Termin vergeben wird, sollte dieser zu beiden Wochen hinzugefügt werden
+                                    //Für mehrtägige implementation: Wenn über eine WOche hinweg ein Termin vergeben wird, sollte dieser zu beiden Wochen hinzugefügt werden
                                   } else {
                                     setState(() {
                                       tileColor = Color.fromARGB(90, 220, 172, 107);

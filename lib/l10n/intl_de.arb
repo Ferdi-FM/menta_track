@@ -183,7 +183,7 @@
   "firstStartUp_Message1": "Du hast die App gerade zum ersten mal geöffnet.\uD83D\uDC4D \n\n Sehr Cool, dass du diese App verwendest \uD83D\uDE0A \n\n Du kannst die App in den Einstellungen ein wenig anpassen wenn du Lust hast. \nTippe dazu auf die drei Striche in der oberen rechten Ecke und dann auf Einstellungen\n\n",
   "firstStartUp_Message2": "Falls du mehr Infos zu einer Seite willst findest du in dem Menü auch einen Hilfe-Button \uFE0F",
 
-  "mainPageDescription": "Das ist die Startseite",
+  "mainPageDescription": "Das ist die Wochenansicht",
   "mainPageInstructions": "Hier findest du alle Deine gespeicherten Wochenpläne.",
   "mainPageQrScanner": "Wenn du auf die Schaltfläche unten rechts tippst, öffnet sich ein QR-Scanner. Nutze ihn um einen QR-Code von deinem Therapeuten zu scannen.",
   "mainPageTapOnPlan": "Tippe auf einen Plan, um ihn zu öffnen \uD83D\uDE0A",
@@ -336,7 +336,7 @@
   "weekOverView_tooEarly": "Die Woche ist noch nicht gekommen. Schau gerne später wieder hier rein :)",
   "weekOverView_noAnswers": "Du hast diese Woche noch keine Aktivität bewertet \n komm bitte später wieder 🙋‍♂️",
   "weekOverView_scroll": "\n\n Scroll weiter um mehr Infos zu bekommen ;)",
-  "week_reward_message": "<b>Danke!<b> \uD83D\uDE0A \n\n Ich hoffe deine Woche hat dich vorangebracht und dir geholfen \n\n Du schaffst das Woche für Woche \uD83D\uDCAA",
+  "week_reward_message": "Danke! \uD83D\uDE0A \n\n Ich hoffe deine Woche hat dich vorangebracht und dir geholfen \n\n Du schaffst das Woche für Woche \uD83D\uDCAA",
   "weekly_values": "Wöchentliche Werte",
 
 
