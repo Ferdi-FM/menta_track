@@ -221,7 +221,7 @@ class NotificationHelper{
 
       if(termineForThisDay.isNotEmpty){ //Benachrichtigt wenn es Termine gibt
         for(Termin t in termineForThisDay){
-          message = "$message - ${t.terminName} ${S.current.um} <b>${S.current.displayATime(t.timeBegin)}<b><br> \n";
+          message = "$message - ${t.terminName} ${S.current.um} <b>${S.current.displayATime(t.timeBegin)}</b><br> \n";
         }
       } else {
         noTasks = true;
@@ -368,7 +368,7 @@ class NotificationHelper{
 
       if(termineForThisDay.isNotEmpty){ //Benachrichtigt wenn es Termine gibt
         for(Termin t in termineForThisDay){
-          message = "$message - ${t.terminName} ${S.current.um} <b>${S.current.displayATime(t.timeBegin)}<b><br> \n";
+          message = "$message - ${t.terminName} ${S.current.um} <b>${S.current.displayATime(t.timeBegin)}</b> <br>";
         }
       } else {
         noTasks = true;

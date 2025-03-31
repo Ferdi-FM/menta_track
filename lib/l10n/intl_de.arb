@@ -319,7 +319,7 @@
   "tasksPendingFeedback": "\n\n(Wenn du Lust hast, kannst du noch Feedback zu {count, plural, =1{einer Aktivität} other{{count} Aktivitäten}} auf der \"Offen\"-Seite geben 😊)",
   "noAppointmentsOn": "Du hattest {date} keine Aktivität geplant gehabt.",
   "hopeYouHadAGoodDay": "Ich hoffe, du hast und hattest trotzdem einen schönen Tag {count, plural, zero{} other{, {name}}} 😊",
-  "noFeedbackFromNotification": "Der Tag ist vorbei, toll das du hier reinschaust, <br> allein das bedeutet schon, dass du deine Situation verbessern willst\uD83D\uDC4D <br> Danke dir!\uD83D\uDE09\n\n",
+  "noFeedbackFromNotification": "Der Tag ist vorbei, toll das du hier reinschaust, allein das bedeutet schon, dass du deine Situation verbessern willst\uD83D\uDC4D Danke dir!\uD83D\uDE09\n\n",
   "tasksNotAnsweredOn": "Du hast {date}\n {count, plural, =1{deine Aktivität} other{{count} Aktivitäten}}\nnoch nicht beantwortet.",
   "checkPendingFeedback": "Schau auf der Startseite unter \"Offen\" oder in der \"Wochenübersicht\" nach, um Feedback zu einer Aktivität zu geben 👍",
   "dayNotYetArrived": "Der Tag ist noch nicht gekommen 😉 Trotzdem schön, dass du schon mal hier reinschaust {name} :)",
@@ -358,8 +358,8 @@
   "noti_noTasks_message":"Heute stehen keine Aktivitäten an,<br>also lehn dich zurück und entspann ein bisschen \uD83D\uDE42",
 
   "@Termin": {  },
-  "noti_termin_messageBefore": "{terminName} steht in {count} Minuten an. <br> <b>Du schaffst das!<b>🤞",
-  "noti_termin_messageAt": "Es ist soweit für {terminName}!<br> <b>Viel Erfolg!<b>🤞",
+  "noti_termin_messageBefore": "{terminName} steht in {count} Minuten an. <br> <b>Du schaffst das!</b>🤞",
+  "noti_termin_messageAt": "Es ist soweit für {terminName}!<br> <b>Viel Erfolg!</b>🤞",
   "noti_termin_messageAfter": "{terminName} ist vorbei.<br> Ich hoffe es hat geklappt und dir geholfen 😊<br>Bitte klicke auf mich, nimm dir eine Minute und reflektiere die Aktivität<br>Egal ob geschaft oder nicht, das reflektieren darüber ist schon eine tolle Leistung 🤘",
 
 

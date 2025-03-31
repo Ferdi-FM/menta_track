@@ -134,13 +134,10 @@ class ImportJson {
     for(int i = 0; i < terminMap.length; i++){                                              //Iteriert durch Map
       DateTime terminTime =  DateTime.parse(terminMap[i]["tB"]);
       terminTime = DateTime(terminTime.year,terminTime.month,terminTime.day, 0,0).toLocal();
-      print("DIFFERNECE: $terminTime & $firstWeekDay ||  ${terminTime.timeZoneOffset} - ${firstWeekDay.timeZoneOffset} = ${terminTime.timeZoneOffset - firstWeekDay.timeZoneOffset} " );
-      print("DIFF in hours: ${terminTime.difference(firstWeekDay).inHours} + ${(terminTime.timeZoneOffset - firstWeekDay.timeZoneOffset).inHours}");
       while(terminTime.difference(firstWeekDay).inHours + (terminTime.timeZoneOffset - firstWeekDay.timeZoneOffset).inHours  >= 168) {                                //schaut ob die Difference zum ersten Wochentag größer als 7Tage ist, wenn true setzt er die nächste woche als neue referenz
         firstWeekDay = await checkWeekKeyRangeInLoop(terminTime);       //Checkt ob es sich in der neuen Range mit einem existierenden Plan überschneidet
         firstWeekDayString = DateFormat("yyyy-MM-dd").format(firstWeekDay);
       }
-      print("FIRSTWEEKDAY: $firstWeekDay");
       if(!newTerminMap.containsKey(firstWeekDayString)){//wenn die Map noch nicht den Wochenkey enthält
         newTerminMap[firstWeekDayString] = [];                                              //wird er eingefügt
       }

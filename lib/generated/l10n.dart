@@ -2117,50 +2117,50 @@ class S {
     );
   }
 
-  /// `Today the following Activities are planed 🙂 \n`
+  /// `Today the following Activities are planed 🙂 <br>`
   String get noti_start_message {
     return Intl.message(
-      'Today the following Activities are planed 🙂 \n',
+      'Today the following Activities are planed 🙂 <br>',
       name: 'noti_start_message',
       desc: '',
       args: [],
     );
   }
 
-  /// `Today there aren't any Activities planed, so lean back and try to relax a bit 🙂`
+  /// `Today there aren't any Activities planed,<br> so lean back and try to relax a bit 🙂`
   String get noti_noTasks_message {
     return Intl.message(
-      'Today there aren\'t any Activities planed, so lean back and try to relax a bit 🙂',
+      'Today there aren\'t any Activities planed,<br> so lean back and try to relax a bit 🙂',
       name: 'noti_noTasks_message',
       desc: '',
       args: [],
     );
   }
 
-  /// `{terminName} is on in {count} minutens. You got this!🤞`
+  /// `{terminName} is on in {count} minutens.<br> You got this!🤞`
   String noti_termin_messageBefore(Object terminName, Object count) {
     return Intl.message(
-      '$terminName is on in $count minutens. You got this!🤞',
+      '$terminName is on in $count minutens.<br> You got this!🤞',
       name: 'noti_termin_messageBefore',
       desc: '',
       args: [terminName, count],
     );
   }
 
-  /// `It's time for {terminName}! Good Luck!🤞`
+  /// `It's time for {terminName}!<br> Good Luck!🤞`
   String noti_termin_messageAt(Object terminName) {
     return Intl.message(
-      'It\'s time for $terminName! Good Luck!🤞',
+      'It\'s time for $terminName!<br> Good Luck!🤞',
       name: 'noti_termin_messageAt',
       desc: '',
       args: [terminName],
     );
   }
 
-  /// `{terminName} is over. I hope it worked out and helped you 😊\nPlease tap on me and take a second to reflect\nIt's not bad if you coudn't do the Activity, the reflection itself is more than most people can do🤘`
+  /// `{terminName} is over. I hope it worked out and helped you 😊<br>Please tap on me and take a second to reflect<br>It's not bad if you coudn't do the Activity, the reflection itself is more than most people can do🤘`
   String noti_termin_messageAfter(Object terminName) {
     return Intl.message(
-      '$terminName is over. I hope it worked out and helped you 😊\nPlease tap on me and take a second to reflect\nIt\'s not bad if you coudn\'t do the Activity, the reflection itself is more than most people can do🤘',
+      '$terminName is over. I hope it worked out and helped you 😊<br>Please tap on me and take a second to reflect<br>It\'s not bad if you coudn\'t do the Activity, the reflection itself is more than most people can do🤘',
       name: 'noti_termin_messageAfter',
       desc: '',
       args: [terminName],
@@ -2183,10 +2183,10 @@ class S {
     );
   }
 
-  /// `Once again a day is over. \n Tap on me to see what happend today 😊 \n`
+  /// `Once again a day is over. <br> Tap on me to see what happend today 😊 <br>`
   String get noti_dayEnd_message {
     return Intl.message(
-      'Once again a day is over. \n Tap on me to see what happend today 😊 \n',
+      'Once again a day is over. <br> Tap on me to see what happend today 😊 <br>',
       name: 'noti_dayEnd_message',
       desc: '',
       args: [],
@@ -2203,10 +2203,10 @@ class S {
     );
   }
 
-  /// `Super! Another week done\n Tap on me for a Summary of the week`
+  /// `Super! Another week done<br> Tap on me for a Summary of the week`
   String get noti_weekEnd_message {
     return Intl.message(
-      'Super! Another week done\n Tap on me for a Summary of the week',
+      'Super! Another week done<br> Tap on me for a Summary of the week',
       name: 'noti_weekEnd_message',
       desc: '',
       args: [],

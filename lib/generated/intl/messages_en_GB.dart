@@ -103,12 +103,13 @@ class MessageLookup extends MessageLookupByLibrary {
   static String m34(date) => "📅 Activities on the ${date}";
 
   static String m35(terminName) =>
-      "${terminName} is over. I hope it worked out and helped you 😊\nPlease tap on me and take a second to reflect\nIt\'s not bad if you coudn\'t do the Activity, the reflection itself is more than most people can do🤘";
+      "${terminName} is over. I hope it worked out and helped you 😊<br>Please tap on me and take a second to reflect<br>It\'s not bad if you coudn\'t do the Activity, the reflection itself is more than most people can do🤘";
 
-  static String m36(terminName) => "It\'s time for ${terminName}! Good Luck!🤞";
+  static String m36(terminName) =>
+      "It\'s time for ${terminName}!<br> Good Luck!🤞";
 
   static String m37(terminName, count) =>
-      "${terminName} is on in ${count} minutens. You got this!🤞";
+      "${terminName} is on in ${count} minutens.<br> You got this!🤞";
 
   static String m38(name) =>
       "You can also give feedback if it didn\'t work out! Just giving feedback is already great, ${name} 😇💖\n";
@@ -406,21 +407,21 @@ class MessageLookup extends MessageLookupByLibrary {
     "notEmpty": MessageLookupByLibrary.simpleMessage("Name mustn\'t "),
     "not_yet_single": MessageLookupByLibrary.simpleMessage("Not here yet 😉"),
     "noti_dayEnd_message": MessageLookupByLibrary.simpleMessage(
-      "Once again a day is over. \n Tap on me to see what happend today 😊 \n",
+      "Once again a day is over. <br> Tap on me to see what happend today 😊 <br>",
     ),
     "noti_dayEnd_title": m33,
     "noti_noTasks_message": MessageLookupByLibrary.simpleMessage(
-      "Today there aren\'t any Activities planed, so lean back and try to relax a bit 🙂",
+      "Today there aren\'t any Activities planed,<br> so lean back and try to relax a bit 🙂",
     ),
     "noti_start_message": MessageLookupByLibrary.simpleMessage(
-      "Today the following Activities are planed 🙂 \n",
+      "Today the following Activities are planed 🙂 <br>",
     ),
     "noti_start_title": m34,
     "noti_termin_messageAfter": m35,
     "noti_termin_messageAt": m36,
     "noti_termin_messageBefore": m37,
     "noti_weekEnd_message": MessageLookupByLibrary.simpleMessage(
-      "Super! Another week done\n Tap on me for a Summary of the week",
+      "Super! Another week done<br> Tap on me for a Summary of the week",
     ),
     "noti_weekEnd_title": MessageLookupByLibrary.simpleMessage(
       "Week Overview 🎊",

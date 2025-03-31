@@ -352,13 +352,14 @@
       }
     }
   },
-  "noti_start_message": "Today the following Activities are planed 🙂 \n",
-  "noti_noTasks_message":"Today there aren't any Activities planed, so lean back and try to relax a bit \uD83D\uDE42",
+
+  "noti_start_message": "Today the following Activities are planed 🙂 <br>",
+  "noti_noTasks_message":"Today there aren't any Activities planed,<br> so lean back and try to relax a bit \uD83D\uDE42",
 
   "@Termin": {  },
-  "noti_termin_messageBefore": "{terminName} is on in {count} minutens. You got this!🤞",
-  "noti_termin_messageAt": "It's time for {terminName}! Good Luck!🤞",
-  "noti_termin_messageAfter": "{terminName} is over. I hope it worked out and helped you 😊\nPlease tap on me and take a second to reflect\nIt's not bad if you coudn't do the Activity, the reflection itself is more than most people can do🤘",
+  "noti_termin_messageBefore": "{terminName} is on in {count} minutens.<br> You got this!🤞",
+  "noti_termin_messageAt": "It's time for {terminName}!<br> Good Luck!🤞",
+  "noti_termin_messageAfter": "{terminName} is over. I hope it worked out and helped you 😊<br>Please tap on me and take a second to reflect<br>It's not bad if you coudn't do the Activity, the reflection itself is more than most people can do🤘",
 
 
   "@End": {  },
@@ -373,9 +374,9 @@
       }
     }
   },
-  "noti_dayEnd_message":"Once again a day is over. \n Tap on me to see what happend today \uD83D\uDE0A \n",
+  "noti_dayEnd_message":"Once again a day is over. <br> Tap on me to see what happend today \uD83D\uDE0A <br>",
   "noti_weekEnd_title": "Week Overview \uD83C\uDF8A",
-  "noti_weekEnd_message":"Super! Another week done\n Tap on me for a Summary of the week",
+  "noti_weekEnd_message":"Super! Another week done<br> Tap on me for a Summary of the week",
 
   "delete": "Delete",
   "delete_week_plan":"Do you really want to delete the Plan for:",

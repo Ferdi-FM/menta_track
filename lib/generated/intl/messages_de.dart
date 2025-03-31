@@ -109,10 +109,10 @@ class MessageLookup extends MessageLookupByLibrary {
       "${terminName} ist vorbei.<br> Ich hoffe es hat geklappt und dir geholfen 😊<br>Bitte klicke auf mich, nimm dir eine Minute und reflektiere die Aktivität<br>Egal ob geschaft oder nicht, das reflektieren darüber ist schon eine tolle Leistung 🤘";
 
   static String m36(terminName) =>
-      "Es ist soweit für ${terminName}!<br> <b>Viel Erfolg!<b>🤞";
+      "Es ist soweit für ${terminName}!<br> <b>Viel Erfolg!</b>🤞";
 
   static String m37(terminName, count) =>
-      "${terminName} steht in ${count} Minuten an. <br> <b>Du schaffst das!<b>🤞";
+      "${terminName} steht in ${count} Minuten an. <br> <b>Du schaffst das!</b>🤞";
 
   static String m38(name) =>
       "Du kannst auch feedback geben, falls es nicht geklappt hat!\nAllein das du Feedback gibst ist schon toll ${name} 😇💖\n";
@@ -424,7 +424,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Kein Feedback offen, super!👍",
     ),
     "noFeedbackFromNotification": MessageLookupByLibrary.simpleMessage(
-      "Der Tag ist vorbei, toll das du hier reinschaust, <br> allein das bedeutet schon, dass du deine Situation verbessern willst👍 <br> Danke dir!😉\n\n",
+      "Der Tag ist vorbei, toll das du hier reinschaust, allein das bedeutet schon, dass du deine Situation verbessern willst👍 Danke dir!😉\n\n",
     ),
     "notEmpty": MessageLookupByLibrary.simpleMessage(
       "Name darf nicht leer sein",

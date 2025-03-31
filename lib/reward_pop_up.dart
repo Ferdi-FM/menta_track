@@ -24,7 +24,7 @@ class RewardPopUp {
         return _AnimatedRewardPopUp(
           message: message,
           weekKey: weekKey,
-          gifBegin : gifFromBeginning, //Weil je nach RewardPopUp für Termin/Tag/Woche soll das gif unterschiedlich beginnen
+          gifBegin : gifFromBeginning//Weil je nach RewardPopUp für Termin/Tag/Woche soll das gif unterschiedlich beginnen
         );
       },
     );
@@ -35,13 +35,11 @@ class _AnimatedRewardPopUp extends StatefulWidget {
   final String message;
   final String weekKey;
   final bool gifBegin;
-  final bool? fromDayWeekNotification;
 
   const _AnimatedRewardPopUp({
     required this.message,
     required this.weekKey,
-    required this.gifBegin,
-    this.fromDayWeekNotification,
+    required this.gifBegin
   });
 
   @override
@@ -122,15 +120,14 @@ class _AnimatedRewardPopUpState extends State<_AnimatedRewardPopUp> with TickerP
     int totalTasks = await DatabaseHelper().getWeekTermineCount(widget.weekKey,false);
     int doneTasks = await DatabaseHelper().getWeekTermineCountAnswered(widget.weekKey, true);
     setState(() {
-      finishedGif = widget.gifBegin;
-      !widget.gifBegin ? startFrame = doneTasks/totalTasks : startFrame = 0;
-      if(widget.fromDayWeekNotification != null){
 
+      !widget.gifBegin ? startFrame = doneTasks/totalTasks : startFrame = 0;
+      if(widget.gifBegin){
         endFrame = (doneTasks)/totalTasks;
       } else {
         endFrame = (doneTasks+1)/totalTasks;
       }
-
+      if(endFrame == 0) finishedGif = true;
     });
   }
 

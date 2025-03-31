@@ -38,6 +38,7 @@ class GifProgressWidgetState extends State<GifProgressWidget> {
     super.initState();
     loadTheme();
     _gifController = GifController();
+    if(widget.progress == 0) widget.finished;
   }
 
   ///Lädt Theme-Daten
@@ -54,10 +55,11 @@ class GifProgressWidgetState extends State<GifProgressWidget> {
   Future<void> _pauseGifAtProgress(int val) async {
     int targetFrame = (widget.progress * (widget.totalFrames - 1)).clamp(0, widget.totalFrames - 1).toInt();
     int startFrame = (widget.startFrame * (widget.totalFrames - 1)).clamp(0, widget.totalFrames - 1).toInt();
+
     if(startFrame == targetFrame){
       _gifController.seek(targetFrame);
       _gifController.pause();
-      if(!finished) widget.finished();
+      if(!finished || targetFrame == 0) widget.finished();
     } else {
       if(_gifController.index == targetFrame){
         _gifController.pause();
@@ -74,19 +76,19 @@ class GifProgressWidgetState extends State<GifProgressWidget> {
     double p = widget.progress;
     String text = "";
     switch(p) {
-      case double n when (n < 0.2):
+      case double n when (n < 0.25):
         text = S.of(context).gifProgress_case0(name);
         break;
-      case double n when (n < 0.3):
+      case double n when (n < 0.33):
         text = S.of(context).gifProgress_case1(name);
         break;
-      case double n when (n < 0.4):
+      case double n when (n < 0.5):
         text = S.of(context).gifProgress_case2(name);
         break;
-      case double n when (n < 0.5):
+      case double n when (n < 0.6):
         text = S.of(context).gifProgress_case3(name);
         break;
-      case double n when (n < 0.75):
+      case double n when (n < 0.8):
         text =S.of(context).gifProgress_case4(name);
         break;
       case double n when (n < 1.0):
