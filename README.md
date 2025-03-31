@@ -70,7 +70,7 @@ It aims to provide tools that help users maintain Motivation while being mindful
 ---
 
 ### Contributing:
-Contributions are maybe planned as a result of future works on this App in a different thesis.
+Contributions are planned as a result of future works on this App in a different thesis.
 
 ---
 
@@ -81,7 +81,7 @@ For questions or support, please contact your thesis supervisor
 ---
 
 ### Screenshots/Demo:
- "Link to youtube or direct upload?"
+Link to the presentation-video on YouTube: https://youtu.be/cBMtPU6bgWY
 
 ---
 
@@ -96,4 +96,4 @@ The App is completely offline. None of your data will be shared unless you show 
     - A: Also there are no ads or whatsoever in the App
     - A: Also no data is collected!
 - **Q: Will this App get updates?**
-    - A: Maybe? Depending on if someone wants to pick it up, Improves it in a thesis or the App ends up getting used actively
+    - A: Depending on if someone wants to pick it up, Improves it in a thesis or the App ends up getting used actively
